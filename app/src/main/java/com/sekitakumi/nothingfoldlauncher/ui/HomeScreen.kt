@@ -24,6 +24,8 @@ import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 fun HomeScreen(
     apps: List<AppInfo>,
     errorMessage: String?,
+    volumeRatio: Float,
+    onVolumeRatioChange: (Float) -> Unit,
     onAppClick: (AppInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -33,6 +35,8 @@ fun HomeScreen(
             .background(Color.Black)
             .padding(24.dp),
     ) {
+        VolumeBar(ratio = volumeRatio, onRatioChange = onVolumeRatioChange)
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -68,7 +72,7 @@ private fun AppIconTile(app: AppInfo, onClick: () -> Unit, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        val bitmap = renderMonochromeIcon(app.icon)
+        val bitmap = renderHalftoneIcon(app.icon)
         androidx.compose.foundation.Image(
             bitmap = bitmap,
             contentDescription = app.label,

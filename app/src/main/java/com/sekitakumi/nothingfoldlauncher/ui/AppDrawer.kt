@@ -66,7 +66,7 @@ private fun AppRow(app: AppInfo, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         androidx.compose.foundation.Image(
-            bitmap = renderMonochromeIcon(app.icon),
+            bitmap = renderHalftoneIcon(app.icon),
             contentDescription = app.label,
             modifier = Modifier
                 .size(40.dp)

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import com.sekitakumi.nothingfoldlauncher.data.AppRepository
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
+import com.sekitakumi.nothingfoldlauncher.ui.VolumeController
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingFoldLauncherTheme
 
 class MainActivity : ComponentActivity() {
@@ -47,6 +49,13 @@ class MainActivity : ComponentActivity() {
                 val errorMessage by viewModel.errorMessage.collectAsState()
                 val query by viewModel.query.collectAsState()
 
+                val volumeController = remember { VolumeController(applicationContext) }
+                DisposableEffect(volumeController) {
+                    volumeController.register()
+                    onDispose { volumeController.unregister() }
+                }
+                val volumeRatio by volumeController.ratio.collectAsState()
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     if (showDrawer) {
                         AppDrawer(
@@ -59,6 +68,8 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             apps = apps,
                             errorMessage = errorMessage,
+                            volumeRatio = volumeRatio,
+                            onVolumeRatioChange = volumeController::setRatio,
                             onAppClick = { launchApp(it.packageName) },
                         )
                     }
