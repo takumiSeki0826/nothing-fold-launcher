@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Nothing Fold Launcher</string>
+    <string name="wallpaper_label">Nothing Clock</string>
+    <string name="wallpaper_description">Minimal black clock and calendar wallpaper matching the launcher design</string>
 </resources>
