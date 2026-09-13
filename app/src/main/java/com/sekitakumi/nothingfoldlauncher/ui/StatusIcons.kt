@@ -1,0 +1,127 @@
+package com.sekitakumi.nothingfoldlauncher.ui
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SignalWifiOff
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun StatusIcons(
+    batteryPercent: Int,
+    isCharging: Boolean,
+    wifiConnected: Boolean,
+    signalBars: Int?,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        if (signalBars != null) {
+            SignalBarsIcon(bars = signalBars)
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        Icon(
+            imageVector = if (wifiConnected) Icons.Filled.Wifi else Icons.Filled.SignalWifiOff,
+            contentDescription = null,
+            tint = if (wifiConnected) Color.White else Color(0xFF4A4A4A),
+            modifier = Modifier.width(18.dp).height(18.dp),
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        BatteryIcon(percent = batteryPercent, isCharging = isCharging)
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = "$batteryPercent%", color = Color.White, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun SignalBarsIcon(bars: Int, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.width(18.dp).height(14.dp)) {
+        val barWidth = size.width / 4.5f
+        val gap = barWidth * 0.5f
+        for (i in 0 until 4) {
+            val barHeight = size.height * (i + 1) / 4f
+            val color = if (i < bars) Color.White else Color(0xFF4A4A4A)
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(x = i * (barWidth + gap), y = size.height - barHeight),
+                size = Size(barWidth, barHeight),
+                cornerRadius = CornerRadius(barWidth * 0.3f, barWidth * 0.3f),
+            )
+        }
+    }
+}
+
+/** iOS風のバッテリーアイコン(角丸の枠+右の突起+塗りつぶし+充電中は稲妻) */
+@Composable
+private fun BatteryIcon(percent: Int, isCharging: Boolean, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.width(26.dp).height(13.dp)) {
+        val nubWidth = size.width * 0.08f
+        val bodyWidth = size.width - nubWidth - 2.dp.toPx()
+        val strokeWidth = 1.2.dp.toPx()
+        val cornerRadius = CornerRadius(3.dp.toPx(), 3.dp.toPx())
+
+        drawRoundRect(
+            color = Color.White,
+            topLeft = Offset(0f, 0f),
+            size = Size(bodyWidth, size.height),
+            cornerRadius = cornerRadius,
+            style = Stroke(width = strokeWidth),
+        )
+
+        drawRoundRect(
+            color = Color.White,
+            topLeft = Offset(bodyWidth + 2.dp.toPx(), size.height * 0.3f),
+            size = Size(nubWidth, size.height * 0.4f),
+            cornerRadius = CornerRadius(1.dp.toPx(), 1.dp.toPx()),
+        )
+
+        val inset = strokeWidth * 1.5f
+        val fillWidth = ((bodyWidth - inset * 2) * (percent / 100f)).coerceIn(0f, bodyWidth - inset * 2)
+        val fillColor = when {
+            isCharging -> Color.White
+            percent <= 15 -> Color(0xFFD1432B)
+            else -> Color.White
+        }
+        drawRoundRect(
+            color = fillColor,
+            topLeft = Offset(inset, inset),
+            size = Size(fillWidth, size.height - inset * 2),
+            cornerRadius = CornerRadius(1.5.dp.toPx(), 1.5.dp.toPx()),
+        )
+
+        if (isCharging) {
+            drawLightningBolt(bodyWidth = bodyWidth)
+        }
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLightningBolt(bodyWidth: Float) {
+    val h = size.height
+    val cx = bodyWidth / 2f
+    val boltWidth = h * 0.55f
+    val path = Path().apply {
+        moveTo(cx + boltWidth * 0.12f, 0f)
+        lineTo(cx - boltWidth * 0.35f, h * 0.58f)
+        lineTo(cx - boltWidth * 0.05f, h * 0.58f)
+        lineTo(cx - boltWidth * 0.12f, h)
+        lineTo(cx + boltWidth * 0.35f, h * 0.42f)
+        lineTo(cx + boltWidth * 0.05f, h * 0.42f)
+        close()
+    }
+    drawPath(path, color = Color.Black)
+}

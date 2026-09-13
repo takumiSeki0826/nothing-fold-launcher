@@ -16,3 +16,8 @@ fun dragPositionToRatio(x: Float, width: Float): Float {
     if (width <= 0f) return 0f
     return (x / width).coerceIn(0f, 1f)
 }
+
+fun verticalDragToRatio(y: Float, height: Float): Float {
+    if (height <= 0f) return 0f
+    return (1f - y / height).coerceIn(0f, 1f)
+}

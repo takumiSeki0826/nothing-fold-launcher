@@ -1,0 +1,135 @@
+package com.sekitakumi.nothingfoldlauncher.ui
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.os.Build
+import android.telephony.PhoneStateListener
+import android.telephony.SignalStrength
+import android.telephony.TelephonyCallback
+import android.telephony.TelephonyManager
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+class StatusIconsController(private val context: Context) {
+
+    private val _batteryPercent = MutableStateFlow(0)
+    val batteryPercent: StateFlow<Int> = _batteryPercent.asStateFlow()
+
+    private val _isCharging = MutableStateFlow(false)
+    val isCharging: StateFlow<Boolean> = _isCharging.asStateFlow()
+
+    private val _wifiConnected = MutableStateFlow(false)
+    val wifiConnected: StateFlow<Boolean> = _wifiConnected.asStateFlow()
+
+    private val _signalBars = MutableStateFlow<Int?>(null)
+    val signalBars: StateFlow<Int?> = _signalBars.asStateFlow()
+
+    private val batteryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(receivedContext: Context?, intent: Intent?) {
+            val level = intent?.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1) ?: -1
+            val scale = intent?.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1) ?: -1
+            _batteryPercent.value = batteryPercent(level, scale)
+
+            val status = intent?.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1) ?: -1
+            _isCharging.value = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == android.os.BatteryManager.BATTERY_STATUS_FULL
+        }
+    }
+
+    private val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+            _wifiConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+        }
+
+        override fun onLost(network: Network) {
+            _wifiConnected.value = false
+        }
+    }
+
+    private val telephonyManager =
+        context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+
+    private val telephonyCallback: TelephonyCallback? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            object : TelephonyCallback(), TelephonyCallback.SignalStrengthsListener {
+                override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
+                    _signalBars.value = signalBars(signalStrength.level)
+                }
+            }
+        } else {
+            null
+        }
+
+    @Suppress("DEPRECATION")
+    private val phoneStateListener: PhoneStateListener? =
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            object : PhoneStateListener() {
+                override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
+                    _signalBars.value = signalBars(signalStrength.level)
+                }
+            }
+        } else {
+            null
+        }
+
+    fun register() {
+        ContextCompat.registerReceiver(
+            context,
+            batteryReceiver,
+            IntentFilter(Intent.ACTION_BATTERY_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        connectivityManager?.registerDefaultNetworkCallback(networkCallback)
+        registerSignalStrengthListener()
+    }
+
+    fun unregister() {
+        try {
+            context.unregisterReceiver(batteryReceiver)
+        } catch (e: IllegalArgumentException) {
+            // 未登録の場合は何もしない
+        }
+        connectivityManager?.unregisterNetworkCallback(networkCallback)
+        unregisterSignalStrengthListener()
+    }
+
+    private fun registerSignalStrengthListener() {
+        val manager = telephonyManager ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            telephonyCallback?.let {
+                try {
+                    manager.registerTelephonyCallback(context.mainExecutor, it)
+                } catch (e: SecurityException) {
+                    _signalBars.value = null
+                }
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            try {
+                manager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
+            } catch (e: SecurityException) {
+                _signalBars.value = null
+            }
+        }
+    }
+
+    private fun unregisterSignalStrengthListener() {
+        val manager = telephonyManager ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            telephonyCallback?.let { manager.unregisterTelephonyCallback(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            manager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
+        }
+    }
+}

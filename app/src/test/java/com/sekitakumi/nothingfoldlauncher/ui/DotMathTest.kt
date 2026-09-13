@@ -54,4 +54,17 @@ class DotMathTest {
     fun `dragPositionToRatio returns zero for non-positive width`() {
         assertEquals(0f, dragPositionToRatio(10f, width = 0f), 0.001f)
     }
+
+    @Test
+    fun `verticalDragToRatio maps top to one and bottom to zero`() {
+        assertEquals(1f, verticalDragToRatio(0f, height = 100f), 0.001f)
+        assertEquals(0f, verticalDragToRatio(100f, height = 100f), 0.001f)
+        assertEquals(0.5f, verticalDragToRatio(50f, height = 100f), 0.001f)
+    }
+
+    @Test
+    fun `verticalDragToRatio clamps outside bounds`() {
+        assertEquals(1f, verticalDragToRatio(-10f, height = 100f), 0.001f)
+        assertEquals(0f, verticalDragToRatio(150f, height = 100f), 0.001f)
+    }
 }

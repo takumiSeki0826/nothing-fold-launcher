@@ -2,7 +2,9 @@ package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +29,10 @@ import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 fun AppDrawer(
     apps: List<AppInfo>,
     query: String,
+    favorites: Set<String>,
     onQueryChange: (String) -> Unit,
     onAppClick: (AppInfo) -> Unit,
+    onAppLongClick: (AppInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -50,34 +54,59 @@ fun AppDrawer(
             ),
         )
 
-        LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
+        Text(
+            text = "長押しでホーム画面への表示/非表示を切り替え",
+            color = Color.Gray,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+
+        LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
             itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
-                AppRow(app = app, index = index, onClick = { onAppClick(app) })
+                AppRow(
+                    app = app,
+                    index = index,
+                    isFavorite = app.packageName in favorites,
+                    onClick = { onAppClick(app) },
+                    onLongClick = { onAppLongClick(app) },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun AppRow(app: AppInfo, index: Int, onClick: () -> Unit) {
+private fun AppRow(
+    app: AppInfo,
+    index: Int,
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .size(40.dp)
-                .background(colorForAppIndex(index), RoundedCornerShape(10.dp))
-                .border(1.dp, Color(0xFF333333), RoundedCornerShape(10.dp)),
-        )
-        Text(
-            text = app.label,
-            color = Color.White,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(40.dp)
+                    .background(colorForAppIndex(index), RoundedCornerShape(10.dp))
+                    .border(1.dp, Color(0xFF333333), RoundedCornerShape(10.dp)),
+            )
+            Text(
+                text = app.label,
+                color = Color.White,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        if (isFavorite) {
+            Text(text = "★", color = Color(0xFFD1432B))
+        }
     }
 }

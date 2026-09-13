@@ -1,7 +1,7 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +27,12 @@ fun Clock(modifier: Modifier = Modifier) {
         }
     }
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
-    ) {
+    Column(modifier = modifier) {
+        Text(
+            text = dateText(now),
+            color = Color.Gray,
+            fontSize = 12.sp,
+        )
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = timeText(now),
@@ -47,11 +48,6 @@ fun Clock(modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
             )
         }
-        Text(
-            text = dateText(now),
-            color = Color.Gray,
-            fontSize = 14.sp,
-        )
     }
 }
 
@@ -62,4 +58,4 @@ private fun secondsText(date: Date): String =
     SimpleDateFormat("ss", Locale.getDefault()).format(date)
 
 private fun dateText(date: Date): String =
-    SimpleDateFormat("MM.dd EEE", Locale.getDefault()).format(date)
+    SimpleDateFormat("EEE, MMM d", Locale.ENGLISH).format(date)
