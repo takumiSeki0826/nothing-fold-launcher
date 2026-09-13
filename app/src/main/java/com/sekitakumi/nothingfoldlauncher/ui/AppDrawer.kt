@@ -1,6 +1,7 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,7 +71,8 @@ private fun AppRow(app: AppInfo, index: Int, onClick: () -> Unit) {
             modifier = Modifier
                 .padding(end = 16.dp)
                 .size(40.dp)
-                .background(colorForAppIndex(index), RoundedCornerShape(10.dp)),
+                .background(colorForAppIndex(index), RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFF333333), RoundedCornerShape(10.dp)),
         )
         Text(
             text = app.label,

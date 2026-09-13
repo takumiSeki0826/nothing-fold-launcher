@@ -1,6 +1,7 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,8 +49,8 @@ fun HomeScreen(
         }
 
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 88.dp),
-            modifier = Modifier.weight(0.8f),
+            columns = GridCells.Fixed(4),
+            modifier = Modifier.fillMaxWidth().weight(0.8f),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -63,17 +64,16 @@ fun HomeScreen(
 @Composable
 private fun AppIconTile(app: AppInfo, index: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier
-            .aspectRatio(1f)
-            .clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(
             modifier = Modifier
-                .aspectRatio(1f)
                 .fillMaxWidth()
-                .background(colorForAppIndex(index), RoundedCornerShape(20.dp)),
+                .aspectRatio(1f)
+                .background(colorForAppIndex(index), RoundedCornerShape(20.dp))
+                .border(1.dp, Color(0xFF333333), RoundedCornerShape(20.dp)),
         )
         Text(
             text = app.label,
