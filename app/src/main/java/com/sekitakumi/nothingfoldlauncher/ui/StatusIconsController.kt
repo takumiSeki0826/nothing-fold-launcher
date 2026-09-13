@@ -11,6 +11,7 @@ import android.os.Build
 import android.telephony.PhoneStateListener
 import android.telephony.SignalStrength
 import android.telephony.TelephonyCallback
+import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,9 @@ class StatusIconsController(private val context: Context) {
 
     private val _signalBars = MutableStateFlow<Int?>(null)
     val signalBars: StateFlow<Int?> = _signalBars.asStateFlow()
+
+    private val _networkType = MutableStateFlow<String?>(null)
+    val networkType: StateFlow<String?> = _networkType.asStateFlow()
 
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(receivedContext: Context?, intent: Intent?) {
@@ -61,9 +65,19 @@ class StatusIconsController(private val context: Context) {
 
     private val telephonyCallback: TelephonyCallback? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            object : TelephonyCallback(), TelephonyCallback.SignalStrengthsListener {
+            object :
+                TelephonyCallback(),
+                TelephonyCallback.SignalStrengthsListener,
+                TelephonyCallback.DisplayInfoListener {
                 override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
                     _signalBars.value = signalBars(signalStrength.level)
+                }
+
+                override fun onDisplayInfoChanged(telephonyDisplayInfo: TelephonyDisplayInfo) {
+                    _networkType.value = networkTypeLabel(
+                        networkType = telephonyDisplayInfo.networkType,
+                        overrideNetworkType = telephonyDisplayInfo.overrideNetworkType,
+                    )
                 }
             }
         } else {
@@ -97,7 +111,7 @@ class StatusIconsController(private val context: Context) {
         try {
             context.unregisterReceiver(batteryReceiver)
         } catch (e: IllegalArgumentException) {
-            // 未登録の場合は何もしない
+            // No-op if it was never registered
         }
         connectivityManager?.unregisterNetworkCallback(networkCallback)
         unregisterSignalStrengthListener()

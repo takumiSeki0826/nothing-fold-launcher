@@ -34,4 +34,24 @@ class AppFilterTest {
         val result = filterApps(apps, "xyz")
         assertEquals(emptyList<AppInfo>(), result)
     }
+
+    @Test
+    fun `visibleAppsFor excludes hidden apps when query is blank`() {
+        val hidden = setOf("com.example.calendar")
+        val result = visibleAppsFor(apps, query = "", hidden = hidden)
+        assertEquals(listOf(apps[0], apps[2]), result)
+    }
+
+    @Test
+    fun `visibleAppsFor includes hidden apps when query matches them`() {
+        val hidden = setOf("com.example.calendar")
+        val result = visibleAppsFor(apps, query = "calendar", hidden = hidden)
+        assertEquals(listOf(apps[1]), result)
+    }
+
+    @Test
+    fun `visibleAppsFor with blank query and no hidden apps returns everything`() {
+        val result = visibleAppsFor(apps, query = "", hidden = emptySet())
+        assertEquals(apps, result)
+    }
 }

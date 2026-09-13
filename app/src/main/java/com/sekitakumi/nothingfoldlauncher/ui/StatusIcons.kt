@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SignalWifiOff
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -28,6 +27,7 @@ fun StatusIcons(
     isCharging: Boolean,
     wifiConnected: Boolean,
     signalBars: Int?,
+    networkType: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -35,13 +35,19 @@ fun StatusIcons(
             SignalBarsIcon(bars = signalBars)
             Spacer(modifier = Modifier.width(10.dp))
         }
-        Icon(
-            imageVector = if (wifiConnected) Icons.Filled.Wifi else Icons.Filled.SignalWifiOff,
-            contentDescription = null,
-            tint = if (wifiConnected) Color.White else Color(0xFF4A4A4A),
-            modifier = Modifier.width(18.dp).height(18.dp),
-        )
-        Spacer(modifier = Modifier.width(10.dp))
+        if (!wifiConnected && networkType != null) {
+            Text(text = networkType, color = Color.White, fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        if (wifiConnected) {
+            Icon(
+                imageVector = Icons.Filled.Wifi,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.width(18.dp).height(18.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+        }
         BatteryIcon(percent = batteryPercent, isCharging = isCharging)
         Spacer(modifier = Modifier.width(4.dp))
         Text(text = "$batteryPercent%", color = Color.White, fontSize = 12.sp)
@@ -66,7 +72,7 @@ private fun SignalBarsIcon(bars: Int, modifier: Modifier = Modifier) {
     }
 }
 
-/** iOS風のバッテリーアイコン(角丸の枠+右の突起+塗りつぶし+充電中は稲妻) */
+/** iOS-style battery icon (rounded outline + right nub + fill + lightning bolt while charging) */
 @Composable
 private fun BatteryIcon(percent: Int, isCharging: Boolean, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier.width(26.dp).height(13.dp)) {

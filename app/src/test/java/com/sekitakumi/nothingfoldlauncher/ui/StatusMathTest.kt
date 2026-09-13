@@ -1,6 +1,9 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import android.telephony.TelephonyDisplayInfo
+import android.telephony.TelephonyManager
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class StatusMathTest {
@@ -30,5 +33,70 @@ class StatusMathTest {
         assertEquals(0, signalBars(0))
         assertEquals(4, signalBars(4))
         assertEquals(4, signalBars(10))
+    }
+
+    @Test
+    fun `networkTypeLabel reports 5G for NR`() {
+        assertEquals(
+            "5G",
+            networkTypeLabel(
+                networkType = TelephonyManager.NETWORK_TYPE_NR,
+                overrideNetworkType = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NONE,
+            ),
+        )
+    }
+
+    @Test
+    fun `networkTypeLabel reports 5G for non-standalone override even on LTE`() {
+        assertEquals(
+            "5G",
+            networkTypeLabel(
+                networkType = TelephonyManager.NETWORK_TYPE_LTE,
+                overrideNetworkType = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA,
+            ),
+        )
+    }
+
+    @Test
+    fun `networkTypeLabel reports 5G+ for advanced NR override`() {
+        assertEquals(
+            "5G+",
+            networkTypeLabel(
+                networkType = TelephonyManager.NETWORK_TYPE_LTE,
+                overrideNetworkType = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_ADVANCED,
+            ),
+        )
+    }
+
+    @Test
+    fun `networkTypeLabel reports 4G for LTE`() {
+        assertEquals(
+            "4G",
+            networkTypeLabel(
+                networkType = TelephonyManager.NETWORK_TYPE_LTE,
+                overrideNetworkType = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NONE,
+            ),
+        )
+    }
+
+    @Test
+    fun `networkTypeLabel reports 3G for UMTS-family types`() {
+        assertEquals(
+            "3G",
+            networkTypeLabel(
+                networkType = TelephonyManager.NETWORK_TYPE_HSPA,
+                overrideNetworkType = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NONE,
+            ),
+        )
+    }
+
+    @Test
+    fun `networkTypeLabel returns null for unknown types`() {
+        assertNull(
+            networkTypeLabel(
+                networkType = TelephonyManager.NETWORK_TYPE_UNKNOWN,
+                overrideNetworkType = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NONE,
+            ),
+        )
     }
 }

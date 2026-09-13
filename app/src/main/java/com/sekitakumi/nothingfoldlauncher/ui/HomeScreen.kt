@@ -39,6 +39,7 @@ fun HomeScreen(
     isCharging: Boolean,
     wifiConnected: Boolean,
     signalBars: Int?,
+    networkType: String?,
     nowPlaying: NowPlayingState?,
     nowPlayingPermissionGranted: Boolean,
     onTogglePlayPause: () -> Unit,
@@ -63,6 +64,7 @@ fun HomeScreen(
                 isCharging = isCharging,
                 wifiConnected = wifiConnected,
                 signalBars = signalBars,
+                networkType = networkType,
             )
         }
 

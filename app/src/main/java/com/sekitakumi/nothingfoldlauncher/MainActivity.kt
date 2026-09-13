@@ -9,10 +9,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
@@ -30,12 +30,17 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.sekitakumi.nothingfoldlauncher.data.AppInfo
+import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
+import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
+import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
 import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
+import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
 import com.sekitakumi.nothingfoldlauncher.ui.StatusIconsController
 import com.sekitakumi.nothingfoldlauncher.ui.VolumeController
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingFoldLauncherTheme
@@ -49,6 +54,8 @@ class MainActivity : ComponentActivity() {
                 return AppListViewModel(
                     AppRepository(packageManager),
                     FavoritesStore(applicationContext),
+                    HiddenAppsStore(applicationContext),
+                    AppLabelStore(applicationContext),
                 ) as T
             }
         }
@@ -68,8 +75,13 @@ class MainActivity : ComponentActivity() {
                 val apps by viewModel.visibleApps.collectAsState()
                 val homeApps by viewModel.homeApps.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
+                val hiddenApps by viewModel.hiddenApps.collectAsState()
                 val errorMessage by viewModel.errorMessage.collectAsState()
                 val query by viewModel.query.collectAsState()
+
+                var menuTargetApp by remember { mutableStateOf<AppInfo?>(null) }
+                var renameTargetApp by remember { mutableStateOf<AppInfo?>(null) }
+                val openAppMenu: (AppInfo) -> Unit = { menuTargetApp = it }
 
                 val volumeController = remember { VolumeController(applicationContext) }
                 DisposableEffect(volumeController) {
@@ -87,6 +99,7 @@ class MainActivity : ComponentActivity() {
                 val isCharging by statusIconsController.isCharging.collectAsState()
                 val wifiConnected by statusIconsController.wifiConnected.collectAsState()
                 val signalBars by statusIconsController.signalBars.collectAsState()
+                val networkType by statusIconsController.networkType.collectAsState()
 
                 val nowPlayingController = remember { NowPlayingController(applicationContext) }
                 DisposableEffect(nowPlayingController) {
@@ -98,21 +111,39 @@ class MainActivity : ComponentActivity() {
 
                 var brightnessRatio by remember { mutableFloatStateOf(initialBrightnessRatio()) }
 
-                var dragAccum by remember { mutableFloatStateOf(0f) }
+                var dragAccumX by remember { mutableFloatStateOf(0f) }
+                var dragAccumY by remember { mutableFloatStateOf(0f) }
+
+                val closeDrawer: () -> Unit = {
+                    showDrawer = false
+                    viewModel.onQueryChange("")
+                }
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectHorizontalDragGestures(
-                                onDragStart = { dragAccum = 0f },
+                        .pointerInput(showDrawer) {
+                            // Open: swipe up / Close: swipe left or swipe down.
+                            // Descendant scrollables (the app list, the alphabet
+                            // index bar) consume their own drag events, so this
+                            // only sees drags that they didn't claim.
+                            detectDragGestures(
+                                onDragStart = {
+                                    dragAccumX = 0f
+                                    dragAccumY = 0f
+                                },
                                 onDragEnd = {
-                                    if (dragAccum > 120f) showDrawer = true
-                                    if (dragAccum < -120f) showDrawer = false
-                                    dragAccum = 0f
+                                    if (showDrawer) {
+                                        if (dragAccumX < -120f || dragAccumY > 120f) closeDrawer()
+                                    } else {
+                                        if (dragAccumY < -120f) showDrawer = true
+                                    }
+                                    dragAccumX = 0f
+                                    dragAccumY = 0f
                                 },
                             ) { _, dragAmount ->
-                                dragAccum += dragAmount
+                                dragAccumX += dragAmount.x
+                                dragAccumY += dragAmount.y
                             }
                         },
                 ) {
@@ -120,11 +151,11 @@ class MainActivity : ComponentActivity() {
                         targetState = showDrawer,
                         transitionSpec = {
                             if (targetState) {
-                                // ホーム→ドロワー(右スワイプ): ホームは右へ退場、ドロワーは左から入場
-                                slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                                // Home -> drawer (swipe up): home exits upward, drawer enters from below
+                                slideInVertically { it } togetherWith slideOutVertically { -it }
                             } else {
-                                // ドロワー→ホーム(左スワイプ): ドロワーは左へ退場、ホームは右から入場
-                                slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                                // Drawer -> home: drawer exits downward, home enters from above
+                                slideInVertically { -it } togetherWith slideOutVertically { it }
                             }
                         },
                         label = "home-drawer-transition",
@@ -136,7 +167,8 @@ class MainActivity : ComponentActivity() {
                                 favorites = favorites,
                                 onQueryChange = viewModel::onQueryChange,
                                 onAppClick = { launchApp(it.packageName) },
-                                onAppLongClick = { viewModel.toggleFavorite(it.packageName) },
+                                onAppLongClick = openAppMenu,
+                                onSwipeDownToClose = closeDrawer,
                             )
                         } else {
                             HomeScreen(
@@ -153,6 +185,7 @@ class MainActivity : ComponentActivity() {
                                 isCharging = isCharging,
                                 wifiConnected = wifiConnected,
                                 signalBars = signalBars,
+                                networkType = networkType,
                                 nowPlaying = nowPlaying,
                                 nowPlayingPermissionGranted = nowPlayingPermissionGranted,
                                 onTogglePlayPause = nowPlayingController::togglePlayPause,
@@ -160,9 +193,41 @@ class MainActivity : ComponentActivity() {
                                 onNowPlayingClick = { launchNowPlayingApp(nowPlaying?.packageName) },
                                 onCalendarClick = { launchCalendarApp() },
                                 onAppClick = { launchApp(it.packageName) },
-                                onAppLongClick = { viewModel.toggleFavorite(it.packageName) },
+                                onAppLongClick = openAppMenu,
                             )
                         }
+                    }
+
+                    menuTargetApp?.let { app ->
+                        AppContextMenu(
+                            app = app,
+                            isFavorite = app.packageName in favorites,
+                            isHidden = app.packageName in hiddenApps,
+                            onToggleFavorite = {
+                                viewModel.toggleFavorite(app.packageName)
+                                menuTargetApp = null
+                            },
+                            onToggleHidden = {
+                                viewModel.toggleHidden(app.packageName)
+                                menuTargetApp = null
+                            },
+                            onRename = {
+                                renameTargetApp = app
+                                menuTargetApp = null
+                            },
+                            onDismiss = { menuTargetApp = null },
+                        )
+                    }
+
+                    renameTargetApp?.let { app ->
+                        RenameAppDialog(
+                            app = app,
+                            onConfirm = { newLabel ->
+                                viewModel.renameApp(app.packageName, newLabel)
+                                renameTargetApp = null
+                            },
+                            onDismiss = { renameTargetApp = null },
+                        )
                     }
                 }
             }
