@@ -17,7 +17,6 @@ class AppRepository(private val packageManager: PackageManager) {
                 AppInfo(
                     label = resolveInfo.loadLabel(packageManager).toString(),
                     packageName = resolveInfo.activityInfo.packageName,
-                    icon = resolveInfo.loadIcon(packageManager),
                 )
             }
             .sortedBy { it.label.lowercase() }

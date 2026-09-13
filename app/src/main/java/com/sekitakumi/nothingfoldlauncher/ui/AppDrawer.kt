@@ -9,7 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -49,15 +50,15 @@ fun AppDrawer(
         )
 
         LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-            items(apps, key = { it.packageName }) { app ->
-                AppRow(app = app, onClick = { onAppClick(app) })
+            itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
+                AppRow(app = app, index = index, onClick = { onAppClick(app) })
             }
         }
     }
 }
 
 @Composable
-private fun AppRow(app: AppInfo, onClick: () -> Unit) {
+private fun AppRow(app: AppInfo, index: Int, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,12 +66,11 @@ private fun AppRow(app: AppInfo, onClick: () -> Unit) {
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        androidx.compose.foundation.Image(
-            bitmap = renderHalftoneIcon(app.icon),
-            contentDescription = app.label,
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
+                .padding(end = 16.dp)
                 .size(40.dp)
-                .padding(end = 16.dp),
+                .background(colorForAppIndex(index), RoundedCornerShape(10.dp)),
         )
         Text(
             text = app.label,

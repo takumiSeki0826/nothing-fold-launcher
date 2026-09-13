@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,13 +39,8 @@ fun HomeScreen(
     ) {
         VolumeBar(ratio = volumeRatio, onRatioChange = onVolumeRatioChange)
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(0.25f),
-            contentAlignment = Alignment.Center,
-        ) {
-            DotMatrixClock()
+        Box(modifier = Modifier.fillMaxWidth().weight(0.2f), contentAlignment = Alignment.CenterStart) {
+            Clock()
         }
 
         if (errorMessage != null) {
@@ -52,19 +49,19 @@ fun HomeScreen(
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 88.dp),
-            modifier = Modifier.weight(0.75f),
+            modifier = Modifier.weight(0.8f),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            items(apps, key = { it.packageName }) { app ->
-                AppIconTile(app = app, onClick = { onAppClick(app) })
+            itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
+                AppIconTile(app = app, index = index, onClick = { onAppClick(app) })
             }
         }
     }
 }
 
 @Composable
-private fun AppIconTile(app: AppInfo, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun AppIconTile(app: AppInfo, index: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .aspectRatio(1f)
@@ -72,11 +69,11 @@ private fun AppIconTile(app: AppInfo, onClick: () -> Unit, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        val bitmap = renderHalftoneIcon(app.icon)
-        androidx.compose.foundation.Image(
-            bitmap = bitmap,
-            contentDescription = app.label,
-            modifier = Modifier.aspectRatio(1f),
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+                .fillMaxWidth()
+                .background(colorForAppIndex(index), RoundedCornerShape(20.dp)),
         )
         Text(
             text = app.label,
