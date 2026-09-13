@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 
-// 5x7ドットグリッドで0-9を表現する
+// Represents digits 0-9 on a 5x7 dot grid
 private val DIGIT_PATTERNS: Map<Char, List<String>> = mapOf(
     '0' to listOf("111", "101", "101", "101", "101", "101", "111"),
     '1' to listOf("010", "110", "010", "010", "010", "010", "111"),

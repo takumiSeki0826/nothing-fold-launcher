@@ -43,7 +43,7 @@ fun FaderSlider(
             val centerX = size.width / 2f
             val grooveCorner = CornerRadius(grooveWidth / 2f, grooveWidth / 2f)
 
-            // 溝(グルーブ)
+            // Groove track
             drawRoundRect(
                 color = Color(0xFF2A2A2A),
                 topLeft = Offset(centerX - grooveWidth / 2f, 0f),
@@ -51,7 +51,7 @@ fun FaderSlider(
                 cornerRadius = grooveCorner,
             )
 
-            // 現在値までの塗りつぶし
+            // Fill up to the current value
             val filledHeight = size.height * ratio
             drawRoundRect(
                 color = Color(0xFF888888),
@@ -60,7 +60,7 @@ fun FaderSlider(
                 cornerRadius = grooveCorner,
             )
 
-            // フェーダーのつまみ(横長のキャップ、幅は全体の3/4)
+            // Fader thumb (a wide cap, 3/4 of the full width)
             val thumbHeight = 10.dp.toPx()
             val thumbWidth = size.width * 0.75f
             val thumbX = (size.width - thumbWidth) / 2f

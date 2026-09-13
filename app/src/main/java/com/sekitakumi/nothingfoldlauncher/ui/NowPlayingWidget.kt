@@ -65,14 +65,24 @@ fun NowPlayingWidget(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (permissionGranted) {
-                Text(
-                    text = nowPlaying?.title ?: "Not Playing",
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = nowPlaying?.title ?: "Not Playing",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (nowPlaying?.artist != null) {
+                        Text(
+                            text = nowPlaying.artist,
+                            color = Color.Gray,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
                 if (nowPlaying != null) {
                     IconButton(onClick = onTogglePlayPause) {
                         Icon(
@@ -90,7 +100,7 @@ fun NowPlayingWidget(
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onRequestPermission) {
-                    Icon(Icons.Filled.Notifications, contentDescription = "通知へのアクセスを許可", tint = Color.Gray)
+                    Icon(Icons.Filled.Notifications, contentDescription = "Grant notification access", tint = Color.Gray)
                 }
             }
         }

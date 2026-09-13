@@ -3,7 +3,7 @@ package com.sekitakumi.nothingfoldlauncher
 import android.service.notification.NotificationListenerService
 
 /**
- * MediaSessionManager.getActiveSessions()を呼ぶために必要な、通知アクセス権限の入り口。
- * 通知そのものは処理しない。
+ * Entry point for the notification access permission required to call
+ * MediaSessionManager.getActiveSessions(). Does not process notifications itself.
  */
 class NowPlayingListenerService : NotificationListenerService()

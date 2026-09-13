@@ -52,7 +52,7 @@ class VolumeController(private val context: Context) {
         try {
             context.unregisterReceiver(receiver)
         } catch (e: IllegalArgumentException) {
-            // 未登録の場合は何もしない
+            // No-op if it was never registered
         }
     }
 

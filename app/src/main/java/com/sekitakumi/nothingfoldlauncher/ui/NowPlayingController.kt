@@ -11,7 +11,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class NowPlayingState(val title: String, val isPlaying: Boolean, val packageName: String)
+data class NowPlayingState(
+    val title: String,
+    val artist: String?,
+    val isPlaying: Boolean,
+    val packageName: String,
+)
 
 class NowPlayingController(private val context: Context) {
 
@@ -65,7 +70,7 @@ class NowPlayingController(private val context: Context) {
         try {
             mediaSessionManager?.removeOnActiveSessionsChangedListener(sessionsChangedListener)
         } catch (e: SecurityException) {
-            // 権限が取り消された場合は何もしない
+            // No-op if permission was already revoked
         }
     }
 
@@ -91,10 +96,13 @@ class NowPlayingController(private val context: Context) {
             _nowPlaying.value = null
             return
         }
-        val title = controller.metadata?.getString(android.media.MediaMetadata.METADATA_KEY_TITLE)
+        val metadata = controller.metadata
+        val title = metadata?.getString(android.media.MediaMetadata.METADATA_KEY_TITLE)
+        val artist = metadata?.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST)
+            ?: metadata?.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
         val isPlaying = controller.playbackState?.state == PlaybackState.STATE_PLAYING
         _nowPlaying.value = if (title != null) {
-            NowPlayingState(title, isPlaying, controller.packageName)
+            NowPlayingState(title, artist, isPlaying, controller.packageName)
         } else {
             null
         }

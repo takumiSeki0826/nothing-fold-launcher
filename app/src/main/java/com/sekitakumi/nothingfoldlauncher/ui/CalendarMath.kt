@@ -5,6 +5,6 @@ import java.time.YearMonth
 
 fun daysInMonth(year: Int, month: Int): Int = YearMonth.of(year, month).lengthOfMonth()
 
-/** 0=日曜日始まりで、その月の1日が何曜日かを返す */
+/** Returns the weekday of the 1st of the month, 0 = Sunday */
 fun firstWeekdayOffset(year: Int, month: Int): Int =
     LocalDate.of(year, month, 1).dayOfWeek.value % 7
