@@ -23,8 +23,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-private const val GRID_COLUMNS = 7
-
 @Composable
 fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val now by produceState(initialValue = Calendar.getInstance()) {
@@ -57,27 +55,20 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH) + 1
     val today = calendar.get(Calendar.DAY_OF_MONTH)
-
-    val totalDays = daysInMonth(year, month)
-    val offset = firstWeekdayOffset(year, month)
-    val usedRows = ((offset + totalDays - 1) / GRID_COLUMNS) + 1
+    val grid = calendarDotGrid(year, month, today)
 
     Canvas(modifier = modifier) {
-        val cellWidth = size.width / GRID_COLUMNS
-        val cellHeight = size.height / usedRows
+        val cellWidth = size.width / grid.columns
+        val cellHeight = size.height / grid.rows
         val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
 
-        for (day in 1..totalDays) {
-            val cellIndex = offset + day - 1
-            val row = cellIndex / GRID_COLUMNS
-            val col = cellIndex % GRID_COLUMNS
-            val isToday = day == today
+        for (dot in grid.dots) {
             drawCircle(
-                color = if (isToday) Color(0xFFD1432B) else Color(0xFF4A4A4A),
-                radius = if (isToday) dotRadius * 1.4f else dotRadius,
+                color = if (dot.isToday) Color(0xFFD1432B) else Color(0xFF4A4A4A),
+                radius = if (dot.isToday) dotRadius * 1.4f else dotRadius,
                 center = Offset(
-                    x = col * cellWidth + cellWidth / 2f,
-                    y = row * cellHeight + cellHeight / 2f,
+                    x = dot.col * cellWidth + cellWidth / 2f,
+                    y = dot.row * cellHeight + cellHeight / 2f,
                 ),
             )
         }

@@ -271,8 +271,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun applyLockScreenWallpaper() {
+        // Read the current display's real bounds on the main thread: on a foldable,
+        // WallpaperManager.desiredMinimumWidth/Height can report a size for a
+        // different (e.g. unfolded) display than the one actually showing the lock
+        // screen, which misplaces the card.
+        val bounds = windowManager.currentWindowMetrics.bounds
+        val width = bounds.width()
+        val height = bounds.height()
+        val context = applicationContext
         lifecycleScope.launch(Dispatchers.Default) {
-            LockWallpaperGenerator.apply(applicationContext)
+            LockWallpaperGenerator.apply(context, width, height)
         }
     }
 

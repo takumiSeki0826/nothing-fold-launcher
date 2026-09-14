@@ -5,13 +5,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.util.Log
 import java.util.Date
 
 /**
- * Renders the same date card as [NothingWallpaperService] (same position, via
+ * Renders the same dot calendar card as [NothingWallpaperService] (same position, via
  * [calculateCardRect]) into a static bitmap and sets it as the lock screen wallpaper.
  * The clock and top date row are intentionally omitted since the system lock screen
  * already draws its own clock.
@@ -19,13 +19,20 @@ import java.util.Date
 object LockWallpaperGenerator {
     private const val TAG = "LockWallpaperGenerator"
 
-    fun apply(context: Context) {
+    /**
+     * [width]/[height] should be the real pixel bounds of the display currently
+     * showing the lock screen (e.g. `WindowManager.currentWindowMetrics.bounds`),
+     * not [WallpaperManager.getDesiredMinimumWidth]/[WallpaperManager.getDesiredMinimumHeight]
+     * — on a foldable those can describe a different display than the one being
+     * unlocked, which misplaces the card. An explicit [visibleCropHint] covering the
+     * whole bitmap is passed so the system does not re-crop it for that display.
+     */
+    fun apply(context: Context, width: Int, height: Int) {
         try {
             val wallpaperManager = WallpaperManager.getInstance(context)
-            val width = wallpaperManager.desiredMinimumWidth.takeIf { it > 0 } ?: 1080
-            val height = wallpaperManager.desiredMinimumHeight.takeIf { it > 0 } ?: 2400
             val bitmap = render(width, height)
-            wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK)
+            val cropHint = Rect(0, 0, width, height)
+            wallpaperManager.setBitmap(bitmap, cropHint, true, WallpaperManager.FLAG_LOCK)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to set lock screen wallpaper", e)
         }
@@ -47,46 +54,7 @@ object LockWallpaperGenerator {
         }.fontMetrics
 
         val geometry = calculateCardRect(width.toFloat(), height.toFloat(), timeMetrics.ascent, timeMetrics.descent)
-        val cardRect = RectF(geometry.left, geometry.top, geometry.right, geometry.bottom)
-        val radius = 28f * scale
-
-        val cardBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = NothingWallpaperColors.BORDER
-            style = Paint.Style.STROKE
-            strokeWidth = 1.5f * scale
-        }
-        canvas.drawRoundRect(cardRect, radius, radius, backgroundPaint)
-        canvas.drawRoundRect(cardRect, radius, radius, cardBorderPaint)
-
-        val cardLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = NothingWallpaperColors.GRAY
-            typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
-            textSize = 24f * scale
-        }
-        val cardWeekdayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = NothingWallpaperColors.ACCENT
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            textSize = 34f * scale
-        }
-        val cardDayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = NothingWallpaperColors.WHITE
-            typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
-            textSize = 180f * scale
-        }
-
-        val pad = 36f * scale
-        val innerX = geometry.left + pad
-        var innerY = geometry.top + pad
-
-        val now = Date()
-        innerY -= cardLabelPaint.fontMetrics.ascent
-        canvas.drawText(monthYearText(now), innerX, innerY, cardLabelPaint)
-
-        innerY += 40f * scale
-        canvas.drawText(weekdayFullText(now), innerX, innerY, cardWeekdayPaint)
-
-        innerY += 50f * scale - cardDayPaint.fontMetrics.ascent
-        canvas.drawText(dayOfMonthText(now), innerX, innerY, cardDayPaint)
+        drawDotCalendarCard(canvas, geometry, scale, Date())
 
         return bitmap
     }

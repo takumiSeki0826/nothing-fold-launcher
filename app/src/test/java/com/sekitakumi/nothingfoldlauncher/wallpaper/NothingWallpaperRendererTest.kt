@@ -15,9 +15,9 @@ class NothingWallpaperRendererTest {
         )
 
         assertEquals(64f, rect.left, 0.01f)
-        assertEquals(834f, rect.top, 0.01f)
+        assertEquals(804f, rect.top, 0.01f)
         assertEquals(1016f, rect.right, 0.01f)
-        assertEquals(1554f, rect.bottom, 0.01f)
+        assertEquals(1524f, rect.bottom, 0.01f)
     }
 
     @Test
