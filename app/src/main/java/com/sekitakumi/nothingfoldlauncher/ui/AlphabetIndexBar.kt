@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +32,7 @@ fun AlphabetIndexBar(
     modifier: Modifier = Modifier,
 ) {
     var activeIndex by remember { mutableStateOf<Int?>(null) }
+    var dragOffsetX by remember { mutableFloatStateOf(0f) }
     val haptics = LocalHapticFeedback.current
 
     Column(
@@ -42,8 +44,10 @@ fun AlphabetIndexBar(
                 awaitEachGesture {
                     val down = awaitFirstDown()
                     down.consume()
+                    val downX = down.position.x
                     var currentLetter = letterForBarPosition(down.position.y / barHeight)
                     activeIndex = ALPHABET_INDEX_LETTERS.indexOf(currentLetter)
+                    dragOffsetX = 0f
                     onLetterSelected(currentLetter)
                     haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     var pointerId = down.id
@@ -58,10 +62,12 @@ fun AlphabetIndexBar(
                             haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         }
                         activeIndex = ALPHABET_INDEX_LETTERS.indexOf(letter)
+                        dragOffsetX = alphabetIndexDragOffsetX(downX, change.position.x)
                         onLetterSelected(letter)
                         pointerId = change.id
                     }
                     activeIndex = null
+                    dragOffsetX = 0f
                 }
             },
     ) {
@@ -72,6 +78,11 @@ fun AlphabetIndexBar(
                 targetValue = targetScale,
                 label = "alphabet-index-letter-scale",
             )
+            val targetOffsetX = if (distance == 0) dragOffsetX else 0f
+            val offsetX by animateFloatAsState(
+                targetValue = targetOffsetX,
+                label = "alphabet-index-letter-offset",
+            )
             Box(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center,
@@ -80,7 +91,11 @@ fun AlphabetIndexBar(
                     text = letter.toString(),
                     color = if (distance == 0) Color.White else Color.Gray,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    modifier = Modifier.graphicsLayer(scaleX = scale, scaleY = scale),
+                    modifier = Modifier.graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                    ),
                 )
             }
         }

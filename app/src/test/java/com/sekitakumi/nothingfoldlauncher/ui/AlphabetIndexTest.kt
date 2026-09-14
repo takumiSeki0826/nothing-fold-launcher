@@ -115,4 +115,19 @@ class AlphabetIndexTest {
         assertEquals(1f, alphabetIndexLetterScale(distance = ALPHABET_INDEX_MAGNIFY_RADIUS), 0.001f)
         assertEquals(1f, alphabetIndexLetterScale(distance = 100), 0.001f)
     }
+
+    @Test
+    fun `drag offset follows leftward movement`() {
+        assertEquals(-40f, alphabetIndexDragOffsetX(downX = 100f, currentX = 60f), 0.001f)
+    }
+
+    @Test
+    fun `drag offset is zero when finger has not moved`() {
+        assertEquals(0f, alphabetIndexDragOffsetX(downX = 100f, currentX = 100f), 0.001f)
+    }
+
+    @Test
+    fun `drag offset ignores rightward movement`() {
+        assertEquals(0f, alphabetIndexDragOffsetX(downX = 100f, currentX = 140f), 0.001f)
+    }
 }

@@ -66,3 +66,9 @@ fun alphabetIndexLetterScale(distance: Int): Float {
     val t = 1f - (distance.toFloat() / ALPHABET_INDEX_MAGNIFY_RADIUS)
     return 1f + (ALPHABET_INDEX_MAX_SCALE - 1f) * t
 }
+
+// Niagara Launcher-style follow: dragging left from the bar carries the
+// magnified letter along with the finger. Rightward movement (back toward
+// or past the bar) is ignored so the letter never overshoots past the bar.
+fun alphabetIndexDragOffsetX(downX: Float, currentX: Float): Float =
+    (currentX - downX).coerceAtMost(0f)
