@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +35,7 @@ fun AlphabetIndexBar(
     var activeIndex by remember { mutableStateOf<Int?>(null) }
     var dragOffsetX by remember { mutableFloatStateOf(0f) }
     val haptics = LocalHapticFeedback.current
+    val baseOffsetPx = with(LocalDensity.current) { -ALPHABET_INDEX_FINGER_OFFSET_DP.dp.toPx() }
 
     Column(
         modifier = modifier
@@ -47,7 +49,7 @@ fun AlphabetIndexBar(
                     val downX = down.position.x
                     var currentLetter = letterForBarPosition(down.position.y / barHeight)
                     activeIndex = ALPHABET_INDEX_LETTERS.indexOf(currentLetter)
-                    dragOffsetX = 0f
+                    dragOffsetX = baseOffsetPx
                     onLetterSelected(currentLetter)
                     haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     var pointerId = down.id
@@ -62,7 +64,7 @@ fun AlphabetIndexBar(
                             haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         }
                         activeIndex = ALPHABET_INDEX_LETTERS.indexOf(letter)
-                        dragOffsetX = alphabetIndexDragOffsetX(downX, change.position.x)
+                        dragOffsetX = alphabetIndexDragOffsetX(downX, change.position.x, baseOffsetPx)
                         onLetterSelected(letter)
                         pointerId = change.id
                     }

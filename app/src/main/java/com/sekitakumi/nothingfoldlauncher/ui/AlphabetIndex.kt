@@ -67,8 +67,14 @@ fun alphabetIndexLetterScale(distance: Int): Float {
     return 1f + (ALPHABET_INDEX_MAX_SCALE - 1f) * t
 }
 
-// Niagara Launcher-style follow: dragging left from the bar carries the
-// magnified letter along with the finger. Rightward movement (back toward
-// or past the bar) is ignored so the letter never overshoots past the bar.
-fun alphabetIndexDragOffsetX(downX: Float, currentX: Float): Float =
-    (currentX - downX).coerceAtMost(0f)
+// Roughly a fingertip's width (Android's standard touch target size), so the
+// magnified letter clears the finger that's covering the bar itself.
+const val ALPHABET_INDEX_FINGER_OFFSET_DP = 88
+
+// Niagara Launcher-style follow: the magnified letter starts already
+// shifted left by baseOffsetPx (roughly a fingertip's width) so the
+// finger doesn't cover it, then tracks further leftward drag beyond
+// that. Rightward movement eases it back toward the bar but never past
+// it (0 = pinned to the bar's own x position).
+fun alphabetIndexDragOffsetX(downX: Float, currentX: Float, baseOffsetPx: Float): Float =
+    (baseOffsetPx + (currentX - downX)).coerceAtMost(0f)

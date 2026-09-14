@@ -117,17 +117,22 @@ class AlphabetIndexTest {
     }
 
     @Test
-    fun `drag offset follows leftward movement`() {
-        assertEquals(-40f, alphabetIndexDragOffsetX(downX = 100f, currentX = 60f), 0.001f)
+    fun `drag offset starts at the base offset when finger has not moved`() {
+        assertEquals(-40f, alphabetIndexDragOffsetX(downX = 100f, currentX = 100f, baseOffsetPx = -40f), 0.001f)
     }
 
     @Test
-    fun `drag offset is zero when finger has not moved`() {
-        assertEquals(0f, alphabetIndexDragOffsetX(downX = 100f, currentX = 100f), 0.001f)
+    fun `drag offset follows further leftward movement beyond the base`() {
+        assertEquals(-80f, alphabetIndexDragOffsetX(downX = 100f, currentX = 60f, baseOffsetPx = -40f), 0.001f)
     }
 
     @Test
-    fun `drag offset ignores rightward movement`() {
-        assertEquals(0f, alphabetIndexDragOffsetX(downX = 100f, currentX = 140f), 0.001f)
+    fun `drag offset eases back toward zero with rightward movement`() {
+        assertEquals(-20f, alphabetIndexDragOffsetX(downX = 100f, currentX = 120f, baseOffsetPx = -40f), 0.001f)
+    }
+
+    @Test
+    fun `drag offset caps at zero even past the bar`() {
+        assertEquals(0f, alphabetIndexDragOffsetX(downX = 100f, currentX = 200f, baseOffsetPx = -40f), 0.001f)
     }
 }
