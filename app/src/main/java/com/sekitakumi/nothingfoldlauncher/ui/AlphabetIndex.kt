@@ -58,7 +58,7 @@ fun letterForBarPosition(relativeY: Float): Char {
 // Niagara Launcher-style dock magnification: the touched letter scales up
 // largest, with neighboring letters scaling progressively less, for a
 // lens-like visual effect.
-const val ALPHABET_INDEX_MAX_SCALE = 3.2f
+const val ALPHABET_INDEX_MAX_SCALE = 6.4f
 const val ALPHABET_INDEX_MAGNIFY_RADIUS = 3
 
 fun alphabetIndexLetterScale(distance: Int): Float {
