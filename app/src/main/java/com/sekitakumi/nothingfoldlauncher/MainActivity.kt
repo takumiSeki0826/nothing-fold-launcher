@@ -36,10 +36,12 @@ import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
+import com.sekitakumi.nothingfoldlauncher.data.LockScreenSyncStore
 import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
+import com.sekitakumi.nothingfoldlauncher.ui.LockScreenSyncMenu
 import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
 import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
 import com.sekitakumi.nothingfoldlauncher.ui.StatusIconsController
@@ -47,12 +49,18 @@ import com.sekitakumi.nothingfoldlauncher.ui.VolumeController
 import com.sekitakumi.nothingfoldlauncher.ui.isExpandedWidth
 import com.sekitakumi.nothingfoldlauncher.ui.shouldCloseDrawerOnNewIntent
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingFoldLauncherTheme
+import com.sekitakumi.nothingfoldlauncher.wallpaper.LockWallpaperGenerator
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private const val YOUTUBE_MUSIC_PACKAGE = "com.google.android.apps.youtube.music"
 
 class MainActivity : ComponentActivity() {
 
     private val showDrawerState = mutableStateOf(false)
+
+    private val lockScreenSyncStore by lazy { LockScreenSyncStore(applicationContext) }
 
     private val viewModel: AppListViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -90,6 +98,9 @@ class MainActivity : ComponentActivity() {
                 var menuTargetApp by remember { mutableStateOf<AppInfo?>(null) }
                 var renameTargetApp by remember { mutableStateOf<AppInfo?>(null) }
                 val openAppMenu: (AppInfo) -> Unit = { menuTargetApp = it }
+
+                var showLockScreenSyncMenu by remember { mutableStateOf(false) }
+                var lockScreenSyncEnabled by remember { mutableStateOf(lockScreenSyncStore.isEnabled()) }
 
                 val volumeController = remember { VolumeController(applicationContext) }
                 DisposableEffect(volumeController) {
@@ -198,6 +209,7 @@ class MainActivity : ComponentActivity() {
                                 onNowPlayingClick = { launchNowPlayingApp(nowPlaying?.packageName) },
                                 onNowPlayingLongClick = { launchYoutubeMusic() },
                                 onCalendarClick = { launchCalendarApp() },
+                                onCalendarLongClick = { showLockScreenSyncMenu = true },
                                 onAppClick = { launchApp(it.packageName) },
                                 onAppLongClick = openAppMenu,
                                 isExpandedWidth = isExpandedWidth,
@@ -226,6 +238,18 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    if (showLockScreenSyncMenu) {
+                        LockScreenSyncMenu(
+                            enabled = lockScreenSyncEnabled,
+                            onToggle = { enabled ->
+                                lockScreenSyncEnabled = enabled
+                                lockScreenSyncStore.setEnabled(enabled)
+                                if (enabled) applyLockScreenWallpaper()
+                            },
+                            onDismiss = { showLockScreenSyncMenu = false },
+                        )
+                    }
+
                     renameTargetApp?.let { app ->
                         RenameAppDialog(
                             app = app,
@@ -238,6 +262,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (lockScreenSyncStore.isEnabled()) applyLockScreenWallpaper()
+    }
+
+    private fun applyLockScreenWallpaper() {
+        lifecycleScope.launch(Dispatchers.Default) {
+            LockWallpaperGenerator.apply(applicationContext)
         }
     }
 

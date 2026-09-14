@@ -45,6 +45,7 @@ fun HomeScreen(
     onNowPlayingClick: () -> Unit,
     onNowPlayingLongClick: () -> Unit,
     onCalendarClick: () -> Unit,
+    onCalendarLongClick: () -> Unit,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
     isExpandedWidth: Boolean,
@@ -74,7 +75,11 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                CalendarWidget(onClick = onCalendarClick, modifier = Modifier.fillMaxWidth().height(150.dp))
+                CalendarWidget(
+                    onClick = onCalendarClick,
+                    onLongClick = onCalendarLongClick,
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -132,7 +137,11 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth().height(150.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                CalendarWidget(onClick = onCalendarClick, modifier = Modifier.weight(1f).fillMaxHeight())
+                CalendarWidget(
+                    onClick = onCalendarClick,
+                    onLongClick = onCalendarLongClick,
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
                 NowPlayingWidget(
                     nowPlaying = nowPlaying,
                     permissionGranted = nowPlayingPermissionGranted,

@@ -2,7 +2,7 @@ package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +26,7 @@ import java.util.Locale
 private const val GRID_COLUMNS = 7
 
 @Composable
-fun CalendarWidget(onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val now by produceState(initialValue = Calendar.getInstance()) {
         while (true) {
             value = Calendar.getInstance()
@@ -37,7 +37,7 @@ fun CalendarWidget(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .background(Color(0xFF111111), RoundedCornerShape(24.dp))
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(16.dp),
     ) {
         Text(text = monthYearText(now.time), color = Color.White, fontSize = 15.sp)

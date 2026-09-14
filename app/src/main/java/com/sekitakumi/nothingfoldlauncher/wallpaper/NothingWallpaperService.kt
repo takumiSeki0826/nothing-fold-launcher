@@ -117,14 +117,9 @@ class NothingWallpaperService : WallpaperService() {
             val dotCy = dateY - (dateSmallPaint.fontMetrics.ascent + dateSmallPaint.fontMetrics.descent) / 2f
             canvas.drawCircle(dotCx, dotCy, dotRadius, accentDotPaint)
 
-            val cardWidth = width - margin * 2
-            val cardHeight = height * 0.30f
-            val cardLeft = margin
-            var cardTop = dateY + 70f * scale
-            if (cardTop + cardHeight > height - 120f * scale) {
-                cardTop = height - 120f * scale - cardHeight
-            }
-            val cardRect = RectF(cardLeft, cardTop, cardLeft + cardWidth, cardTop + cardHeight)
+            val geometry = calculateCardRect(width.toFloat(), height.toFloat(), timeMetrics.ascent, timeMetrics.descent)
+            val cardLeft = geometry.left
+            val cardRect = RectF(geometry.left, geometry.top, geometry.right, geometry.bottom)
             val radius = 28f * scale
             cardBorderPaint.strokeWidth = 1.5f * scale
             canvas.drawRoundRect(cardRect, radius, radius, backgroundPaint)
@@ -132,7 +127,7 @@ class NothingWallpaperService : WallpaperService() {
 
             val pad = 36f * scale
             val innerX = cardLeft + pad
-            var innerY = cardTop + pad
+            var innerY = geometry.top + pad
 
             cardLabelPaint.textSize = 24f * scale
             innerY -= cardLabelPaint.fontMetrics.ascent
