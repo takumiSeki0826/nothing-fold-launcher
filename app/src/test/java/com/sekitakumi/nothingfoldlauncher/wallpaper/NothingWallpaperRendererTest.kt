@@ -32,4 +32,18 @@ class NothingWallpaperRendererTest {
         assertEquals(440f, rect.top, 0.01f)
         assertEquals(680f, rect.bottom, 0.01f)
     }
+
+    @Test
+    fun `caps card width to a third of very wide screens and centers it, like a Fold unfolded`() {
+        val rect = calculateCardRect(
+            width = 2448f,
+            height = 1848f,
+            timeAscent = -150f,
+            timeDescent = 40f,
+        )
+
+        assertEquals(816f, rect.right - rect.left, 0.01f)
+        assertEquals(816f, rect.left, 0.01f)
+        assertEquals(1632f, rect.right, 0.01f)
+    }
 }

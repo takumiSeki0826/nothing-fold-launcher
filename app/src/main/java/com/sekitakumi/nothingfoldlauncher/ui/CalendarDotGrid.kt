@@ -4,10 +4,12 @@ const val CALENDAR_GRID_COLUMNS = 7
 
 /**
  * Fraction of the grid's drawing area left blank above the dots, so the grid's
- * visual weight sits a little lower instead of dead-centered. Shared by the
- * CalendarWidget composable and the Canvas-based wallpaper renderers.
+ * visual weight sits lower instead of dead-centered. Row spacing is compressed
+ * by this same fraction to make the room, while dot size stays based on the
+ * uncompressed spacing — only the whitespace moves, not the dots' size.
+ * Shared by the CalendarWidget composable and the Canvas-based wallpaper renderers.
  */
-const val CALENDAR_GRID_TOP_INSET_RATIO = 0.12f
+const val CALENDAR_GRID_TOP_INSET_RATIO = 0.25f
 
 data class CalendarDot(val day: Int, val row: Int, val col: Int, val isToday: Boolean)
 

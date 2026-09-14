@@ -11,6 +11,11 @@ import java.util.Date
 
 data class CardGeometry(val left: Float, val top: Float, val right: Float, val bottom: Float)
 
+// Above this width the display is treated as a large unfolded/tablet-style
+// screen (e.g. a Fold opened flat) rather than a phone, so the card is capped
+// to a third of the width instead of nearly spanning it.
+private const val WIDE_DISPLAY_WIDTH_THRESHOLD = 1600f
+
 /**
  * Pure geometry for the date card, shared by the home screen live wallpaper and the
  * lock screen static wallpaper so both place the card at the same relative position.
@@ -27,9 +32,10 @@ fun calculateCardRect(
     val timeBaseline = timeTop - timeAscent
     val dateY = timeBaseline + timeDescent + 40f * scale - timeAscent
 
-    val cardWidth = width - margin * 2
+    val isWideDisplay = width > WIDE_DISPLAY_WIDTH_THRESHOLD
+    val cardWidth = if (isWideDisplay) width / 3f else width - margin * 2
     val cardHeight = height * 0.30f
-    val cardLeft = margin
+    val cardLeft = if (isWideDisplay) (width - cardWidth) / 2f else margin
     var cardTop = dateY + 40f * scale
     if (cardTop + cardHeight > height - 120f * scale) {
         cardTop = height - 120f * scale - cardHeight
@@ -70,18 +76,19 @@ private fun drawDotGrid(canvas: Canvas, rect: RectF, now: Date) {
     val today = calendar.get(Calendar.DAY_OF_MONTH)
     val grid = calendarDotGrid(year, month, today)
 
-    val topInset = rect.height() * CALENDAR_GRID_TOP_INSET_RATIO
-    val gridHeight = rect.height() - topInset
     val cellWidth = rect.width() / grid.columns
-    val cellHeight = gridHeight / grid.rows
-    val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
+    val basePitch = rect.height() / grid.rows
+    val dotRadius = minOf(cellWidth, basePitch) * 0.28f
+
+    val topInset = rect.height() * CALENDAR_GRID_TOP_INSET_RATIO
+    val pitch = basePitch * (1f - CALENDAR_GRID_TOP_INSET_RATIO)
 
     val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     for (dot in grid.dots) {
         dotPaint.color = if (dot.isToday) NothingWallpaperColors.ACCENT else NothingWallpaperColors.DOT_GRAY
         val dotRadiusForCell = if (dot.isToday) dotRadius * 1.4f else dotRadius
         val cx = rect.left + dot.col * cellWidth + cellWidth / 2f
-        val cy = rect.top + topInset + dot.row * cellHeight + cellHeight / 2f
+        val cy = rect.top + topInset + dot.row * pitch + pitch / 2f
         canvas.drawCircle(cx, cy, dotRadiusForCell, dotPaint)
     }
 }
