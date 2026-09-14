@@ -2,7 +2,7 @@ package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +39,7 @@ fun NowPlayingWidget(
     onTogglePlayPause: () -> Unit,
     onRequestPermission: () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isPlaying = nowPlaying?.isPlaying == true
@@ -57,7 +58,7 @@ fun NowPlayingWidget(
     Column(
         modifier = modifier
             .background(Color(0xFF111111), RoundedCornerShape(24.dp))
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(16.dp),
     ) {
         Row(

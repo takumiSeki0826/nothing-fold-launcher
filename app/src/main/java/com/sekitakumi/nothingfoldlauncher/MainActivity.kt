@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -43,9 +44,15 @@ import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
 import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
 import com.sekitakumi.nothingfoldlauncher.ui.StatusIconsController
 import com.sekitakumi.nothingfoldlauncher.ui.VolumeController
+import com.sekitakumi.nothingfoldlauncher.ui.isExpandedWidth
+import com.sekitakumi.nothingfoldlauncher.ui.shouldCloseDrawerOnNewIntent
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingFoldLauncherTheme
 
+private const val YOUTUBE_MUSIC_PACKAGE = "com.google.android.apps.youtube.music"
+
 class MainActivity : ComponentActivity() {
+
+    private val showDrawerState = mutableStateOf(false)
 
     private val viewModel: AppListViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -71,7 +78,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             NothingFoldLauncherTheme {
-                var showDrawer by remember { mutableStateOf(false) }
+                var showDrawer by showDrawerState
+                val isExpandedWidth = isExpandedWidth(LocalConfiguration.current.screenWidthDp)
                 val apps by viewModel.visibleApps.collectAsState()
                 val homeApps by viewModel.homeApps.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
@@ -114,10 +122,7 @@ class MainActivity : ComponentActivity() {
                 var dragAccumX by remember { mutableFloatStateOf(0f) }
                 var dragAccumY by remember { mutableFloatStateOf(0f) }
 
-                val closeDrawer: () -> Unit = {
-                    showDrawer = false
-                    viewModel.onQueryChange("")
-                }
+                val closeDrawer: () -> Unit = ::closeDrawer
 
                 Box(
                     modifier = Modifier
@@ -191,9 +196,11 @@ class MainActivity : ComponentActivity() {
                                 onTogglePlayPause = nowPlayingController::togglePlayPause,
                                 onRequestNowPlayingPermission = { openNotificationListenerSettings() },
                                 onNowPlayingClick = { launchNowPlayingApp(nowPlaying?.packageName) },
+                                onNowPlayingLongClick = { launchYoutubeMusic() },
                                 onCalendarClick = { launchCalendarApp() },
                                 onAppClick = { launchApp(it.packageName) },
                                 onAppLongClick = openAppMenu,
+                                isExpandedWidth = isExpandedWidth,
                             )
                         }
                     }
@@ -237,6 +244,19 @@ class MainActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) hideSystemStatusBar()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (shouldCloseDrawerOnNewIntent(intent.action, showDrawerState.value)) {
+            closeDrawer()
+        }
+    }
+
+    private fun closeDrawer() {
+        showDrawerState.value = false
+        viewModel.onQueryChange("")
     }
 
     private fun initialBrightnessRatio(): Float {
@@ -289,4 +309,6 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
     }
+
+    private fun launchYoutubeMusic() = launchApp(YOUTUBE_MUSIC_PACKAGE)
 }
