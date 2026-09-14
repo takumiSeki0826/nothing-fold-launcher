@@ -3,8 +3,6 @@ package com.sekitakumi.nothingfoldlauncher.wallpaper
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
-import com.sekitakumi.nothingfoldlauncher.ui.CALENDAR_GRID_TOP_INSET_RATIO
 import com.sekitakumi.nothingfoldlauncher.ui.calendarDotGrid
 import java.util.Calendar
 import java.util.Date
@@ -45,8 +43,9 @@ fun calculateCardRect(
 
 /**
  * Draws the same dot-matrix mini calendar card as [com.sekitakumi.nothingfoldlauncher.ui.CalendarWidget]
- * (month/year label + a dot per day, today accented), shared by the home screen live
- * wallpaper and the lock screen static wallpaper.
+ * (a dot per day, today accented), shared by the home screen live wallpaper and the
+ * lock screen static wallpaper. No month/year label — the grid is centered in the
+ * card on its own.
  */
 fun drawDotCalendarCard(canvas: Canvas, geometry: CardGeometry, scale: Float, now: Date) {
     val cardRect = RectF(geometry.left, geometry.top, geometry.right, geometry.bottom)
@@ -55,17 +54,7 @@ fun drawDotCalendarCard(canvas: Canvas, geometry: CardGeometry, scale: Float, no
     canvas.drawRoundRect(cardRect, radius, radius, backgroundPaint)
 
     val pad = 36f * scale
-    val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = NothingWallpaperColors.WHITE
-        typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
-        textSize = 34f * scale
-    }
-    val labelX = geometry.left + pad
-    val labelBaseline = geometry.top + pad - labelPaint.fontMetrics.ascent
-    canvas.drawText(monthYearText(now), labelX, labelBaseline, labelPaint)
-
-    val gridTop = labelBaseline + labelPaint.fontMetrics.descent + 24f * scale
-    val gridRect = RectF(geometry.left + pad, gridTop, geometry.right - pad, geometry.bottom - pad)
+    val gridRect = RectF(geometry.left + pad, geometry.top + pad, geometry.right - pad, geometry.bottom - pad)
     drawDotGrid(canvas, gridRect, now)
 }
 
@@ -77,18 +66,15 @@ private fun drawDotGrid(canvas: Canvas, rect: RectF, now: Date) {
     val grid = calendarDotGrid(year, month, today)
 
     val cellWidth = rect.width() / grid.columns
-    val basePitch = rect.height() / grid.rows
-    val dotRadius = minOf(cellWidth, basePitch) * 0.28f
-
-    val topInset = rect.height() * CALENDAR_GRID_TOP_INSET_RATIO
-    val pitch = basePitch * (1f - CALENDAR_GRID_TOP_INSET_RATIO)
+    val cellHeight = rect.height() / grid.rows
+    val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
 
     val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     for (dot in grid.dots) {
         dotPaint.color = if (dot.isToday) NothingWallpaperColors.ACCENT else NothingWallpaperColors.DOT_GRAY
         val dotRadiusForCell = if (dot.isToday) dotRadius * 1.4f else dotRadius
         val cx = rect.left + dot.col * cellWidth + cellWidth / 2f
-        val cy = rect.top + topInset + dot.row * pitch + pitch / 2f
+        val cy = rect.top + dot.row * cellHeight + cellHeight / 2f
         canvas.drawCircle(cx, cy, dotRadiusForCell, dotPaint)
     }
 }

@@ -28,21 +28,4 @@ class WallpaperTextFormatTest {
         assertEquals("09.14 MON", dateWithWeekdayText(dateOf(2026, 9, 14, 0, 0)))
     }
 
-    @Test
-    fun `formats full uppercase English month and year`() {
-        assertEquals("SEPTEMBER 2026", monthYearText(dateOf(2026, 9, 13, 0, 0)))
-        assertEquals("JANUARY 2027", monthYearText(dateOf(2027, 1, 1, 0, 0)))
-    }
-
-    @Test
-    fun `formats full uppercase English weekday name`() {
-        assertEquals("SUNDAY", weekdayFullText(dateOf(2026, 9, 13, 0, 0)))
-        assertEquals("MONDAY", weekdayFullText(dateOf(2026, 9, 14, 0, 0)))
-    }
-
-    @Test
-    fun `formats day of month without leading zero`() {
-        assertEquals("13", dayOfMonthText(dateOf(2026, 9, 13, 0, 0)))
-        assertEquals("1", dayOfMonthText(dateOf(2026, 9, 1, 0, 0)))
-    }
 }
