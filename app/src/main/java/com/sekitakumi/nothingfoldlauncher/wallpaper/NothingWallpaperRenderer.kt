@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import com.sekitakumi.nothingfoldlauncher.ui.CALENDAR_GRID_TOP_INSET_RATIO
 import com.sekitakumi.nothingfoldlauncher.ui.calendarDotGrid
 import java.util.Calendar
 import java.util.Date
@@ -69,8 +70,10 @@ private fun drawDotGrid(canvas: Canvas, rect: RectF, now: Date) {
     val today = calendar.get(Calendar.DAY_OF_MONTH)
     val grid = calendarDotGrid(year, month, today)
 
+    val topInset = rect.height() * CALENDAR_GRID_TOP_INSET_RATIO
+    val gridHeight = rect.height() - topInset
     val cellWidth = rect.width() / grid.columns
-    val cellHeight = rect.height() / grid.rows
+    val cellHeight = gridHeight / grid.rows
     val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
 
     val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -78,7 +81,7 @@ private fun drawDotGrid(canvas: Canvas, rect: RectF, now: Date) {
         dotPaint.color = if (dot.isToday) NothingWallpaperColors.ACCENT else NothingWallpaperColors.DOT_GRAY
         val dotRadiusForCell = if (dot.isToday) dotRadius * 1.4f else dotRadius
         val cx = rect.left + dot.col * cellWidth + cellWidth / 2f
-        val cy = rect.top + dot.row * cellHeight + cellHeight / 2f
+        val cy = rect.top + topInset + dot.row * cellHeight + cellHeight / 2f
         canvas.drawCircle(cx, cy, dotRadiusForCell, dotPaint)
     }
 }

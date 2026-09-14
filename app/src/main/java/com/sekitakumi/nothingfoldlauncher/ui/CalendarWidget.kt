@@ -58,8 +58,10 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
     val grid = calendarDotGrid(year, month, today)
 
     Canvas(modifier = modifier) {
+        val topInset = size.height * CALENDAR_GRID_TOP_INSET_RATIO
+        val gridHeight = size.height - topInset
         val cellWidth = size.width / grid.columns
-        val cellHeight = size.height / grid.rows
+        val cellHeight = gridHeight / grid.rows
         val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
 
         for (dot in grid.dots) {
@@ -68,7 +70,7 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
                 radius = if (dot.isToday) dotRadius * 1.4f else dotRadius,
                 center = Offset(
                     x = dot.col * cellWidth + cellWidth / 2f,
-                    y = dot.row * cellHeight + cellHeight / 2f,
+                    y = topInset + dot.row * cellHeight + cellHeight / 2f,
                 ),
             )
         }
