@@ -29,4 +29,29 @@ class CalendarDotGridTest {
         assertEquals(3, day30.col)
         assertEquals(5, grid.rows)
     }
+
+    @Test
+    fun `dot flash is off far from its peak`() {
+        assertEquals(0f, dotFlashIntensity(progress = 0f, peak = 0.5f, pulseWidth = 0.15f), 0f)
+        assertEquals(0f, dotFlashIntensity(progress = 1f, peak = 0.5f, pulseWidth = 0.15f), 0f)
+    }
+
+    @Test
+    fun `dot flash peaks fully at its peak progress`() {
+        assertEquals(1f, dotFlashIntensity(progress = 0.5f, peak = 0.5f, pulseWidth = 0.15f), 0.0001f)
+    }
+
+    @Test
+    fun `dot flash ramps up and down linearly around its peak`() {
+        // Halfway through the rising edge (peak - pulseWidth/2).
+        assertEquals(0.5f, dotFlashIntensity(progress = 0.425f, peak = 0.5f, pulseWidth = 0.15f), 0.0001f)
+        // Halfway through the falling edge (peak + pulseWidth/2).
+        assertEquals(0.5f, dotFlashIntensity(progress = 0.575f, peak = 0.5f, pulseWidth = 0.15f), 0.0001f)
+    }
+
+    @Test
+    fun `dot flash reaches exactly zero at the edges of its pulse width`() {
+        assertEquals(0f, dotFlashIntensity(progress = 0.35f, peak = 0.5f, pulseWidth = 0.15f), 0.0001f)
+        assertEquals(0f, dotFlashIntensity(progress = 0.65f, peak = 0.5f, pulseWidth = 0.15f), 0.0001f)
+    }
 }

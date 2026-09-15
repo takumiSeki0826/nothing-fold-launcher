@@ -26,3 +26,15 @@ fun calendarDotGrid(year: Int, month: Int, today: Int): CalendarDotGrid {
     }
     return CalendarDotGrid(CALENDAR_GRID_COLUMNS, rows, dots)
 }
+
+/**
+ * How strongly a single dot should be tinted towards its "lit" color during
+ * the home screen's random sparkle animation, driven by one shared
+ * [progress] (0f..1f) so an entire grid of dots can flash at different
+ * moments without each needing its own animation. The dot is untinted until
+ * [progress] nears [peak], ramps up linearly to fully lit exactly at [peak],
+ * then ramps back down to untinted by the time [progress] is [pulseWidth]
+ * past it.
+ */
+fun dotFlashIntensity(progress: Float, peak: Float, pulseWidth: Float): Float =
+    (1f - kotlin.math.abs(progress - peak) / pulseWidth).coerceIn(0f, 1f)
