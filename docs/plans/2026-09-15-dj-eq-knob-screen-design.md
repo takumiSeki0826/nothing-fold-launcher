@@ -2,14 +2,15 @@
 
 ## 背景
 
-ホーム画面から左スワイプで表示できる新しい画面を追加し、中央にDJ機器デザインのEQノブスタック（左右対称2チャンネル×MID/LOW/CFXの3ノブ）を実装したいという要望。今回はノブの見た目とドラッグ操作のみを実装し、実際の音量・EQ制御やアプリ起動機能（将来対応予定）とは連動させない。
+ホーム画面から左スワイプで表示できる新しい画面を追加し、中央にDJ機器デザインのEQノブスタック（左右対称2チャンネル×MID/LOW/CFXの3ノブ）を実装したいという要望。
 
-## スコープ
+初版ではノブの見た目とドラッグ操作のみを実装したが、実機で試した結果ドラッグ操作が直感的でなかったため、タップ/長押しで直接アプリを起動するランチャーに変更し、あわせて見た目もよりリアルな（グロッシーなドーム型・ローレット加工の）ノブデザインに刷新する（[改訂](#改訂-アプリランチャー化と見た目刷新)を参照）。
+
+## スコープ（初版）
 
 - 新規画面（以下「EQ画面」）を追加し、ホーム画面から左スワイプで表示、右スワイプでホームに戻る
 - EQ画面の中身は仕様書通り「ノブスタックのみ」。時計・ステータスアイコン等は配置しない
-- ノブの値は見た目上ドラッグで変化するが、システムの音量・EQには一切影響しない。値はComposeの`remember`でのみ保持し、プロセス終了・画面破棄でリセットされてよい（永続化不要）
-- ノブをタップしてアプリを起動する機能は将来の別対応とし、本設計には含めない
+- ノブをタップしてアプリを起動する機能は将来の別対応とし、本設計には含めない（→ 改訂で対応）
 
 ## 画面遷移・アーキテクチャ（`MainActivity.kt`）
 
@@ -60,9 +61,60 @@ fun angleToIndicatorOffset(angleDeg: Float, radiusPx: Float): Offset {
 - 状態: 6ノブ分の角度を`EqScreen`内で個別に`var leftMid by remember { mutableStateOf(0f) }` … のように保持する（`rememberSaveable`は使わず、永続化しない）
 - 他の要素（時計・ステータスアイコン等）は配置しない
 
-## テスト方針
+## テスト方針（初版）
 
 - `RotaryKnobMath.kt`の`dragDeltaToAngle`・`angleToIndicatorOffset`は純粋関数のため、`HomeLayoutMathTest.kt`と同様の単体テスト（`RotaryKnobMathTest.kt`）を追加する
-  - `dragDeltaToAngle`: 範囲内での増減の向き、`-135f`/`135f`での境界クランプ
-  - `angleToIndicatorOffset`: `0f`（12時＝真上）、`-135f`、`135f`など代表角度でのオフセット値
 - 画面遷移のスワイプジェスチャーとノブの見た目・グロー効果は、既存の設計docと同様に実機目視確認とする
+
+## 改訂: アプリランチャー化と見た目刷新
+
+初版を実機で確認したところ、ドラッグでの回転操作が直感的でなかったため、以下の通り変更する。
+
+### 変更点の要約
+
+1. ノブの直径を60dp→150dp（2.5倍）に拡大
+2. 操作方式をドラッグ回転から**タップ/長押し**に変更し、タップで「アプリ1」・長押しで「アプリ2」を起動するランチャーにする
+3. 見た目を、グロッシーなドーム型・側面ローレット加工のリアルな黒いノブ風デザインに刷新する。オレンジ（`0xFFD1432B`、既存の`NothingRed`）の固定ドットを、ノブごとに異なる固定角度（本物のEQノブスタックのように見える演出。回転操作はしない）で配置する
+4. ノブのドラッグによる値変更機能・その永続化不要方針は撤回し、代わりにタップ/長押しに割り当てたアプリの組み合わせを永続化する
+
+### データモデル・永続化
+
+- **`ui/KnobSlot.kt`（新規）**: 6つのノブ位置を表す`enum class KnobSlot(val id: String, val decorativeAngleDeg: Float)`
+  - `LEFT_MID("left_mid", 15f)`, `LEFT_LOW("left_low", -60f)`, `LEFT_CFX("left_cfx", 90f)`
+  - `RIGHT_MID("right_mid", -15f)`, `RIGHT_LOW("right_low", 60f)`, `RIGHT_CFX("right_cfx", -90f)`
+- **`data/EqKnobAssignmentStore.kt`（新規）**: `FavoritesStore.kt`と同じSharedPreferencesパターン。`"${slot.id}_tap"` / `"${slot.id}_long"`をキーにパッケージ名（String）を保存・取得する（12スロット分）
+
+### アプリ選択フロー（`MainActivity.kt`）
+
+- `pendingKnobPick: Pair<KnobSlot, Boolean>?`（`Boolean`は長押しかどうか）をComposeの`remember`状態として追加
+- 未設定スロットをタップ/長押し → `pendingKnobPick`をセットし`homeRoute = HomeRoute.DRAWER`でアプリ一覧を開く
+- ドロワーでアプリを選択 → 選んだパッケージ名を該当スロット・アクションに保存し、`pendingKnobPick = null`、`homeRoute = HomeRoute.EQ`に戻す（`HomeRoute.HOME`には戻さない）
+- ドロワーをスワイプで閉じてキャンセルした場合も、`pendingKnobPick`が立っていれば`HomeRoute.EQ`に、立っていなければ従来通り`HomeRoute.HOME`に戻す
+- 設定済みスロットをタップ/長押し → 通常通り既存の`launchApp(packageName)`を呼ぶ
+
+### RotaryKnob.kt（全面書き換え）
+
+- 直径150dp
+- 描画（`Canvas`に複数の`drawCircle`/`drawArc`を重ねる）:
+  - ベース円: 中心をやや左上にオフセットした`Brush.radialGradient`でハイライト→暗部のグラデーションを作り、ドーム型の立体感を表現
+  - ローレット加工: 円周付近に短い放射状の線を等間隔（60本程度）に描画し、側面のギザギザ質感を表現
+  - 光沢ハイライト: 左上寄りに半透明白の`radialGradient`を重ねて艶を追加
+  - 固定ドット: 既存の`angleToIndicatorOffset`（`RotaryKnobMath.kt`に残す）で`slot.decorativeAngleDeg`の位置に`Color(0xFFD1432B)`の小さいドットを描画（回転操作はしない、演出のみ）
+- 操作: `Modifier.combinedClickable(interactionSource = interactionSource, indication = null, onClick = onTap, onLongClick = onLongPress)`。`AppDrawer.kt`の`AppRow`・`HomeScreen.kt`の`AppIconTile`と同じ方式に合わせる
+- `interactionSource.collectIsPressedAsState()`（＋`hoverable`の`isHovered`）で押下中に淡い白グローを表示
+- ラベル: タップ用アプリが未設定なら`"+"`、設定済みならそのアプリ名（`app.label`）のテキストを8-10spで表示（実アイコン描画は行わない。既存の`AppIconTile`と同じくテキストベースのスタイルに揃える）
+- `dragDeltaToAngle`とドラッグ関連コードは削除する
+
+### EqScreen.kt（書き換え）
+
+- 角度やアプリ割当を内部で`remember`する必要がなくなり、外部から渡されたデータを表示するだけの「dumb」なComposableになる
+- シグネチャ: `EqScreen(assignments: Map<KnobSlot, KnobAppAssignment>, onKnobTap: (KnobSlot) -> Unit, onKnobLongPress: (KnobSlot) -> Unit, modifier: Modifier = Modifier)`
+  - `KnobAppAssignment(val tapApp: AppInfo?, val longPressApp: AppInfo?)`
+  - `onKnobTap`/`onKnobLongPress`は「そのスロットが押された」ことだけを通知し、未設定なのでピッカーを開くか、設定済みなので起動するかの判断は`MainActivity`側で行う
+- レイアウト（左右対称2チャンネル×3ノブ縦並び）は初版のまま。ノブサイズ拡大に伴い、収まらない場合はスペーシングを調整する（実機確認で調整）
+
+### テスト方針（改訂差分）
+
+- `RotaryKnobMath.kt`: `dragDeltaToAngle`と対応テストは削除。`angleToIndicatorOffset`とそのテストは流用する
+- 新規の`KnobSlot`・`EqKnobAssignmentStore`・アプリ選択フローの分岐（未設定→ピッカー、設定済み→起動）は、いずれも単純なデータ保持/受け渡しであり複雑な純粋ロジックを含まないため、既存の`FavoritesStore`等と同様に単体テスト対象外とし、実機目視確認とする
+- 見た目（グロッシーな質感・ローレット・グロー）は実機目視確認とする
