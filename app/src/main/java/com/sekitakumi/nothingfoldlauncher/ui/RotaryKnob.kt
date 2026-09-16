@@ -25,14 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
 val DEFAULT_KNOB_DIAMETER = 150.dp
-private val KNOB_FILL_COLOR = Color(0xFF333333)
-private val KNOB_OUTLINE_COLOR = Color(0xFF4A4A4A)
+private val KNOB_FILL_COLOR = NothingGrays.Base
 private val KNOB_DOT_COLOR = Color(0xFFD1432B)
 private const val PRESS_ROTATION_DEG = 270f
 private const val PRESS_ROTATION_DURATION_MS = 500
@@ -109,12 +108,6 @@ fun RotaryKnob(
             }
 
             drawCircle(color = KNOB_FILL_COLOR, radius = knobRadius * 0.85f, center = center)
-            drawCircle(
-                color = KNOB_OUTLINE_COLOR,
-                radius = knobRadius * 0.85f,
-                center = center,
-                style = Stroke(width = 1.5.dp.toPx()),
-            )
 
             val dotOffset = angleToIndicatorOffset(
                 angleDeg + pressRotationDeg.value + entranceWobbleDeg.value,

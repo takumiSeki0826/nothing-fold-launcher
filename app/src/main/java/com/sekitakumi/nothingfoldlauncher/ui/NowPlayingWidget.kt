@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -57,7 +58,7 @@ fun NowPlayingWidget(
 
     Column(
         modifier = modifier
-            .background(Color(0xFF111111), RoundedCornerShape(24.dp))
+            .background(NothingGrays.Base, RoundedCornerShape(24.dp))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(16.dp),
     ) {
@@ -136,7 +137,7 @@ private fun DotGrid(
 
             for (row in 0 until rows) {
                 val litFromBottom = row >= rows - litRows
-                val color = if (litFromBottom) Color(0xFFD1432B) else Color(0xFF3A3A3A)
+                val color = if (litFromBottom) Color(0xFFD1432B) else NothingGrays.OnBase
                 drawCircle(
                     color = color,
                     radius = dotRadius,

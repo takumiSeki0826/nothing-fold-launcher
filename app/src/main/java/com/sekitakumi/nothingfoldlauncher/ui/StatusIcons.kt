@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
 @Composable
 fun StatusIcons(
@@ -61,7 +62,7 @@ private fun SignalBarsIcon(bars: Int, modifier: Modifier = Modifier) {
         val gap = barWidth * 0.5f
         for (i in 0 until 4) {
             val barHeight = size.height * (i + 1) / 4f
-            val color = if (i < bars) Color.White else Color(0xFF4A4A4A)
+            val color = if (i < bars) Color.White else NothingGrays.Base
             drawRoundRect(
                 color = color,
                 topLeft = Offset(x = i * (barWidth + gap), y = size.height - barHeight),

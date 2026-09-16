@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -47,7 +48,7 @@ fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: 
 
     Column(
         modifier = modifier
-            .background(Color(0xFF111111), RoundedCornerShape(24.dp))
+            .background(NothingGrays.Base, RoundedCornerShape(24.dp))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(16.dp),
     ) {
@@ -65,7 +66,7 @@ fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: 
     }
 }
 
-private val DOT_COLOR = Color(0xFF4A4A4A)
+private val DOT_COLOR = NothingGrays.OnBase
 private val DOT_FLASH_COLOR = Color(0xFFD1432B)
 
 // How much of the shared flash progress (0f..1f) one dot's flash-up and

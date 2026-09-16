@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
 @Composable
 fun FaderSlider(
@@ -45,7 +46,7 @@ fun FaderSlider(
 
             // Groove track
             drawRoundRect(
-                color = Color(0xFF2A2A2A),
+                color = NothingGrays.Base,
                 topLeft = Offset(centerX - grooveWidth / 2f, 0f),
                 size = Size(grooveWidth, size.height),
                 cornerRadius = grooveCorner,
@@ -73,7 +74,7 @@ fun FaderSlider(
                 cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx()),
             )
             drawLine(
-                color = Color(0xFF1A1A1A),
+                color = NothingGrays.Base,
                 start = Offset(thumbX + 4.dp.toPx(), thumbY + thumbHeight / 2f),
                 end = Offset(thumbX + thumbWidth - 4.dp.toPx(), thumbY + thumbHeight / 2f),
                 strokeWidth = 1.dp.toPx(),
