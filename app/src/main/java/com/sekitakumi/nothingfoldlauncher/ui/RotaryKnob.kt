@@ -33,6 +33,7 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 val DEFAULT_KNOB_DIAMETER = 150.dp
 private val KNOB_FILL_COLOR = NothingGrays.Base
 private val KNOB_DOT_COLOR = Color(0xFFD1432B)
+private val KNOB_DOT_RADIUS = 4.dp
 private const val PRESS_ROTATION_DEG = 270f
 private const val PRESS_ROTATION_DURATION_MS = 500
 private const val ENTRANCE_WOBBLE_DEG = 14f
@@ -113,7 +114,7 @@ fun RotaryKnob(
                 angleDeg + pressRotationDeg.value + entranceWobbleDeg.value,
                 knobRadius * 0.55f,
             )
-            drawCircle(color = KNOB_DOT_COLOR, radius = knobRadius * 0.06f, center = center + dotOffset)
+            drawCircle(color = KNOB_DOT_COLOR, radius = KNOB_DOT_RADIUS.toPx(), center = center + dotOffset)
         }
         Text(
             text = label,

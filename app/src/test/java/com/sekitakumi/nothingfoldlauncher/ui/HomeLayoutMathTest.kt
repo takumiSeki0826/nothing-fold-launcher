@@ -25,7 +25,12 @@ class HomeLayoutMathTest {
     }
 
     @Test
-    fun `grid uses 8 columns when expanded`() {
-        assertEquals(8, homeGridColumns(isExpanded = true))
+    fun `grid uses 4 columns when expanded`() {
+        assertEquals(4, homeGridColumns(isExpanded = true))
+    }
+
+    @Test
+    fun `expanded grid caps apps at 12 slots`() {
+        assertEquals(12, expandedGridMaxApps())
     }
 }

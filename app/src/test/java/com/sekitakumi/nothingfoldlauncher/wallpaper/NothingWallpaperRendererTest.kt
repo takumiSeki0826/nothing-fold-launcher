@@ -46,4 +46,17 @@ class NothingWallpaperRendererTest {
         assertEquals(816f, rect.left, 0.01f)
         assertEquals(1632f, rect.right, 0.01f)
     }
+
+    @Test
+    fun `nudges card up on wide unfolded screens relative to the default position`() {
+        val rect = calculateCardRect(
+            width = 2448f,
+            height = 1848f,
+            timeAscent = -150f,
+            timeDescent = 40f,
+        )
+
+        assertEquals(463.41f, rect.top, 0.01f)
+        assertEquals(1017.81f, rect.bottom, 0.01f)
+    }
 }

@@ -42,8 +42,7 @@ class StatusIconsController(private val context: Context) {
             _batteryPercent.value = batteryPercent(level, scale)
 
             val status = intent?.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1) ?: -1
-            _isCharging.value = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
-                status == android.os.BatteryManager.BATTERY_STATUS_FULL
+            _isCharging.value = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING
         }
     }
 

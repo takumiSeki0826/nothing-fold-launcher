@@ -14,6 +14,10 @@ data class CardGeometry(val left: Float, val top: Float, val right: Float, val b
 // to a third of the width instead of nearly spanning it.
 private const val WIDE_DISPLAY_WIDTH_THRESHOLD = 1600f
 
+// Nudges the card up slightly on the wide/unfolded layout only, where the
+// default position reads as a bit low under the system clock.
+private const val WIDE_DISPLAY_CARD_TOP_SHIFT = 156f
+
 /**
  * Pure geometry for the date card, shared by the home screen live wallpaper and the
  * lock screen static wallpaper so both place the card at the same relative position.
@@ -35,6 +39,9 @@ fun calculateCardRect(
     val cardHeight = height * 0.30f
     val cardLeft = if (isWideDisplay) (width - cardWidth) / 2f else margin
     var cardTop = dateY + 40f * scale
+    if (isWideDisplay) {
+        cardTop -= WIDE_DISPLAY_CARD_TOP_SHIFT * scale
+    }
     if (cardTop + cardHeight > height - 120f * scale) {
         cardTop = height - 120f * scale - cardHeight
     }

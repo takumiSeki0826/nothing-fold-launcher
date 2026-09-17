@@ -1,5 +1,8 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Column
@@ -8,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -20,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
+private const val THUMB_ENTRANCE_START_DP = -110f
+
 @Composable
 fun FaderSlider(
     label: String,
@@ -27,6 +34,17 @@ fun FaderSlider(
     onRatioChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val thumbEntranceOffsetDp = remember { Animatable(THUMB_ENTRANCE_START_DP) }
+    LaunchedEffect(Unit) {
+        thumbEntranceOffsetDp.animateTo(
+            targetValue = 0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioHighBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        )
+    }
+
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = label, color = Color.Gray, fontSize = 11.sp)
         Canvas(
@@ -40,6 +58,7 @@ fun FaderSlider(
                     }
                 },
         ) {
+            val thumbOffsetPx = thumbEntranceOffsetDp.value.dp.toPx()
             val grooveWidth = 6.dp.toPx()
             val centerX = size.width / 2f
             val grooveCorner = CornerRadius(grooveWidth / 2f, grooveWidth / 2f)
@@ -66,7 +85,7 @@ fun FaderSlider(
             val thumbWidth = size.width * 0.75f
             val thumbX = (size.width - thumbWidth) / 2f
             val thumbY = (size.height * (1f - ratio) - thumbHeight / 2f)
-                .coerceIn(0f, size.height - thumbHeight)
+                .coerceIn(0f, size.height - thumbHeight) + thumbOffsetPx
             drawRoundRect(
                 color = Color.White,
                 topLeft = Offset(thumbX, thumbY),

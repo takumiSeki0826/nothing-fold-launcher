@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_HOME_APP_COUNT = 8
+private const val DEFAULT_HOME_APP_COUNT = 12
 
 class AppListViewModel(
     private val repository: AppRepository,

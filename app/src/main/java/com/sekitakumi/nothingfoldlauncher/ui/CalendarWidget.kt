@@ -92,7 +92,7 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
     }
     val flashProgress = remember(grid) { Animatable(0f) }
     LaunchedEffect(grid) {
-        flashProgress.animateTo(1f, tween(durationMillis = 500, easing = LinearEasing))
+        flashProgress.animateTo(1f, tween(durationMillis = 1000, easing = LinearEasing))
     }
 
     Canvas(modifier = modifier) {

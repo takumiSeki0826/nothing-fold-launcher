@@ -38,14 +38,14 @@ fun dotFlashIntensity(progress: Float, peak: Float, pulseWidth: Float): Float =
 - `val flashPeaks = remember(grid) { grid.dots.associate { it.day to (PULSE_WIDTH + Random.nextFloat() * (1f - 2 * PULSE_WIDTH)) } }`
   - `grid`（月やドット数）が変わるたびに再生成。`peak`を`[pulseWidth, 1 - pulseWidth]`に収めることで、アニメーション区間内で立ち上がり・立ち下がりが必ず完結する
 - `val flashProgress = remember(grid) { Animatable(0f) }`
-- `LaunchedEffect(grid) { flashProgress.animateTo(1f, tween(durationMillis = 500, easing = LinearEasing)) }`
+- `LaunchedEffect(grid) { flashProgress.animateTo(1f, tween(durationMillis = 1000, easing = LinearEasing)) }`
   - `SlidersRow`と同様、このコンポーザブルは`MainActivity`の`AnimatedContent`がdrawer⇔home間で切り替わるたびに新規コンポジションとして生成されるため、`remember`状態がリセットされ「毎回」発火する
 - `Canvas`の`drawCircle`呼び出しで、本日ドット以外は`androidx.compose.ui.graphics.lerp(グレー, アクセントカラー, dotFlashIntensity(...))`で色をブレンドする。本日ドットは常にアクセントカラー固定
 
 ### 定数
 
 - `DOT_FLASH_PULSE_WIDTH = 0.15f`（各ドット個別の立ち上がり・立ち下がり速度）
-- アニメーション全体の長さ: 500ms、`LinearEasing`（`progress`自体を線形に進め、ランダム性は`peak`の散らばりだけで表現するため）
+- アニメーション全体の長さ: 1000ms、`LinearEasing`（`progress`自体を線形に進め、ランダム性は`peak`の散らばりだけで表現するため）
 
 ## テスト方針
 

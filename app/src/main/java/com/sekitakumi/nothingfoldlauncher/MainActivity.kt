@@ -9,7 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -19,6 +21,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,22 +34,36 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.sekitakumi.nothingfoldlauncher.data.AppIconColorStore
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
+import com.sekitakumi.nothingfoldlauncher.data.EqKnobAssignmentStore
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
+import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
 import com.sekitakumi.nothingfoldlauncher.data.LockScreenSyncStore
 import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
+import com.sekitakumi.nothingfoldlauncher.ui.EqKnobSettingsMenu
+import com.sekitakumi.nothingfoldlauncher.ui.EqScreen
+import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobAppAssignment
+import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSettingsMenu
+import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSlot
+import com.sekitakumi.nothingfoldlauncher.ui.HomeRoute
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
+import com.sekitakumi.nothingfoldlauncher.ui.IconColorPickerDialog
+import com.sekitakumi.nothingfoldlauncher.ui.IconPaletteColor
+import com.sekitakumi.nothingfoldlauncher.ui.KnobAppAssignment
+import com.sekitakumi.nothingfoldlauncher.ui.KnobSlot
 import com.sekitakumi.nothingfoldlauncher.ui.LockScreenSyncMenu
 import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
 import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
 import com.sekitakumi.nothingfoldlauncher.ui.StatusIconsController
 import com.sekitakumi.nothingfoldlauncher.ui.VolumeController
 import com.sekitakumi.nothingfoldlauncher.ui.isExpandedWidth
+import com.sekitakumi.nothingfoldlauncher.ui.nextHomeRoute
 import com.sekitakumi.nothingfoldlauncher.ui.shouldCloseDrawerOnNewIntent
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingFoldLauncherTheme
 import com.sekitakumi.nothingfoldlauncher.wallpaper.LockWallpaperGenerator
@@ -56,11 +73,20 @@ import kotlinx.coroutines.launch
 
 private const val YOUTUBE_MUSIC_PACKAGE = "com.google.android.apps.youtube.music"
 
+private sealed class PendingKnobPick {
+    data class Eq(val slot: KnobSlot, val isLongPress: Boolean) : PendingKnobPick()
+    data class Home(val slot: HomeKnobSlot, val isLongPress: Boolean) : PendingKnobPick()
+}
+
 class MainActivity : ComponentActivity() {
 
-    private val showDrawerState = mutableStateOf(false)
+    private val homeRouteState = mutableStateOf(HomeRoute.HOME)
+    private val pendingKnobPickState = mutableStateOf<PendingKnobPick?>(null)
 
     private val lockScreenSyncStore by lazy { LockScreenSyncStore(applicationContext) }
+    private val eqKnobAssignmentStore by lazy { EqKnobAssignmentStore(applicationContext) }
+    private val homeKnobAssignmentStore by lazy { HomeKnobAssignmentStore(applicationContext) }
+    private val appIconColorStore by lazy { AppIconColorStore(applicationContext) }
 
     private val viewModel: AppListViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -86,7 +112,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             NothingFoldLauncherTheme {
-                var showDrawer by showDrawerState
+                var homeRoute by homeRouteState
+                var pendingKnobPick by pendingKnobPickState
                 val isExpandedWidth = isExpandedWidth(LocalConfiguration.current.screenWidthDp)
                 val apps by viewModel.visibleApps.collectAsState()
                 val homeApps by viewModel.homeApps.collectAsState()
@@ -101,6 +128,10 @@ class MainActivity : ComponentActivity() {
 
                 var showLockScreenSyncMenu by remember { mutableStateOf(false) }
                 var lockScreenSyncEnabled by remember { mutableStateOf(lockScreenSyncStore.isEnabled()) }
+                var showEqKnobSettings by remember { mutableStateOf(false) }
+                var showHomeKnobSettings by remember { mutableStateOf(false) }
+                var colorPickerTargetApp by remember { mutableStateOf<AppInfo?>(null) }
+                val iconColorAssignments = remember { mutableStateMapOf<String, IconPaletteColor>() }
 
                 val volumeController = remember { VolumeController(applicationContext) }
                 DisposableEffect(volumeController) {
@@ -135,11 +166,120 @@ class MainActivity : ComponentActivity() {
 
                 val closeDrawer: () -> Unit = ::closeDrawer
 
+                val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
+                val knobPackageAssignments = remember {
+                    mutableStateMapOf<KnobSlot, Pair<String?, String?>>().apply {
+                        KnobSlot.values().forEach { slot ->
+                            put(
+                                slot,
+                                eqKnobAssignmentStore.getTapPackage(slot) to
+                                    eqKnobAssignmentStore.getLongPressPackage(slot),
+                            )
+                        }
+                    }
+                }
+                val knobAssignments = KnobSlot.values().associateWith { slot ->
+                    val (tapPackage, longPressPackage) = knobPackageAssignments[slot] ?: (null to null)
+                    KnobAppAssignment(
+                        tapApp = tapPackage?.let(appsByPackage::get),
+                        longPressApp = longPressPackage?.let(appsByPackage::get),
+                    )
+                }
+
+                val knobNames = remember {
+                    mutableStateMapOf<KnobSlot, String>().apply {
+                        KnobSlot.values().forEach { slot ->
+                            eqKnobAssignmentStore.getName(slot)?.let { put(slot, it) }
+                        }
+                    }
+                }
+
+                val homeKnobPackageAssignments = remember {
+                    mutableStateMapOf<HomeKnobSlot, Pair<String?, String?>>().apply {
+                        HomeKnobSlot.values().forEach { slot ->
+                            put(
+                                slot,
+                                homeKnobAssignmentStore.getTapPackage(slot) to
+                                    homeKnobAssignmentStore.getLongPressPackage(slot),
+                            )
+                        }
+                    }
+                }
+                val homeKnobAssignments = HomeKnobSlot.values().associateWith { slot ->
+                    val (tapPackage, longPressPackage) = homeKnobPackageAssignments[slot] ?: (null to null)
+                    HomeKnobAppAssignment(
+                        tapApp = tapPackage?.let(appsByPackage::get),
+                        longPressApp = longPressPackage?.let(appsByPackage::get),
+                    )
+                }
+                val homeKnobNames = remember {
+                    mutableStateMapOf<HomeKnobSlot, String>().apply {
+                        HomeKnobSlot.values().forEach { slot ->
+                            homeKnobAssignmentStore.getName(slot)?.let { put(slot, it) }
+                        }
+                    }
+                }
+
+                val assignPendingKnobApp: (AppInfo) -> Unit = { app ->
+                    when (val pending = pendingKnobPick) {
+                        is PendingKnobPick.Eq -> {
+                            val current = knobPackageAssignments[pending.slot] ?: (null to null)
+                            if (pending.isLongPress) {
+                                eqKnobAssignmentStore.setLongPressPackage(pending.slot, app.packageName)
+                                knobPackageAssignments[pending.slot] = current.first to app.packageName
+                            } else {
+                                eqKnobAssignmentStore.setTapPackage(pending.slot, app.packageName)
+                                knobPackageAssignments[pending.slot] = app.packageName to current.second
+                            }
+                            homeRoute = HomeRoute.EQ
+                        }
+                        is PendingKnobPick.Home -> {
+                            val current = homeKnobPackageAssignments[pending.slot] ?: (null to null)
+                            if (pending.isLongPress) {
+                                homeKnobAssignmentStore.setLongPressPackage(pending.slot, app.packageName)
+                                homeKnobPackageAssignments[pending.slot] = current.first to app.packageName
+                            } else {
+                                homeKnobAssignmentStore.setTapPackage(pending.slot, app.packageName)
+                                homeKnobPackageAssignments[pending.slot] = app.packageName to current.second
+                            }
+                            homeRoute = HomeRoute.HOME
+                        }
+                        null -> Unit
+                    }
+                    pendingKnobPick = null
+                }
+
+                val onDrawerDismissed: () -> Unit = {
+                    when (pendingKnobPick) {
+                        is PendingKnobPick.Eq -> {
+                            pendingKnobPick = null
+                            homeRoute = HomeRoute.EQ
+                        }
+                        is PendingKnobPick.Home, null -> {
+                            pendingKnobPick = null
+                            closeDrawer()
+                        }
+                    }
+                }
+
+                val startEqKnobAppPick: (KnobSlot, Boolean) -> Unit = { slot, isLongPress ->
+                    showEqKnobSettings = false
+                    pendingKnobPick = PendingKnobPick.Eq(slot, isLongPress)
+                    homeRoute = HomeRoute.DRAWER
+                }
+
+                val startHomeKnobAppPick: (HomeKnobSlot, Boolean) -> Unit = { slot, isLongPress ->
+                    showHomeKnobSettings = false
+                    pendingKnobPick = PendingKnobPick.Home(slot, isLongPress)
+                    homeRoute = HomeRoute.DRAWER
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .pointerInput(showDrawer) {
-                            // Open: swipe up / Close: swipe left or swipe down.
+                        .pointerInput(homeRoute) {
+                            // Home: swipe up opens the drawer, swipe left opens the EQ screen.
+                            // Drawer: swipe left or down returns home. EQ: swipe right returns home.
                             // Descendant scrollables (the app list, the alphabet
                             // index bar) consume their own drag events, so this
                             // only sees drags that they didn't claim.
@@ -149,11 +289,16 @@ class MainActivity : ComponentActivity() {
                                     dragAccumY = 0f
                                 },
                                 onDragEnd = {
-                                    if (showDrawer) {
-                                        if (dragAccumX < -120f || dragAccumY > 120f) closeDrawer()
+                                    val nextRoute = nextHomeRoute(homeRoute, dragAccumX, dragAccumY)
+                                    val cancelingDrawer = homeRoute == HomeRoute.DRAWER && nextRoute == HomeRoute.HOME
+                                    homeRoute = if (cancelingDrawer && pendingKnobPick is PendingKnobPick.Eq) {
+                                        pendingKnobPick = null
+                                        HomeRoute.EQ
                                     } else {
-                                        if (dragAccumY < -120f) showDrawer = true
+                                        if (cancelingDrawer) pendingKnobPick = null
+                                        nextRoute
                                     }
+                                    if (homeRoute == HomeRoute.HOME) viewModel.onQueryChange("")
                                     dragAccumX = 0f
                                     dragAccumY = 0f
                                 },
@@ -164,30 +309,61 @@ class MainActivity : ComponentActivity() {
                         },
                 ) {
                     AnimatedContent(
-                        targetState = showDrawer,
+                        targetState = homeRoute,
                         transitionSpec = {
-                            if (targetState) {
-                                // Home -> drawer (swipe up): home exits upward, drawer enters from below
-                                slideInVertically { it } togetherWith slideOutVertically { -it }
-                            } else {
-                                // Drawer -> home: drawer exits downward, home enters from above
-                                slideInVertically { -it } togetherWith slideOutVertically { it }
+                            when {
+                                initialState == HomeRoute.HOME && targetState == HomeRoute.DRAWER ->
+                                    // Home -> drawer (swipe up): home exits upward, drawer enters from below
+                                    slideInVertically { it } togetherWith slideOutVertically { -it }
+                                initialState == HomeRoute.DRAWER && targetState == HomeRoute.HOME ->
+                                    // Drawer -> home: drawer exits downward, home enters from above
+                                    slideInVertically { -it } togetherWith slideOutVertically { it }
+                                initialState == HomeRoute.HOME && targetState == HomeRoute.EQ ->
+                                    // Home -> EQ (swipe left): home exits left, EQ enters from the right
+                                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                                else ->
+                                    // EQ -> home (swipe right): EQ exits right, home enters from the left
+                                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
                             }
                         },
-                        label = "home-drawer-transition",
-                    ) { drawerVisible ->
-                        if (drawerVisible) {
-                            AppDrawer(
+                        label = "home-route-transition",
+                    ) { route ->
+                        when (route) {
+                            HomeRoute.DRAWER -> AppDrawer(
                                 apps = apps,
                                 query = query,
                                 favorites = favorites,
                                 onQueryChange = viewModel::onQueryChange,
-                                onAppClick = { launchApp(it.packageName) },
-                                onAppLongClick = openAppMenu,
-                                onSwipeDownToClose = closeDrawer,
+                                onAppClick = { app ->
+                                    if (pendingKnobPick != null) assignPendingKnobApp(app) else launchApp(app.packageName)
+                                },
+                                onAppLongClick = { app ->
+                                    if (pendingKnobPick != null) assignPendingKnobApp(app) else openAppMenu(app)
+                                },
+                                onSwipeDownToClose = onDrawerDismissed,
+                                isExpandedWidth = isExpandedWidth,
                             )
-                        } else {
-                            HomeScreen(
+                            HomeRoute.EQ -> EqScreen(
+                                knobNames = knobNames,
+                                onKnobTap = { slot ->
+                                    val tapPackage = knobPackageAssignments[slot]?.first
+                                    if (tapPackage != null) {
+                                        launchApp(tapPackage)
+                                    } else {
+                                        startEqKnobAppPick(slot, false)
+                                    }
+                                },
+                                onKnobLongPress = { slot ->
+                                    val longPressPackage = knobPackageAssignments[slot]?.second
+                                    if (longPressPackage != null) {
+                                        launchApp(longPressPackage)
+                                    } else {
+                                        startEqKnobAppPick(slot, true)
+                                    }
+                                },
+                                onBackgroundLongPress = { showEqKnobSettings = true },
+                            )
+                            HomeRoute.HOME -> HomeScreen(
                                 apps = homeApps,
                                 errorMessage = errorMessage,
                                 volumeRatio = volumeRatio,
@@ -213,6 +389,27 @@ class MainActivity : ComponentActivity() {
                                 onAppClick = { launchApp(it.packageName) },
                                 onAppLongClick = openAppMenu,
                                 isExpandedWidth = isExpandedWidth,
+                                homeKnobNames = homeKnobNames,
+                                onHomeKnobTap = { slot ->
+                                    val tapPackage = homeKnobPackageAssignments[slot]?.first
+                                    if (tapPackage != null) {
+                                        launchApp(tapPackage)
+                                    } else {
+                                        startHomeKnobAppPick(slot, false)
+                                    }
+                                },
+                                onHomeKnobLongPress = { slot ->
+                                    val longPressPackage = homeKnobPackageAssignments[slot]?.second
+                                    if (longPressPackage != null) {
+                                        launchApp(longPressPackage)
+                                    } else {
+                                        startHomeKnobAppPick(slot, true)
+                                    }
+                                },
+                                onHomeKnobSettingsLongPress = { showHomeKnobSettings = true },
+                                iconColorFor = { app ->
+                                    iconColorAssignments[app.packageName] ?: appIconColorStore.getColor(app.packageName)
+                                },
                             )
                         }
                     }
@@ -234,9 +431,57 @@ class MainActivity : ComponentActivity() {
                                 renameTargetApp = app
                                 menuTargetApp = null
                             },
+                            onChangeColor = {
+                                colorPickerTargetApp = app
+                                menuTargetApp = null
+                            },
                             onDismiss = { menuTargetApp = null },
                         )
                     }
+
+                    colorPickerTargetApp?.let { app ->
+                        IconColorPickerDialog(
+                            app = app,
+                            selectedColor = iconColorAssignments[app.packageName]
+                                ?: appIconColorStore.getColor(app.packageName),
+                            onSelectColor = { color ->
+                                appIconColorStore.setColor(app.packageName, color)
+                                iconColorAssignments[app.packageName] = color
+                            },
+                            onDismiss = { colorPickerTargetApp = null },
+                        )
+                    }
+
+                    if (showEqKnobSettings) {
+                        EqKnobSettingsMenu(
+                            slots = KnobSlot.values().toList(),
+                            knobNames = knobNames,
+                            assignments = knobAssignments,
+                            onNameChange = { slot, name ->
+                                eqKnobAssignmentStore.setName(slot, name)
+                                knobNames[slot] = name
+                            },
+                            onEditTapApp = { slot -> startEqKnobAppPick(slot, false) },
+                            onEditLongPressApp = { slot -> startEqKnobAppPick(slot, true) },
+                            onDismiss = { showEqKnobSettings = false },
+                        )
+                    }
+
+                    if (showHomeKnobSettings) {
+                        HomeKnobSettingsMenu(
+                            slots = HomeKnobSlot.values().toList(),
+                            knobNames = homeKnobNames,
+                            assignments = homeKnobAssignments,
+                            onNameChange = { slot, name ->
+                                homeKnobAssignmentStore.setName(slot, name)
+                                homeKnobNames[slot] = name
+                            },
+                            onEditTapApp = { slot -> startHomeKnobAppPick(slot, false) },
+                            onEditLongPressApp = { slot -> startHomeKnobAppPick(slot, true) },
+                            onDismiss = { showHomeKnobSettings = false },
+                        )
+                    }
+
 
                     if (showLockScreenSyncMenu) {
                         LockScreenSyncMenu(
@@ -292,13 +537,14 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (shouldCloseDrawerOnNewIntent(intent.action, showDrawerState.value)) {
+        if (shouldCloseDrawerOnNewIntent(intent.action, homeRouteState.value == HomeRoute.DRAWER)) {
             closeDrawer()
         }
     }
 
     private fun closeDrawer() {
-        showDrawerState.value = false
+        homeRouteState.value = HomeRoute.HOME
+        pendingKnobPickState.value = null
         viewModel.onQueryChange("")
     }
 
