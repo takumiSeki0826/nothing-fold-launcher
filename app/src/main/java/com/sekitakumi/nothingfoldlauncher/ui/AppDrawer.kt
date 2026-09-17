@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -34,8 +36,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -47,6 +51,7 @@ fun AppDrawer(
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
     onSwipeDownToClose: () -> Unit,
+    isExpandedWidth: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -81,12 +86,85 @@ fun AppDrawer(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .padding(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 48.dp),
-    ) {
+    if (isExpandedWidth) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 48.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            AlphabetJogWheel(
+                onLetterSelected = { letter ->
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    scrollIndexForLetter(letter, letterIndexMap, apps.size)?.let { target ->
+                        coroutineScope.launch { listState.scrollToItem(target) }
+                    }
+                },
+                onClearSearch = { onQueryChange("") },
+                onJumpToStart = { coroutineScope.launch { listState.scrollToItem(0) } },
+                onJumpToEnd = {
+                    coroutineScope.launch { listState.scrollToItem((apps.size - 1).coerceAtLeast(0)) }
+                },
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
+
+            SearchColumn(
+                apps = apps,
+                query = query,
+                favorites = favorites,
+                onQueryChange = onQueryChange,
+                onAppClick = onAppClick,
+                onAppLongClick = onAppLongClick,
+                listState = listState,
+                coroutineScope = coroutineScope,
+                letterIndexMap = letterIndexMap,
+                keyboardController = keyboardController,
+                focusManager = focusManager,
+                nestedScrollConnection = nestedScrollConnection,
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
+        }
+    } else {
+        SearchColumn(
+            apps = apps,
+            query = query,
+            favorites = favorites,
+            onQueryChange = onQueryChange,
+            onAppClick = onAppClick,
+            onAppLongClick = onAppLongClick,
+            listState = listState,
+            coroutineScope = coroutineScope,
+            letterIndexMap = letterIndexMap,
+            keyboardController = keyboardController,
+            focusManager = focusManager,
+            nestedScrollConnection = nestedScrollConnection,
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 48.dp),
+        )
+    }
+}
+
+@Composable
+private fun SearchColumn(
+    apps: List<AppInfo>,
+    query: String,
+    favorites: Set<String>,
+    onQueryChange: (String) -> Unit,
+    onAppClick: (AppInfo) -> Unit,
+    onAppLongClick: (AppInfo) -> Unit,
+    listState: LazyListState,
+    coroutineScope: CoroutineScope,
+    letterIndexMap: Map<Char, Int>,
+    keyboardController: SoftwareKeyboardController?,
+    focusManager: FocusManager,
+    nestedScrollConnection: NestedScrollConnection,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,

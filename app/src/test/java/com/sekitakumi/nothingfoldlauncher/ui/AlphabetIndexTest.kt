@@ -135,4 +135,49 @@ class AlphabetIndexTest {
     fun `drag offset caps at zero even past the bar`() {
         assertEquals(0f, alphabetIndexDragOffsetX(downX = 100f, currentX = 200f, baseOffsetPx = -40f), 0.001f)
     }
+
+    @Test
+    fun `wheel angle zero maps to A`() {
+        assertEquals('A', letterForWheelAngleDeg(0f))
+    }
+
+    @Test
+    fun `wheel angle just before first slice boundary still maps to A`() {
+        assertEquals('A', letterForWheelAngleDeg(13.3f))
+    }
+
+    @Test
+    fun `wheel angle just after first slice boundary maps to B`() {
+        assertEquals('B', letterForWheelAngleDeg(13.4f))
+    }
+
+    @Test
+    fun `wheel angle near a full turn maps to the last letter`() {
+        assertEquals('#', letterForWheelAngleDeg(350f))
+    }
+
+    @Test
+    fun `wheel angle at a full turn wraps back to A`() {
+        assertEquals('A', letterForWheelAngleDeg(360f))
+    }
+
+    @Test
+    fun `negative wheel angle wraps to the end of the circle`() {
+        assertEquals('#', letterForWheelAngleDeg(-10f))
+    }
+
+    @Test
+    fun `reversed wheel angle zero still maps to A`() {
+        assertEquals('A', letterForWheelAngleDeg(0f, reversed = true))
+    }
+
+    @Test
+    fun `reversed wheel angle just clockwise of zero maps to the last letter`() {
+        assertEquals('#', letterForWheelAngleDeg(10f, reversed = true))
+    }
+
+    @Test
+    fun `reversed wheel angle just before a full turn maps back to A`() {
+        assertEquals('A', letterForWheelAngleDeg(350f, reversed = true))
+    }
 }

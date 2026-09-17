@@ -37,4 +37,41 @@ class RotaryKnobMathTest {
         assertEquals(40L, entranceWobbleDelayMs(orderIndex = 1))
         assertEquals(200L, entranceWobbleDelayMs(orderIndex = 5))
     }
+
+    @Test
+    fun `offset straight up maps to zero degrees`() {
+        assertEquals(0f, angleDegFromCenterOffset(dx = 0f, dy = -10f), 0.001f)
+    }
+
+    @Test
+    fun `offset to the right maps to 90 degrees`() {
+        assertEquals(90f, angleDegFromCenterOffset(dx = 10f, dy = 0f), 0.001f)
+    }
+
+    @Test
+    fun `offset straight down maps to 180 degrees`() {
+        assertEquals(180f, angleDegFromCenterOffset(dx = 0f, dy = 10f), 0.001f)
+    }
+
+    @Test
+    fun `offset to the left maps to 270 degrees`() {
+        assertEquals(270f, angleDegFromCenterOffset(dx = -10f, dy = 0f), 0.001f)
+    }
+
+    @Test
+    fun `angleDegFromCenterOffset is the inverse of angleToIndicatorOffset`() {
+        val original = 137f
+        val offset = angleToIndicatorOffset(angleDeg = original, radiusPx = 25f)
+        assertEquals(original, angleDegFromCenterOffset(dx = offset.x, dy = offset.y), 0.01f)
+    }
+
+    @Test
+    fun `jog wheel arc start angle for a wheel angle of zero`() {
+        assertEquals(-110f, jogWheelArcStartAngleDeg(centerAngleDeg = 0f, arcWidthDeg = 40f), 0.001f)
+    }
+
+    @Test
+    fun `jog wheel arc start angle for a wheel angle of 90`() {
+        assertEquals(-10f, jogWheelArcStartAngleDeg(centerAngleDeg = 90f, arcWidthDeg = 20f), 0.001f)
+    }
 }

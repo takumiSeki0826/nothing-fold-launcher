@@ -78,3 +78,13 @@ const val ALPHABET_INDEX_FINGER_OFFSET_DP = 88
 // it (0 = pinned to the bar's own x position).
 fun alphabetIndexDragOffsetX(downX: Float, currentX: Float, baseOffsetPx: Float): Float =
     (baseOffsetPx + (currentX - downX)).coerceAtMost(0f)
+
+// Jog-wheel equivalent of letterForBarPosition: 0deg (straight up) is 'A',
+// moving clockwise through the alphabet and '#' over one full turn.
+fun letterForWheelAngleDeg(angleDeg: Float, reversed: Boolean = false): Char {
+    val effectiveDeg = if (reversed) 360f - angleDeg else angleDeg
+    val normalizedDeg = ((effectiveDeg % 360f) + 360f) % 360f
+    val sliceDeg = 360f / ALPHABET_INDEX_LETTERS.size
+    val index = (normalizedDeg / sliceDeg).toInt().coerceIn(0, ALPHABET_INDEX_LETTERS.size - 1)
+    return ALPHABET_INDEX_LETTERS[index]
+}
