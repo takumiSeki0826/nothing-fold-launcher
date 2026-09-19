@@ -1,7 +1,7 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -34,7 +34,8 @@ val DEFAULT_KNOB_DIAMETER = 150.dp
 private val KNOB_FILL_COLOR = NothingGrays.Base
 private val KNOB_DOT_COLOR = Color(0xFFD1432B)
 private val KNOB_DOT_RADIUS = 4.dp
-private const val PRESS_ROTATION_DEG = 270f
+private const val DOT_BASE_ANGLE_OFFSET_DEG = 30f
+private const val PRESS_ROTATION_DEG = 150f
 private const val PRESS_ROTATION_DURATION_MS = 500
 private const val ENTRANCE_WOBBLE_DEG = 14f
 
@@ -59,12 +60,15 @@ fun RotaryKnob(
         if (isPressed) {
             pressRotationDeg.animateTo(
                 targetValue = PRESS_ROTATION_DEG,
-                animationSpec = tween(durationMillis = PRESS_ROTATION_DURATION_MS, easing = LinearEasing),
+                animationSpec = tween(durationMillis = PRESS_ROTATION_DURATION_MS, easing = FastOutLinearInEasing),
             )
         } else {
             pressRotationDeg.animateTo(
                 targetValue = 0f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioHighBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
             )
         }
     }
@@ -118,7 +122,7 @@ fun RotaryKnob(
             drawCircle(color = KNOB_FILL_COLOR, radius = knobRadius, center = center)
 
             val dotOffset = angleToIndicatorOffset(
-                angleDeg + pressRotationDeg.value + entranceWobbleDeg.value,
+                angleDeg + DOT_BASE_ANGLE_OFFSET_DEG + pressRotationDeg.value + entranceWobbleDeg.value,
                 knobRadius * 0.55f,
             )
             drawCircle(color = KNOB_DOT_COLOR, radius = KNOB_DOT_RADIUS.toPx(), center = center + dotOffset)
