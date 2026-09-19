@@ -341,6 +341,7 @@ private fun AppGrid(
     var draggingIndex by remember { mutableStateOf<Int?>(null) }
     var dragPositionWindow by remember { mutableStateOf(Offset.Zero) }
     var hoveredIndex by remember { mutableStateOf<Int?>(null) }
+    var pressedIndex by remember { mutableStateOf<Int?>(null) }
     val haptics = LocalHapticFeedback.current
 
     Column(
@@ -410,6 +411,7 @@ private fun AppGrid(
                                         onPickUp = pickUp,
                                         onDragMove = moveDrag,
                                         onDragEnd = endDrag,
+                                        onPressChange = { isDown -> pressedIndex = if (isDown) index else null },
                                     )
                                 },
                             ),
@@ -435,7 +437,11 @@ private fun AppGrid(
 
                         when (item) {
                             is HomeGridItem.AppItem -> AppIconTile(app = item.app, modifier = contentModifier)
-                            is HomeGridItem.FolderItem -> FolderKnobTile(folder = item.folder, modifier = contentModifier)
+                            is HomeGridItem.FolderItem -> FolderKnobTile(
+                                folder = item.folder,
+                                pressed = pressedIndex == index,
+                                modifier = contentModifier,
+                            )
                             null -> EmptyHoleTile(modifier = contentModifier)
                         }
                     }
@@ -464,6 +470,7 @@ private fun Modifier.dragReorderable(
     onPickUp: () -> Unit,
     onDragMove: (Offset) -> Unit,
     onDragEnd: (commit: Boolean) -> Unit,
+    onPressChange: (Boolean) -> Unit = {},
 ): Modifier = this.pointerInput(Unit) {
     val longPressTimeoutMillis = viewConfiguration.longPressTimeoutMillis
     val touchSlop = viewConfiguration.touchSlop
@@ -473,6 +480,7 @@ private fun Modifier.dragReorderable(
         // handler does not fire on top of a tile. Ancestor drag detectors use
         // requireUnconsumed = false, so swipes still see this down.
         down.consume()
+        onPressChange(true)
 
         var lifted = false
         var slippedAway = false
@@ -498,9 +506,13 @@ private fun Modifier.dragReorderable(
         }
 
         when {
-            lifted -> onTap()
-            slippedAway -> Unit
+            lifted -> {
+                onPressChange(false)
+                onTap()
+            }
+            slippedAway -> onPressChange(false)
             else -> {
+                onPressChange(false)
                 onPickUp()
                 var moved = false
                 while (true) {
@@ -539,6 +551,7 @@ private fun EmptyHoleTile(modifier: Modifier = Modifier) {
 @Composable
 private fun FolderKnobTile(
     folder: AppFolder,
+    pressed: Boolean,
     modifier: Modifier = Modifier,
 ) {
     RotaryKnob(
@@ -548,6 +561,7 @@ private fun FolderKnobTile(
         onLongPress = {},
         diameter = APP_ICON_WIDTH,
         clickable = false,
+        pressed = pressed,
         modifier = modifier,
     )
 }
