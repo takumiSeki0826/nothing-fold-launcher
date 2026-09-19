@@ -2,6 +2,7 @@ package com.sekitakumi.nothingfoldlauncher
 
 import android.Manifest
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -425,6 +426,10 @@ class MainActivity : ComponentActivity() {
                                 colorPickerTargetApp = app
                                 menuTargetApp = null
                             },
+                            onUninstall = {
+                                uninstallApp(app.packageName)
+                                menuTargetApp = null
+                            },
                             onDismiss = { menuTargetApp = null },
                         )
                     }
@@ -536,6 +541,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.refresh()
         if (lockScreenSyncStore.isEnabled()) applyLockScreenWallpaper()
     }
 
@@ -625,4 +631,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchYoutubeMusic() = launchApp(YOUTUBE_MUSIC_PACKAGE)
+
+    private fun uninstallApp(packageName: String) {
+        val intent = Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))
+        startActivity(intent)
+    }
 }

@@ -37,6 +37,7 @@ fun AppContextMenu(
     onToggleHidden: () -> Unit,
     onRename: () -> Unit,
     onChangeColor: () -> Unit,
+    onUninstall: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -64,6 +65,9 @@ fun AppContextMenu(
                 }
                 TextButton(onClick = onChangeColor) {
                     Text("Change color", color = Color.White)
+                }
+                TextButton(onClick = onUninstall) {
+                    Text("Uninstall", color = Color.White)
                 }
             }
         },
