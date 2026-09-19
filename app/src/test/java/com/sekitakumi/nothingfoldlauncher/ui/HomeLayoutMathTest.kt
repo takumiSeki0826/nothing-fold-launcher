@@ -33,4 +33,9 @@ class HomeLayoutMathTest {
     fun `expanded grid caps apps at 12 slots`() {
         assertEquals(12, expandedGridMaxApps())
     }
+
+    @Test
+    fun `cover screen grid caps items at 8 slots`() {
+        assertEquals(8, coverGridMaxItems())
+    }
 }

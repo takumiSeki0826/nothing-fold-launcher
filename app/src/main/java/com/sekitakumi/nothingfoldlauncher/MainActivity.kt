@@ -44,6 +44,7 @@ import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
+import com.sekitakumi.nothingfoldlauncher.data.HomeOrderStore
 import com.sekitakumi.nothingfoldlauncher.data.LockScreenSyncStore
 import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
@@ -95,6 +96,7 @@ class MainActivity : ComponentActivity() {
     private val lockScreenSyncStore by lazy { LockScreenSyncStore(applicationContext) }
     private val homeKnobAssignmentStore by lazy { HomeKnobAssignmentStore(applicationContext) }
     private val homeAppFolderStore by lazy { HomeAppFolderStore(applicationContext) }
+    private val homeOrderStore by lazy { HomeOrderStore(applicationContext) }
     private val appIconColorStore by lazy { AppIconColorStore(applicationContext) }
 
     private val viewModel: AppListViewModel by viewModels {
@@ -107,6 +109,7 @@ class MainActivity : ComponentActivity() {
                     HiddenAppsStore(applicationContext),
                     AppLabelStore(applicationContext),
                     homeAppFolderStore,
+                    homeOrderStore,
                 ) as T
             }
         }
@@ -398,6 +401,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onHomeKnobSettingsLongPress = { showHomeKnobSettings = true },
+                                onReorder = { from, to ->
+                                    if (to != null) viewModel.swapHomeItems(from, to) else viewModel.moveHomeItemToEnd(from)
+                                },
                                 iconColorFor = { app ->
                                     iconColorAssignments[app.packageName] ?: appIconColorStore.getColor(app.packageName)
                                 },

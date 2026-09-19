@@ -4,7 +4,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,16 +29,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -70,6 +85,7 @@ fun HomeScreen(
     onFolderClick: (AppFolder) -> Unit,
     onFolderLongClick: (AppFolder) -> Unit,
     onAppGridSettingsLongPress: () -> Unit,
+    onReorder: (from: HomeGridItem, to: HomeGridItem?) -> Unit,
     isExpandedWidth: Boolean,
     homeKnobNames: Map<HomeKnobSlot, String>,
     onHomeKnobTap: (HomeKnobSlot) -> Unit,
@@ -174,11 +190,13 @@ fun HomeScreen(
                         AppGrid(
                             items = items.take(expandedGridMaxApps()),
                             columns = gridColumns,
+                            slotCount = null,
                             iconColorFor = iconColorFor,
                             onAppClick = onAppClick,
                             onAppLongClick = onAppLongClick,
                             onFolderClick = onFolderClick,
                             onFolderLongClick = onFolderLongClick,
+                            onReorder = onReorder,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -249,13 +267,15 @@ fun HomeScreen(
                         },
                 ) {
                     AppGrid(
-                        items = items,
+                        items = items.take(coverGridMaxItems()),
                         columns = gridColumns,
+                        slotCount = coverGridMaxItems(),
                         iconColorFor = iconColorFor,
                         onAppClick = onAppClick,
                         onAppLongClick = onAppLongClick,
                         onFolderClick = onFolderClick,
                         onFolderLongClick = onFolderLongClick,
+                        onReorder = onReorder,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -306,38 +326,118 @@ private fun SlidersRow(
 private fun AppGrid(
     items: List<HomeGridItem>,
     columns: Int,
+    slotCount: Int?,
     iconColorFor: (AppInfo) -> IconPaletteColor?,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
     onFolderClick: (AppFolder) -> Unit,
     onFolderLongClick: (AppFolder) -> Unit,
+    onReorder: (from: HomeGridItem, to: HomeGridItem?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val totalSlots = slotCount ?: items.size
+    val slotBounds = remember { mutableStateMapOf<Int, Rect>() }
+    val slotCoordinates = remember { mutableStateMapOf<Int, LayoutCoordinates>() }
+    var draggingIndex by remember { mutableStateOf<Int?>(null) }
+    var dragPositionWindow by remember { mutableStateOf(Offset.Zero) }
+    var hoveredIndex by remember { mutableStateOf<Int?>(null) }
+    val haptics = LocalHapticFeedback.current
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        items.chunked(columns).forEachIndexed { rowIndex, rowItems ->
+        (0 until totalSlots).chunked(columns).forEach { rowIndices ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                for (columnIndex in 0 until columns) {
-                    val item = rowItems.getOrNull(columnIndex)
-                    when (item) {
-                        is HomeGridItem.AppItem -> AppIconTile(
-                            app = item.app,
-                            onClick = { onAppClick(item.app) },
-                            onLongClick = { onAppLongClick(item.app) },
-                            modifier = Modifier.width(APP_ICON_WIDTH),
-                        )
-                        is HomeGridItem.FolderItem -> FolderKnobTile(
-                            folder = item.folder,
-                            onClick = { onFolderClick(item.folder) },
-                            onLongClick = { onFolderLongClick(item.folder) },
-                            modifier = Modifier.width(APP_ICON_WIDTH),
-                        )
-                        null -> Spacer(modifier = Modifier.width(APP_ICON_WIDTH))
+                for (index in rowIndices) {
+                    val item = items.getOrNull(index)
+                    val isDraggingThis = draggingIndex == index
+                    val isHovered = hoveredIndex == index && !isDraggingThis
+
+                    val pickUp: () -> Unit = {
+                        draggingIndex = index
+                        dragPositionWindow = slotBounds[index]?.center ?: Offset.Zero
+                        hoveredIndex = index
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                    val moveDrag: (Offset) -> Unit = { windowPosition ->
+                        dragPositionWindow = windowPosition
+                        hoveredIndex = nearestSlotIndex(windowPosition, (0 until totalSlots).map { slotBounds[it] })
+                    }
+                    val endDrag: (Boolean) -> Unit = { commit ->
+                        val target = hoveredIndex
+                        draggingIndex = null
+                        hoveredIndex = null
+                        if (commit && item != null && target != null && target != index) {
+                            onReorder(item, items.getOrNull(target))
+                        }
+                    }
+
+                    // The gesture and measurement wrapper is never transformed, so
+                    // pointer positions keep mapping to stable window coordinates.
+                    // Only the content inside it moves while being dragged.
+                    Box(
+                        modifier = Modifier
+                            .width(APP_ICON_WIDTH)
+                            .then(if (isDraggingThis) Modifier.zIndex(1f) else Modifier)
+                            .onGloballyPositioned { coordinates ->
+                                slotBounds[index] = coordinates.boundsInWindow()
+                                slotCoordinates[index] = coordinates
+                            }
+                            .then(
+                                if (item == null) {
+                                    // Empty holes stay transparent to gestures so a long
+                                    // press there still reaches the app-list settings menu.
+                                    Modifier
+                                } else {
+                                    Modifier.dragReorderable(
+                                        tileCoordinates = { slotCoordinates[index] },
+                                        onTap = {
+                                            when (item) {
+                                                is HomeGridItem.AppItem -> onAppClick(item.app)
+                                                is HomeGridItem.FolderItem -> onFolderClick(item.folder)
+                                            }
+                                        },
+                                        onLongClick = {
+                                            when (item) {
+                                                is HomeGridItem.AppItem -> onAppLongClick(item.app)
+                                                is HomeGridItem.FolderItem -> onFolderLongClick(item.folder)
+                                            }
+                                        },
+                                        onPickUp = pickUp,
+                                        onDragMove = moveDrag,
+                                        onDragEnd = endDrag,
+                                    )
+                                },
+                            ),
+                    ) {
+                        val contentModifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (isDraggingThis) {
+                                    Modifier.graphicsLayer {
+                                        val origin = slotBounds[index]?.center ?: dragPositionWindow
+                                        translationX = dragPositionWindow.x - origin.x
+                                        translationY = dragPositionWindow.y - origin.y
+                                        scaleX = DRAG_SCALE
+                                        scaleY = DRAG_SCALE
+                                    }
+                                } else {
+                                    Modifier
+                                },
+                            )
+                            .then(
+                                if (isHovered) Modifier.border(1.dp, Color.Gray, APP_ICON_CORNER_SHAPE) else Modifier,
+                            )
+
+                        when (item) {
+                            is HomeGridItem.AppItem -> AppIconTile(app = item.app, modifier = contentModifier)
+                            is HomeGridItem.FolderItem -> FolderKnobTile(folder = item.folder, modifier = contentModifier)
+                            null -> EmptyHoleTile(modifier = contentModifier)
+                        }
                     }
                 }
             }
@@ -345,19 +445,109 @@ private fun AppGrid(
     }
 }
 
+private const val DRAG_SCALE = 1.1f
+
+// Tap, long-press and drag-to-reorder from a single gesture, replacing
+// `combinedClickable` on grid tiles: a drag that only starts after a long press
+// cannot be layered on top of `combinedClickable`, since both would compete for
+// the same pointer events.
+//
+// Released before the long-press timeout -> [onTap]. Held still past it -> the tile
+// is picked up ([onPickUp]) and from then on follows the finger; releasing without
+// moving is a plain long-press ([onLongClick]), releasing after moving commits the
+// reorder. A swipe that starts on a tile belongs to the home screen, so the gesture
+// bows out once it passes touch slop before the pickup.
+private fun Modifier.dragReorderable(
+    tileCoordinates: () -> LayoutCoordinates?,
+    onTap: () -> Unit,
+    onLongClick: () -> Unit,
+    onPickUp: () -> Unit,
+    onDragMove: (Offset) -> Unit,
+    onDragEnd: (commit: Boolean) -> Unit,
+): Modifier = this.pointerInput(Unit) {
+    val longPressTimeoutMillis = viewConfiguration.longPressTimeoutMillis
+    val touchSlop = viewConfiguration.touchSlop
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        // Claim the tap/long-press role so the grid's own "long-press empty space"
+        // handler does not fire on top of a tile. Ancestor drag detectors use
+        // requireUnconsumed = false, so swipes still see this down.
+        down.consume()
+
+        var lifted = false
+        var slippedAway = false
+        // Stay passive until the long press fires: consuming moves here would
+        // starve the home screen's swipe detector.
+        withTimeoutOrNull(longPressTimeoutMillis) {
+            while (true) {
+                val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
+                if (change == null) {
+                    slippedAway = true
+                    return@withTimeoutOrNull
+                }
+                if (!change.pressed) {
+                    lifted = true
+                    return@withTimeoutOrNull
+                }
+                if ((change.position - down.position).getDistance() > touchSlop) {
+                    slippedAway = true
+                    return@withTimeoutOrNull
+                }
+            }
+            @Suppress("UNREACHABLE_CODE") Unit
+        }
+
+        when {
+            lifted -> onTap()
+            slippedAway -> Unit
+            else -> {
+                onPickUp()
+                var moved = false
+                while (true) {
+                    val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
+                    if (change == null) {
+                        onDragEnd(false)
+                        break
+                    }
+                    if (!change.pressed) {
+                        onDragEnd(moved)
+                        if (!moved) onLongClick()
+                        break
+                    }
+                    if (!moved && (change.position - down.position).getDistance() > touchSlop) {
+                        moved = true
+                    }
+                    if (moved) {
+                        tileCoordinates()?.localToWindow(change.position)?.let(onDragMove)
+                    }
+                    change.consume()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyHoleTile(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .border(1.dp, Color.Gray, CircleShape),
+    )
+}
+
 @Composable
 private fun FolderKnobTile(
     folder: AppFolder,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     RotaryKnob(
         angleDeg = 0f,
         label = folder.name,
-        onTap = onClick,
-        onLongPress = onLongClick,
+        onTap = {},
+        onLongPress = {},
         diameter = APP_ICON_WIDTH,
+        clickable = false,
         modifier = modifier,
     )
 }
@@ -392,12 +582,10 @@ private fun scaledDurationMs(distanceDp: Float, maxDurationMs: Int): Int =
 @Composable
 private fun AppIconTile(
     app: AppInfo,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

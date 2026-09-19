@@ -115,7 +115,7 @@ fun RotaryKnob(
                 )
             }
 
-            drawCircle(color = KNOB_FILL_COLOR, radius = knobRadius * 0.85f, center = center)
+            drawCircle(color = KNOB_FILL_COLOR, radius = knobRadius, center = center)
 
             val dotOffset = angleToIndicatorOffset(
                 angleDeg + pressRotationDeg.value + entranceWobbleDeg.value,
