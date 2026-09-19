@@ -43,6 +43,8 @@ fun AlphabetJogWheel(
     onClearSearch: () -> Unit,
     onJumpToStart: () -> Unit,
     onJumpToEnd: () -> Unit,
+    systemStats: SystemStatsState,
+    onSystemStatsNetClick: () -> Unit,
     modifier: Modifier = Modifier,
     diameter: Dp = DEFAULT_JOG_WHEEL_DIAMETER,
 ) {
@@ -166,6 +168,12 @@ fun AlphabetJogWheel(
             onLongPress = {},
             diameter = JOG_WHEEL_BUTTON_DIAMETER,
             modifier = Modifier.align(Alignment.BottomEnd),
+        )
+
+        SystemStatsWidget(
+            stats = systemStats,
+            onNetClick = onSystemStatsNetClick,
+            modifier = Modifier.align(Alignment.TopEnd),
         )
     }
 }

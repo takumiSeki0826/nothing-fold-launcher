@@ -23,6 +23,11 @@ object LockWallpaperGenerator {
     // position used by the home screen live wallpaper.
     private const val CARD_DOWN_SHIFT = 90f
 
+    // On the unfolded (wide) display only, cancels part of the lock screen's own
+    // down-shift so the card sits a bit higher there. The folded cover display is
+    // unaffected since it never counts as wide.
+    private const val WIDE_DISPLAY_UP_SHIFT = 120f
+
     /**
      * [width]/[height] should be the real pixel bounds of the display currently
      * showing the lock screen (e.g. `WindowManager.currentWindowMetrics.bounds`),
@@ -61,11 +66,13 @@ object LockWallpaperGenerator {
         val downShift = (CARD_DOWN_SHIFT * scale).coerceAtMost(
             height - 120f * scale - baseGeometry.bottom
         ).coerceAtLeast(0f)
+        val isWideDisplay = width > WIDE_DISPLAY_WIDTH_THRESHOLD
+        val shift = if (isWideDisplay) downShift - WIDE_DISPLAY_UP_SHIFT * scale else downShift
         val geometry = CardGeometry(
             baseGeometry.left,
-            baseGeometry.top + downShift,
+            baseGeometry.top + shift,
             baseGeometry.right,
-            baseGeometry.bottom + downShift,
+            baseGeometry.bottom + shift,
         )
         drawDotCalendarCard(canvas, geometry, scale, Date())
 

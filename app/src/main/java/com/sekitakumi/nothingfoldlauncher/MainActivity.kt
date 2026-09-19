@@ -19,6 +19,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -64,7 +65,9 @@ import com.sekitakumi.nothingfoldlauncher.ui.LockScreenSyncMenu
 import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
 import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
 import com.sekitakumi.nothingfoldlauncher.ui.StatusIconsController
+import com.sekitakumi.nothingfoldlauncher.ui.SystemStatsController
 import com.sekitakumi.nothingfoldlauncher.ui.VolumeController
+import com.sekitakumi.nothingfoldlauncher.ui.WeatherController
 import com.sekitakumi.nothingfoldlauncher.ui.isExpandedWidth
 import com.sekitakumi.nothingfoldlauncher.ui.nextHomeRoute
 import com.sekitakumi.nothingfoldlauncher.ui.shouldCloseDrawerOnNewIntent
@@ -75,6 +78,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private const val YOUTUBE_MUSIC_PACKAGE = "com.google.android.apps.youtube.music"
+private const val WEATHERNEWS_PACKAGE = "wni.WeathernewsTouch.jp"
 
 private sealed class PendingAppPick {
     data class HomeKnobTap(val slot: HomeKnobSlot) : PendingAppPick()
@@ -118,10 +122,14 @@ class MainActivity : ComponentActivity() {
     private val requestPhoneStatePermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    private val requestLocationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideSystemStatusBar()
         requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
+        requestLocationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
 
         setContent {
             NothingFoldLauncherTheme {
@@ -168,6 +176,24 @@ class MainActivity : ComponentActivity() {
                 val wifiConnected by statusIconsController.wifiConnected.collectAsState()
                 val signalBars by statusIconsController.signalBars.collectAsState()
                 val networkType by statusIconsController.networkType.collectAsState()
+                val vpnConnected by statusIconsController.vpnConnected.collectAsState()
+                val tailscaleConnected by statusIconsController.tailscaleConnected.collectAsState()
+
+                val systemStatsController = remember { SystemStatsController(applicationContext) }
+                DisposableEffect(systemStatsController) {
+                    systemStatsController.register()
+                    onDispose { systemStatsController.unregister() }
+                }
+                val systemStats by systemStatsController.stats.collectAsState()
+
+                val weatherController = remember { WeatherController(applicationContext) }
+                DisposableEffect(weatherController) {
+                    onDispose { weatherController.dispose() }
+                }
+                LaunchedEffect(homeRoute) {
+                    if (homeRoute == HomeRoute.HOME) weatherController.refreshIfStale()
+                }
+                val weather by weatherController.weather.collectAsState()
 
                 val nowPlayingController = remember { NowPlayingController(applicationContext) }
                 DisposableEffect(nowPlayingController) {
@@ -329,6 +355,7 @@ class MainActivity : ComponentActivity() {
                                     onConfirmSelection = finishFolderEdit,
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
+                                    systemStats = systemStats,
                                 )
                             } else {
                                 AppDrawer(
@@ -344,6 +371,8 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
+                                    systemStats = systemStats,
+                                    onSystemStatsNetClick = { launchSpeedtest() },
                                 )
                             }
                             HomeRoute.HOME -> HomeScreen(
@@ -361,6 +390,10 @@ class MainActivity : ComponentActivity() {
                                 wifiConnected = wifiConnected,
                                 signalBars = signalBars,
                                 networkType = networkType,
+                                vpnConnected = vpnConnected,
+                                tailscaleConnected = tailscaleConnected,
+                                weather = weather,
+                                onWeatherClick = { launchWeatherApp() },
                                 nowPlaying = nowPlaying,
                                 nowPlayingPermissionGranted = nowPlayingPermissionGranted,
                                 onTogglePlayPause = nowPlayingController::togglePlayPause,
@@ -646,6 +679,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchYoutubeMusic() = launchApp(YOUTUBE_MUSIC_PACKAGE)
+
+    private fun launchWeatherApp() = launchApp(WEATHERNEWS_PACKAGE)
+
+    private fun launchSpeedtest() {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.speedtest.net"))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
 
     private fun uninstallApp(packageName: String) {
         val intent = Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))

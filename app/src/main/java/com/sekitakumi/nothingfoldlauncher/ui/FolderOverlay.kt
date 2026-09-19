@@ -71,7 +71,9 @@ private fun FolderOverlayAppTile(app: AppInfo, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .background(NothingGrays.Base, RoundedCornerShape(6.dp)),
-        )
+        ) {
+            AppIconDot(modifier = Modifier.align(Alignment.TopEnd))
+        }
         Text(
             text = app.label,
             color = Color.White,

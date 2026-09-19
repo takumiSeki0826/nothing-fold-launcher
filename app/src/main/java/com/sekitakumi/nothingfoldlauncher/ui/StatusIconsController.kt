@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -13,6 +14,7 @@ import android.telephony.SignalStrength
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
+import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +30,12 @@ class StatusIconsController(private val context: Context) {
 
     private val _wifiConnected = MutableStateFlow(false)
     val wifiConnected: StateFlow<Boolean> = _wifiConnected.asStateFlow()
+
+    private val _vpnConnected = MutableStateFlow(false)
+    val vpnConnected: StateFlow<Boolean> = _vpnConnected.asStateFlow()
+
+    private val _tailscaleConnected = MutableStateFlow(false)
+    val tailscaleConnected: StateFlow<Boolean> = _tailscaleConnected.asStateFlow()
 
     private val _signalBars = MutableStateFlow<Int?>(null)
     val signalBars: StateFlow<Int?> = _signalBars.asStateFlow()
@@ -52,11 +60,28 @@ class StatusIconsController(private val context: Context) {
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
             _wifiConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+            _vpnConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+        }
+
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+            _tailscaleConnected.value = detectTailscaleInterface(linkProperties)
         }
 
         override fun onLost(network: Network) {
             _wifiConnected.value = false
+            _vpnConnected.value = false
+            _tailscaleConnected.value = false
         }
+    }
+
+    // Tailscale isn't distinguishable via NetworkCapabilities or interface name (both are generic
+    // "tun0"), so this looks for its CGNAT-range address instead; any failure here just falls
+    // back to the generic VPN badge via vpnBadgeFor.
+    private fun detectTailscaleInterface(linkProperties: LinkProperties): Boolean = try {
+        linkProperties.linkAddresses.any { isTailscaleCgnatAddress(it.address.address) }
+    } catch (e: Exception) {
+        Log.w(TAG, "Failed to inspect link properties for Tailscale detection", e)
+        false
     }
 
     private val telephonyManager =
@@ -144,5 +169,9 @@ class StatusIconsController(private val context: Context) {
             @Suppress("DEPRECATION")
             manager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
         }
+    }
+
+    private companion object {
+        const val TAG = "StatusIconsController"
     }
 }

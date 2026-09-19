@@ -11,8 +11,10 @@ data class CardGeometry(val left: Float, val top: Float, val right: Float, val b
 
 // Above this width the display is treated as a large unfolded/tablet-style
 // screen (e.g. a Fold opened flat) rather than a phone, so the card is capped
-// to a third of the width instead of nearly spanning it.
-private const val WIDE_DISPLAY_WIDTH_THRESHOLD = 1600f
+// to a third of the width instead of nearly spanning it. Also used by
+// [LockWallpaperGenerator] to tell the unfolded main display apart from the
+// folded cover display.
+internal const val WIDE_DISPLAY_WIDTH_THRESHOLD = 1600f
 
 // Nudges the card up slightly on the wide/unfolded layout only, where the
 // default position reads as a bit low under the system clock.

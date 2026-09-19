@@ -1,10 +1,13 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
@@ -18,8 +21,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sekitakumi.nothingfoldlauncher.R
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
 @Composable
@@ -29,8 +34,11 @@ fun StatusIcons(
     wifiConnected: Boolean,
     signalBars: Int?,
     networkType: String? = null,
+    vpnConnected: Boolean = false,
+    tailscaleConnected: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
+    val vpnBadge = vpnBadgeFor(vpnConnected = vpnConnected, tailscaleConnected = tailscaleConnected)
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         if (signalBars != null) {
             SignalBarsIcon(bars = signalBars)
@@ -38,6 +46,25 @@ fun StatusIcons(
         }
         if (!wifiConnected && networkType != null) {
             Text(text = networkType, color = Color.White, fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        if (vpnBadge == VpnBadge.TAILSCALE) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_tailscale),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.width(12.dp).height(12.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+        } else if (vpnBadge == VpnBadge.VPN) {
+            Text(
+                text = "VPN",
+                color = Color.White,
+                fontSize = 8.sp,
+                modifier = Modifier
+                    .border(width = 1.dp, color = Color.White, shape = RoundedCornerShape(3.dp))
+                    .padding(horizontal = 3.dp, vertical = 1.dp),
+            )
             Spacer(modifier = Modifier.width(10.dp))
         }
         if (wifiConnected) {
@@ -58,7 +85,7 @@ fun StatusIcons(
 @Composable
 private fun SignalBarsIcon(bars: Int, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier.width(18.dp).height(14.dp)) {
-        val barWidth = size.width / 4.5f
+        val barWidth = signalBarWidth(size.width)
         val gap = barWidth * 0.5f
         for (i in 0 until 4) {
             val barHeight = size.height * (i + 1) / 4f

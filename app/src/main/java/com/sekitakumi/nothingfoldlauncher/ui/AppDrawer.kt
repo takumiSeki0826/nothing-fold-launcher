@@ -56,6 +56,8 @@ fun AppDrawer(
     selectedPackages: Set<String>? = null,
     onToggleSelected: (AppInfo) -> Unit = {},
     onConfirmSelection: () -> Unit = {},
+    systemStats: SystemStatsState = SystemStatsState(),
+    onSystemStatsNetClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -111,6 +113,8 @@ fun AppDrawer(
                 onJumpToEnd = {
                     coroutineScope.launch { listState.scrollToItem((apps.size - 1).coerceAtLeast(0)) }
                 },
+                systemStats = systemStats,
+                onSystemStatsNetClick = onSystemStatsNetClick,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
 
