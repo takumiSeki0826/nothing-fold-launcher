@@ -372,12 +372,21 @@ class MainActivity : ComponentActivity() {
                                 onAppClick = { launchApp(it.packageName) },
                                 onAppLongClick = openAppMenu,
                                 onFolderClick = { folder ->
-                                    folderOverlay = FolderOverlayState(
-                                        folder.name,
-                                        folder.packageNames.mapNotNull(appsByPackage::get),
-                                    )
+                                    val firstApp = folder.packageNames.firstNotNullOfOrNull(appsByPackage::get)
+                                    if (firstApp != null) {
+                                        launchApp(firstApp.packageName)
+                                    } else {
+                                        folderEditDialogTarget = folder.id
+                                    }
                                 },
-                                onFolderLongClick = { folder -> folderEditDialogTarget = folder.id },
+                                onFolderLongClick = { folder ->
+                                    val apps = folder.packageNames.mapNotNull(appsByPackage::get)
+                                    if (apps.isNotEmpty()) {
+                                        folderOverlay = FolderOverlayState(folder.name, apps)
+                                    } else {
+                                        folderEditDialogTarget = folder.id
+                                    }
+                                },
                                 onAppGridSettingsLongPress = { showAppGridSettings = true },
                                 isExpandedWidth = isExpandedWidth,
                                 homeKnobNames = homeKnobNames,
