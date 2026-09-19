@@ -19,6 +19,10 @@ import java.util.Date
 object LockWallpaperGenerator {
     private const val TAG = "LockWallpaperGenerator"
 
+    // Nudges the card down slightly on the lock screen only, relative to the shared
+    // position used by the home screen live wallpaper.
+    private const val CARD_DOWN_SHIFT = 90f
+
     /**
      * [width]/[height] should be the real pixel bounds of the display currently
      * showing the lock screen (e.g. `WindowManager.currentWindowMetrics.bounds`),
@@ -53,7 +57,16 @@ object LockWallpaperGenerator {
             textSize = 150f * scale
         }.fontMetrics
 
-        val geometry = calculateCardRect(width.toFloat(), height.toFloat(), timeMetrics.ascent, timeMetrics.descent)
+        val baseGeometry = calculateCardRect(width.toFloat(), height.toFloat(), timeMetrics.ascent, timeMetrics.descent)
+        val downShift = (CARD_DOWN_SHIFT * scale).coerceAtMost(
+            height - 120f * scale - baseGeometry.bottom
+        ).coerceAtLeast(0f)
+        val geometry = CardGeometry(
+            baseGeometry.left,
+            baseGeometry.top + downShift,
+            baseGeometry.right,
+            baseGeometry.bottom + downShift,
+        )
         drawDotCalendarCard(canvas, geometry, scale, Date())
 
         return bitmap
