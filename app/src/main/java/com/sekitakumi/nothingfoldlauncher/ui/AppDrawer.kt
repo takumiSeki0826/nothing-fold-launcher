@@ -1,6 +1,7 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,9 @@ fun AppDrawer(
     onAppLongClick: (AppInfo) -> Unit,
     onSwipeDownToClose: () -> Unit,
     isExpandedWidth: Boolean = false,
+    selectedPackages: Set<String>? = null,
+    onToggleSelected: (AppInfo) -> Unit = {},
+    onConfirmSelection: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -117,6 +121,9 @@ fun AppDrawer(
                 onQueryChange = onQueryChange,
                 onAppClick = onAppClick,
                 onAppLongClick = onAppLongClick,
+                selectedPackages = selectedPackages,
+                onToggleSelected = onToggleSelected,
+                onConfirmSelection = onConfirmSelection,
                 listState = listState,
                 coroutineScope = coroutineScope,
                 letterIndexMap = letterIndexMap,
@@ -134,6 +141,9 @@ fun AppDrawer(
             onQueryChange = onQueryChange,
             onAppClick = onAppClick,
             onAppLongClick = onAppLongClick,
+            selectedPackages = selectedPackages,
+            onToggleSelected = onToggleSelected,
+            onConfirmSelection = onConfirmSelection,
             listState = listState,
             coroutineScope = coroutineScope,
             letterIndexMap = letterIndexMap,
@@ -156,6 +166,9 @@ private fun SearchColumn(
     onQueryChange: (String) -> Unit,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
+    selectedPackages: Set<String>?,
+    onToggleSelected: (AppInfo) -> Unit,
+    onConfirmSelection: () -> Unit,
     listState: LazyListState,
     coroutineScope: CoroutineScope,
     letterIndexMap: Map<Char, Int>,
@@ -178,6 +191,21 @@ private fun SearchColumn(
             ),
         )
 
+        if (selectedPackages != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(text = "${selectedPackages.size}個選択中", color = Color.Gray)
+                Text(
+                    text = "完了",
+                    color = Color(0xFFD1432B),
+                    modifier = Modifier.clickable(onClick = onConfirmSelection),
+                )
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -192,8 +220,17 @@ private fun SearchColumn(
                     AppRow(
                         app = app,
                         isFavorite = app.packageName in favorites,
-                        onClick = { onAppClick(app) },
-                        onLongClick = { onAppLongClick(app) },
+                        isSelected = selectedPackages?.contains(app.packageName),
+                        onClick = if (selectedPackages != null) {
+                            { onToggleSelected(app) }
+                        } else {
+                            { onAppClick(app) }
+                        },
+                        onLongClick = if (selectedPackages != null) {
+                            { onToggleSelected(app) }
+                        } else {
+                            { onAppLongClick(app) }
+                        },
                     )
                 }
             }
@@ -218,6 +255,7 @@ private fun SearchColumn(
 private fun AppRow(
     app: AppInfo,
     isFavorite: Boolean,
+    isSelected: Boolean?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
@@ -234,7 +272,13 @@ private fun AppRow(
             color = Color.White,
             style = MaterialTheme.typography.bodyLarge,
         )
-        if (isFavorite) {
+        if (isSelected != null) {
+            Text(
+                text = if (isSelected) "☑" else "☐",
+                color = if (isSelected) Color(0xFFD1432B) else Color.Gray,
+                modifier = Modifier.padding(end = 8.dp),
+            )
+        } else if (isFavorite) {
             Text(text = "★", color = Color(0xFFD1432B), modifier = Modifier.padding(end = 8.dp))
         }
     }

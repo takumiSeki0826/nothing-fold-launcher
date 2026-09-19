@@ -47,6 +47,7 @@ fun RotaryKnob(
     modifier: Modifier = Modifier,
     diameter: Dp = DEFAULT_KNOB_DIAMETER,
     entranceWobbleDelayMs: Long = 0L,
+    clickable: Boolean = true,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -86,11 +87,17 @@ fun RotaryKnob(
             modifier = Modifier
                 .size(diameter)
                 .hoverable(interactionSource)
-                .combinedClickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onTap,
-                    onLongClick = onLongPress,
+                .then(
+                    if (clickable) {
+                        Modifier.combinedClickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = onTap,
+                            onLongClick = onLongPress,
+                        )
+                    } else {
+                        Modifier
+                    },
                 ),
         ) {
             val center = Offset(size.width / 2f, size.height / 2f)

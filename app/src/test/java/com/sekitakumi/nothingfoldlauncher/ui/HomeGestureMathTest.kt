@@ -35,9 +35,9 @@ class HomeGestureMathTest {
     }
 
     @Test
-    fun `swipe left from home opens eq screen`() {
+    fun `swipe left from home stays on home`() {
         val route = nextHomeRoute(HomeRoute.HOME, dragAccumX = -150f, dragAccumY = 0f)
-        assertEquals(HomeRoute.EQ, route)
+        assertEquals(HomeRoute.HOME, route)
     }
 
     @Test
@@ -56,17 +56,5 @@ class HomeGestureMathTest {
     fun `small drag from drawer stays on drawer`() {
         val route = nextHomeRoute(HomeRoute.DRAWER, dragAccumX = -50f, dragAccumY = 50f)
         assertEquals(HomeRoute.DRAWER, route)
-    }
-
-    @Test
-    fun `swipe right from eq returns home`() {
-        val route = nextHomeRoute(HomeRoute.EQ, dragAccumX = 150f, dragAccumY = 0f)
-        assertEquals(HomeRoute.HOME, route)
-    }
-
-    @Test
-    fun `small drag from eq stays on eq`() {
-        val route = nextHomeRoute(HomeRoute.EQ, dragAccumX = 50f, dragAccumY = 0f)
-        assertEquals(HomeRoute.EQ, route)
     }
 }

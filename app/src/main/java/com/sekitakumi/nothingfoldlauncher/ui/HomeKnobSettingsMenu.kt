@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
-data class HomeKnobAppAssignment(val tapApp: AppInfo?, val longPressApp: AppInfo?)
+data class HomeKnobAppAssignment(val tapApp: AppInfo?, val folderApps: List<AppInfo>)
 
 private val ACCENT_COLOR = Color(0xFFD1432B)
 
@@ -30,7 +30,7 @@ fun HomeKnobSettingsMenu(
     assignments: Map<HomeKnobSlot, HomeKnobAppAssignment>,
     onNameChange: (HomeKnobSlot, String) -> Unit,
     onEditTapApp: (HomeKnobSlot) -> Unit,
-    onEditLongPressApp: (HomeKnobSlot) -> Unit,
+    onEditFolder: (HomeKnobSlot) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -45,10 +45,10 @@ fun HomeKnobSettingsMenu(
                     HomeKnobSettingsRow(
                         name = knobNames[slot] ?: slot.defaultLabel,
                         tapAppLabel = assignments[slot]?.tapApp?.label,
-                        longPressAppLabel = assignments[slot]?.longPressApp?.label,
+                        folderAppCount = assignments[slot]?.folderApps?.size ?: 0,
                         onNameChange = { onNameChange(slot, it) },
                         onEditTapApp = { onEditTapApp(slot) },
-                        onEditLongPressApp = { onEditLongPressApp(slot) },
+                        onEditFolder = { onEditFolder(slot) },
                     )
                     if (index != slots.lastIndex) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = NothingGrays.Base)
@@ -68,10 +68,10 @@ fun HomeKnobSettingsMenu(
 private fun HomeKnobSettingsRow(
     name: String,
     tapAppLabel: String?,
-    longPressAppLabel: String?,
+    folderAppCount: Int,
     onNameChange: (String) -> Unit,
     onEditTapApp: () -> Unit,
-    onEditLongPressApp: () -> Unit,
+    onEditFolder: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         OutlinedTextField(
@@ -94,10 +94,10 @@ private fun HomeKnobSettingsRow(
                 modifier = Modifier.weight(1f).clickable(onClick = onEditTapApp),
             )
             Text(
-                text = "Hold: ${longPressAppLabel ?: "+"}",
+                text = if (folderAppCount > 0) "Folder: ${folderAppCount}個のアプリ" else "Folder: +",
                 color = ACCENT_COLOR,
                 textDecoration = TextDecoration.Underline,
-                modifier = Modifier.weight(1f).clickable(onClick = onEditLongPressApp),
+                modifier = Modifier.weight(1f).clickable(onClick = onEditFolder),
             )
         }
     }

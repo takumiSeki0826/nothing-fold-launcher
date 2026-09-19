@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlin.math.roundToInt
@@ -45,7 +46,7 @@ private val APP_ICON_WIDTH = 60.dp
 
 @Composable
 fun HomeScreen(
-    apps: List<AppInfo>,
+    items: List<HomeGridItem>,
     errorMessage: String?,
     volumeRatio: Float,
     onVolumeRatioChange: (Float) -> Unit,
@@ -66,6 +67,9 @@ fun HomeScreen(
     onCalendarLongClick: () -> Unit,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
+    onFolderClick: (AppFolder) -> Unit,
+    onFolderLongClick: (AppFolder) -> Unit,
+    onAppGridSettingsLongPress: () -> Unit,
     isExpandedWidth: Boolean,
     homeKnobNames: Map<HomeKnobSlot, String>,
     onHomeKnobTap: (HomeKnobSlot) -> Unit,
@@ -160,14 +164,24 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    AppGrid(
-                        apps = apps.take(expandedGridMaxApps()),
-                        columns = gridColumns,
-                        iconColorFor = iconColorFor,
-                        onAppClick = onAppClick,
-                        onAppLongClick = onAppLongClick,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .pointerInput(Unit) {
+                                detectTapGestures(onLongPress = { onAppGridSettingsLongPress() })
+                            },
+                    ) {
+                        AppGrid(
+                            items = items.take(expandedGridMaxApps()),
+                            columns = gridColumns,
+                            iconColorFor = iconColorFor,
+                            onAppClick = onAppClick,
+                            onAppLongClick = onAppLongClick,
+                            onFolderClick = onFolderClick,
+                            onFolderLongClick = onFolderLongClick,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
 
                     Spacer(modifier = Modifier.weight(0.9f))
                 }
@@ -227,14 +241,24 @@ fun HomeScreen(
                     )
                 }
 
-                AppGrid(
-                    apps = apps,
-                    columns = gridColumns,
-                    iconColorFor = iconColorFor,
-                    onAppClick = onAppClick,
-                    onAppLongClick = onAppLongClick,
-                    modifier = Modifier.weight(7f),
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(7f)
+                        .pointerInput(Unit) {
+                            detectTapGestures(onLongPress = { onAppGridSettingsLongPress() })
+                        },
+                ) {
+                    AppGrid(
+                        items = items,
+                        columns = gridColumns,
+                        iconColorFor = iconColorFor,
+                        onAppClick = onAppClick,
+                        onAppLongClick = onAppLongClick,
+                        onFolderClick = onFolderClick,
+                        onFolderLongClick = onFolderLongClick,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
     }
@@ -280,38 +304,62 @@ private fun SlidersRow(
 
 @Composable
 private fun AppGrid(
-    apps: List<AppInfo>,
+    items: List<HomeGridItem>,
     columns: Int,
     iconColorFor: (AppInfo) -> IconPaletteColor?,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
+    onFolderClick: (AppFolder) -> Unit,
+    onFolderLongClick: (AppFolder) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        apps.chunked(columns).forEachIndexed { rowIndex, rowApps ->
+        items.chunked(columns).forEachIndexed { rowIndex, rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 for (columnIndex in 0 until columns) {
-                    val app = rowApps.getOrNull(columnIndex)
-                    if (app != null) {
-                        AppIconTile(
-                            app = app,
-                            onClick = { onAppClick(app) },
-                            onLongClick = { onAppLongClick(app) },
+                    val item = rowItems.getOrNull(columnIndex)
+                    when (item) {
+                        is HomeGridItem.AppItem -> AppIconTile(
+                            app = item.app,
+                            onClick = { onAppClick(item.app) },
+                            onLongClick = { onAppLongClick(item.app) },
                             modifier = Modifier.width(APP_ICON_WIDTH),
                         )
-                    } else {
-                        Spacer(modifier = Modifier.width(APP_ICON_WIDTH))
+                        is HomeGridItem.FolderItem -> FolderKnobTile(
+                            folder = item.folder,
+                            onClick = { onFolderClick(item.folder) },
+                            onLongClick = { onFolderLongClick(item.folder) },
+                            modifier = Modifier.width(APP_ICON_WIDTH),
+                        )
+                        null -> Spacer(modifier = Modifier.width(APP_ICON_WIDTH))
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun FolderKnobTile(
+    folder: AppFolder,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    RotaryKnob(
+        angleDeg = 0f,
+        label = folder.name,
+        onTap = onClick,
+        onLongPress = onLongClick,
+        diameter = APP_ICON_WIDTH,
+        modifier = modifier,
+    )
 }
 
 private val APP_ICON_CORNER_SHAPE = RoundedCornerShape(6.dp)

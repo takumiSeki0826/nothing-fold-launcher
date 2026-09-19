@@ -8,14 +8,14 @@ class HomeKnobAssignmentStore(context: Context) {
 
     fun getTapPackage(slot: HomeKnobSlot): String? = prefs.getString(tapKey(slot), null)
 
-    fun getLongPressPackage(slot: HomeKnobSlot): String? = prefs.getString(longPressKey(slot), null)
+    fun getFolderPackages(slot: HomeKnobSlot): List<String> = decodePackageList(prefs.getString(longPressKey(slot), null))
 
     fun setTapPackage(slot: HomeKnobSlot, packageName: String) {
         prefs.edit().putString(tapKey(slot), packageName).apply()
     }
 
-    fun setLongPressPackage(slot: HomeKnobSlot, packageName: String) {
-        prefs.edit().putString(longPressKey(slot), packageName).apply()
+    fun setFolderPackages(slot: HomeKnobSlot, packageNames: List<String>) {
+        prefs.edit().putString(longPressKey(slot), encodePackageList(packageNames)).apply()
     }
 
     fun getName(slot: HomeKnobSlot): String? = prefs.getString(nameKey(slot), null)

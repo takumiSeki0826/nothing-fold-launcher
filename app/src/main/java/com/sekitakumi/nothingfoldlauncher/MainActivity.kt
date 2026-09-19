@@ -34,20 +34,23 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppIconColorStore
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
-import com.sekitakumi.nothingfoldlauncher.data.EqKnobAssignmentStore
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
+import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
 import com.sekitakumi.nothingfoldlauncher.data.LockScreenSyncStore
 import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
-import com.sekitakumi.nothingfoldlauncher.ui.EqKnobSettingsMenu
-import com.sekitakumi.nothingfoldlauncher.ui.EqScreen
+import com.sekitakumi.nothingfoldlauncher.ui.FolderEditDialog
+import com.sekitakumi.nothingfoldlauncher.ui.FolderOverlay
+import com.sekitakumi.nothingfoldlauncher.ui.HomeAppGridSettingsMenu
+import com.sekitakumi.nothingfoldlauncher.ui.HomeGridItem
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobAppAssignment
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSettingsMenu
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSlot
@@ -55,8 +58,6 @@ import com.sekitakumi.nothingfoldlauncher.ui.HomeRoute
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
 import com.sekitakumi.nothingfoldlauncher.ui.IconColorPickerDialog
 import com.sekitakumi.nothingfoldlauncher.ui.IconPaletteColor
-import com.sekitakumi.nothingfoldlauncher.ui.KnobAppAssignment
-import com.sekitakumi.nothingfoldlauncher.ui.KnobSlot
 import com.sekitakumi.nothingfoldlauncher.ui.LockScreenSyncMenu
 import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
 import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
@@ -73,19 +74,26 @@ import kotlinx.coroutines.launch
 
 private const val YOUTUBE_MUSIC_PACKAGE = "com.google.android.apps.youtube.music"
 
-private sealed class PendingKnobPick {
-    data class Eq(val slot: KnobSlot, val isLongPress: Boolean) : PendingKnobPick()
-    data class Home(val slot: HomeKnobSlot, val isLongPress: Boolean) : PendingKnobPick()
+private sealed class PendingAppPick {
+    data class HomeKnobTap(val slot: HomeKnobSlot) : PendingAppPick()
 }
+
+private sealed class FolderEditTarget {
+    data class HomeKnob(val slot: HomeKnobSlot) : FolderEditTarget()
+    data class Grid(val folderId: String) : FolderEditTarget()
+}
+
+private data class FolderOverlayState(val name: String, val apps: List<AppInfo>)
 
 class MainActivity : ComponentActivity() {
 
     private val homeRouteState = mutableStateOf(HomeRoute.HOME)
-    private val pendingKnobPickState = mutableStateOf<PendingKnobPick?>(null)
+    private val pendingAppPickState = mutableStateOf<PendingAppPick?>(null)
+    private val folderEditTargetState = mutableStateOf<FolderEditTarget?>(null)
 
     private val lockScreenSyncStore by lazy { LockScreenSyncStore(applicationContext) }
-    private val eqKnobAssignmentStore by lazy { EqKnobAssignmentStore(applicationContext) }
     private val homeKnobAssignmentStore by lazy { HomeKnobAssignmentStore(applicationContext) }
+    private val homeAppFolderStore by lazy { HomeAppFolderStore(applicationContext) }
     private val appIconColorStore by lazy { AppIconColorStore(applicationContext) }
 
     private val viewModel: AppListViewModel by viewModels {
@@ -97,6 +105,7 @@ class MainActivity : ComponentActivity() {
                     FavoritesStore(applicationContext),
                     HiddenAppsStore(applicationContext),
                     AppLabelStore(applicationContext),
+                    homeAppFolderStore,
                 ) as T
             }
         }
@@ -113,10 +122,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             NothingFoldLauncherTheme {
                 var homeRoute by homeRouteState
-                var pendingKnobPick by pendingKnobPickState
+                var pendingAppPick by pendingAppPickState
+                var folderEditTarget by folderEditTargetState
                 val isExpandedWidth = isExpandedWidth(LocalConfiguration.current.screenWidthDp)
                 val apps by viewModel.visibleApps.collectAsState()
-                val homeApps by viewModel.homeApps.collectAsState()
+                val homeItems by viewModel.homeItems.collectAsState()
+                val folders by viewModel.folders.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
                 val hiddenApps by viewModel.hiddenApps.collectAsState()
                 val errorMessage by viewModel.errorMessage.collectAsState()
@@ -128,10 +139,13 @@ class MainActivity : ComponentActivity() {
 
                 var showLockScreenSyncMenu by remember { mutableStateOf(false) }
                 var lockScreenSyncEnabled by remember { mutableStateOf(lockScreenSyncStore.isEnabled()) }
-                var showEqKnobSettings by remember { mutableStateOf(false) }
                 var showHomeKnobSettings by remember { mutableStateOf(false) }
+                var showAppGridSettings by remember { mutableStateOf(false) }
                 var colorPickerTargetApp by remember { mutableStateOf<AppInfo?>(null) }
                 val iconColorAssignments = remember { mutableStateMapOf<String, IconPaletteColor>() }
+                var folderEditSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
+                var folderOverlay by remember { mutableStateOf<FolderOverlayState?>(null) }
+                var folderEditDialogTarget by remember { mutableStateOf<String?>(null) }
 
                 val volumeController = remember { VolumeController(applicationContext) }
                 DisposableEffect(volumeController) {
@@ -167,49 +181,23 @@ class MainActivity : ComponentActivity() {
                 val closeDrawer: () -> Unit = ::closeDrawer
 
                 val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
-                val knobPackageAssignments = remember {
-                    mutableStateMapOf<KnobSlot, Pair<String?, String?>>().apply {
-                        KnobSlot.values().forEach { slot ->
-                            put(
-                                slot,
-                                eqKnobAssignmentStore.getTapPackage(slot) to
-                                    eqKnobAssignmentStore.getLongPressPackage(slot),
-                            )
-                        }
-                    }
-                }
-                val knobAssignments = KnobSlot.values().associateWith { slot ->
-                    val (tapPackage, longPressPackage) = knobPackageAssignments[slot] ?: (null to null)
-                    KnobAppAssignment(
-                        tapApp = tapPackage?.let(appsByPackage::get),
-                        longPressApp = longPressPackage?.let(appsByPackage::get),
-                    )
-                }
-
-                val knobNames = remember {
-                    mutableStateMapOf<KnobSlot, String>().apply {
-                        KnobSlot.values().forEach { slot ->
-                            eqKnobAssignmentStore.getName(slot)?.let { put(slot, it) }
-                        }
-                    }
-                }
 
                 val homeKnobPackageAssignments = remember {
-                    mutableStateMapOf<HomeKnobSlot, Pair<String?, String?>>().apply {
+                    mutableStateMapOf<HomeKnobSlot, Pair<String?, List<String>>>().apply {
                         HomeKnobSlot.values().forEach { slot ->
                             put(
                                 slot,
                                 homeKnobAssignmentStore.getTapPackage(slot) to
-                                    homeKnobAssignmentStore.getLongPressPackage(slot),
+                                    homeKnobAssignmentStore.getFolderPackages(slot),
                             )
                         }
                     }
                 }
                 val homeKnobAssignments = HomeKnobSlot.values().associateWith { slot ->
-                    val (tapPackage, longPressPackage) = homeKnobPackageAssignments[slot] ?: (null to null)
+                    val (tapPackage, folderPackages) = homeKnobPackageAssignments[slot] ?: (null to emptyList())
                     HomeKnobAppAssignment(
                         tapApp = tapPackage?.let(appsByPackage::get),
-                        longPressApp = longPressPackage?.let(appsByPackage::get),
+                        folderApps = folderPackages.mapNotNull(appsByPackage::get),
                     )
                 }
                 val homeKnobNames = remember {
@@ -220,57 +208,56 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                val assignPendingKnobApp: (AppInfo) -> Unit = { app ->
-                    when (val pending = pendingKnobPick) {
-                        is PendingKnobPick.Eq -> {
-                            val current = knobPackageAssignments[pending.slot] ?: (null to null)
-                            if (pending.isLongPress) {
-                                eqKnobAssignmentStore.setLongPressPackage(pending.slot, app.packageName)
-                                knobPackageAssignments[pending.slot] = current.first to app.packageName
-                            } else {
-                                eqKnobAssignmentStore.setTapPackage(pending.slot, app.packageName)
-                                knobPackageAssignments[pending.slot] = app.packageName to current.second
-                            }
-                            homeRoute = HomeRoute.EQ
+                val assignPendingTapApp: (AppInfo) -> Unit = { app ->
+                    (pendingAppPick as? PendingAppPick.HomeKnobTap)?.let { pick ->
+                        val current = homeKnobPackageAssignments[pick.slot] ?: (null to emptyList())
+                        homeKnobAssignmentStore.setTapPackage(pick.slot, app.packageName)
+                        homeKnobPackageAssignments[pick.slot] = app.packageName to current.second
+                    }
+                    pendingAppPick = null
+                    homeRoute = HomeRoute.HOME
+                }
+
+                val finishFolderEdit: () -> Unit = {
+                    when (val target = folderEditTarget) {
+                        is FolderEditTarget.HomeKnob -> {
+                            homeKnobAssignmentStore.setFolderPackages(target.slot, folderEditSelection.toList())
+                            val current = homeKnobPackageAssignments[target.slot] ?: (null to emptyList())
+                            homeKnobPackageAssignments[target.slot] = current.first to folderEditSelection.toList()
                         }
-                        is PendingKnobPick.Home -> {
-                            val current = homeKnobPackageAssignments[pending.slot] ?: (null to null)
-                            if (pending.isLongPress) {
-                                homeKnobAssignmentStore.setLongPressPackage(pending.slot, app.packageName)
-                                homeKnobPackageAssignments[pending.slot] = current.first to app.packageName
-                            } else {
-                                homeKnobAssignmentStore.setTapPackage(pending.slot, app.packageName)
-                                homeKnobPackageAssignments[pending.slot] = app.packageName to current.second
-                            }
-                            homeRoute = HomeRoute.HOME
+                        is FolderEditTarget.Grid -> {
+                            val currentName = folders.firstOrNull { it.id == target.folderId }?.name ?: ""
+                            viewModel.updateFolder(target.folderId, currentName, folderEditSelection.toList())
                         }
                         null -> Unit
                     }
-                    pendingKnobPick = null
+                    folderEditTarget = null
+                    homeRoute = HomeRoute.HOME
                 }
 
                 val onDrawerDismissed: () -> Unit = {
-                    when (pendingKnobPick) {
-                        is PendingKnobPick.Eq -> {
-                            pendingKnobPick = null
-                            homeRoute = HomeRoute.EQ
-                        }
-                        is PendingKnobPick.Home, null -> {
-                            pendingKnobPick = null
-                            closeDrawer()
-                        }
-                    }
+                    pendingAppPick = null
+                    folderEditTarget = null
+                    closeDrawer()
                 }
 
-                val startEqKnobAppPick: (KnobSlot, Boolean) -> Unit = { slot, isLongPress ->
-                    showEqKnobSettings = false
-                    pendingKnobPick = PendingKnobPick.Eq(slot, isLongPress)
+                val startHomeKnobTapPick: (HomeKnobSlot) -> Unit = { slot ->
+                    showHomeKnobSettings = false
+                    pendingAppPick = PendingAppPick.HomeKnobTap(slot)
                     homeRoute = HomeRoute.DRAWER
                 }
 
-                val startHomeKnobAppPick: (HomeKnobSlot, Boolean) -> Unit = { slot, isLongPress ->
+                val startHomeKnobFolderEdit: (HomeKnobSlot) -> Unit = { slot ->
                     showHomeKnobSettings = false
-                    pendingKnobPick = PendingKnobPick.Home(slot, isLongPress)
+                    folderEditTarget = FolderEditTarget.HomeKnob(slot)
+                    folderEditSelection = (homeKnobPackageAssignments[slot]?.second ?: emptyList()).toSet()
+                    homeRoute = HomeRoute.DRAWER
+                }
+
+                val startGridFolderEdit: (AppFolder) -> Unit = { folder ->
+                    folderEditDialogTarget = null
+                    folderEditTarget = FolderEditTarget.Grid(folder.id)
+                    folderEditSelection = folder.packageNames.toSet()
                     homeRoute = HomeRoute.DRAWER
                 }
 
@@ -278,8 +265,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(homeRoute) {
-                            // Home: swipe up opens the drawer, swipe left opens the EQ screen.
-                            // Drawer: swipe left or down returns home. EQ: swipe right returns home.
+                            // Home: swipe up opens the drawer. Drawer: swipe left or down returns home.
                             // Descendant scrollables (the app list, the alphabet
                             // index bar) consume their own drag events, so this
                             // only sees drags that they didn't claim.
@@ -290,14 +276,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onDragEnd = {
                                     val nextRoute = nextHomeRoute(homeRoute, dragAccumX, dragAccumY)
-                                    val cancelingDrawer = homeRoute == HomeRoute.DRAWER && nextRoute == HomeRoute.HOME
-                                    homeRoute = if (cancelingDrawer && pendingKnobPick is PendingKnobPick.Eq) {
-                                        pendingKnobPick = null
-                                        HomeRoute.EQ
-                                    } else {
-                                        if (cancelingDrawer) pendingKnobPick = null
-                                        nextRoute
+                                    if (homeRoute == HomeRoute.DRAWER && nextRoute == HomeRoute.HOME) {
+                                        pendingAppPick = null
+                                        folderEditTarget = null
                                     }
+                                    homeRoute = nextRoute
                                     if (homeRoute == HomeRoute.HOME) viewModel.onQueryChange("")
                                     dragAccumX = 0f
                                     dragAccumY = 0f
@@ -315,56 +298,52 @@ class MainActivity : ComponentActivity() {
                                 initialState == HomeRoute.HOME && targetState == HomeRoute.DRAWER ->
                                     // Home -> drawer (swipe up): home exits upward, drawer enters from below
                                     slideInVertically { it } togetherWith slideOutVertically { -it }
-                                initialState == HomeRoute.DRAWER && targetState == HomeRoute.HOME ->
+                                else ->
                                     // Drawer -> home: drawer exits downward, home enters from above
                                     slideInVertically { -it } togetherWith slideOutVertically { it }
-                                initialState == HomeRoute.HOME && targetState == HomeRoute.EQ ->
-                                    // Home -> EQ (swipe left): home exits left, EQ enters from the right
-                                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-                                else ->
-                                    // EQ -> home (swipe right): EQ exits right, home enters from the left
-                                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
                             }
                         },
                         label = "home-route-transition",
                     ) { route ->
                         when (route) {
-                            HomeRoute.DRAWER -> AppDrawer(
-                                apps = apps,
-                                query = query,
-                                favorites = favorites,
-                                onQueryChange = viewModel::onQueryChange,
-                                onAppClick = { app ->
-                                    if (pendingKnobPick != null) assignPendingKnobApp(app) else launchApp(app.packageName)
-                                },
-                                onAppLongClick = { app ->
-                                    if (pendingKnobPick != null) assignPendingKnobApp(app) else openAppMenu(app)
-                                },
-                                onSwipeDownToClose = onDrawerDismissed,
-                                isExpandedWidth = isExpandedWidth,
-                            )
-                            HomeRoute.EQ -> EqScreen(
-                                knobNames = knobNames,
-                                onKnobTap = { slot ->
-                                    val tapPackage = knobPackageAssignments[slot]?.first
-                                    if (tapPackage != null) {
-                                        launchApp(tapPackage)
-                                    } else {
-                                        startEqKnobAppPick(slot, false)
-                                    }
-                                },
-                                onKnobLongPress = { slot ->
-                                    val longPressPackage = knobPackageAssignments[slot]?.second
-                                    if (longPressPackage != null) {
-                                        launchApp(longPressPackage)
-                                    } else {
-                                        startEqKnobAppPick(slot, true)
-                                    }
-                                },
-                                onBackgroundLongPress = { showEqKnobSettings = true },
-                            )
+                            HomeRoute.DRAWER -> if (folderEditTarget != null) {
+                                AppDrawer(
+                                    apps = apps,
+                                    query = query,
+                                    favorites = favorites,
+                                    onQueryChange = viewModel::onQueryChange,
+                                    onAppClick = {},
+                                    onAppLongClick = {},
+                                    selectedPackages = folderEditSelection,
+                                    onToggleSelected = { app ->
+                                        folderEditSelection = if (app.packageName in folderEditSelection) {
+                                            folderEditSelection - app.packageName
+                                        } else {
+                                            folderEditSelection + app.packageName
+                                        }
+                                    },
+                                    onConfirmSelection = finishFolderEdit,
+                                    onSwipeDownToClose = onDrawerDismissed,
+                                    isExpandedWidth = isExpandedWidth,
+                                )
+                            } else {
+                                AppDrawer(
+                                    apps = apps,
+                                    query = query,
+                                    favorites = favorites,
+                                    onQueryChange = viewModel::onQueryChange,
+                                    onAppClick = { app ->
+                                        if (pendingAppPick != null) assignPendingTapApp(app) else launchApp(app.packageName)
+                                    },
+                                    onAppLongClick = { app ->
+                                        if (pendingAppPick != null) assignPendingTapApp(app) else openAppMenu(app)
+                                    },
+                                    onSwipeDownToClose = onDrawerDismissed,
+                                    isExpandedWidth = isExpandedWidth,
+                                )
+                            }
                             HomeRoute.HOME -> HomeScreen(
-                                apps = homeApps,
+                                items = homeItems,
                                 errorMessage = errorMessage,
                                 volumeRatio = volumeRatio,
                                 onVolumeRatioChange = volumeController::setRatio,
@@ -388,6 +367,14 @@ class MainActivity : ComponentActivity() {
                                 onCalendarLongClick = { showLockScreenSyncMenu = true },
                                 onAppClick = { launchApp(it.packageName) },
                                 onAppLongClick = openAppMenu,
+                                onFolderClick = { folder ->
+                                    folderOverlay = FolderOverlayState(
+                                        folder.name,
+                                        folder.packageNames.mapNotNull(appsByPackage::get),
+                                    )
+                                },
+                                onFolderLongClick = { folder -> folderEditDialogTarget = folder.id },
+                                onAppGridSettingsLongPress = { showAppGridSettings = true },
                                 isExpandedWidth = isExpandedWidth,
                                 homeKnobNames = homeKnobNames,
                                 onHomeKnobTap = { slot ->
@@ -395,15 +382,18 @@ class MainActivity : ComponentActivity() {
                                     if (tapPackage != null) {
                                         launchApp(tapPackage)
                                     } else {
-                                        startHomeKnobAppPick(slot, false)
+                                        startHomeKnobTapPick(slot)
                                     }
                                 },
                                 onHomeKnobLongPress = { slot ->
-                                    val longPressPackage = homeKnobPackageAssignments[slot]?.second
-                                    if (longPressPackage != null) {
-                                        launchApp(longPressPackage)
+                                    val folderPackages = homeKnobPackageAssignments[slot]?.second.orEmpty()
+                                    if (folderPackages.isNotEmpty()) {
+                                        folderOverlay = FolderOverlayState(
+                                            homeKnobNames[slot] ?: slot.defaultLabel,
+                                            folderPackages.mapNotNull(appsByPackage::get),
+                                        )
                                     } else {
-                                        startHomeKnobAppPick(slot, true)
+                                        startHomeKnobFolderEdit(slot)
                                     }
                                 },
                                 onHomeKnobSettingsLongPress = { showHomeKnobSettings = true },
@@ -452,21 +442,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    if (showEqKnobSettings) {
-                        EqKnobSettingsMenu(
-                            slots = KnobSlot.values().toList(),
-                            knobNames = knobNames,
-                            assignments = knobAssignments,
-                            onNameChange = { slot, name ->
-                                eqKnobAssignmentStore.setName(slot, name)
-                                knobNames[slot] = name
-                            },
-                            onEditTapApp = { slot -> startEqKnobAppPick(slot, false) },
-                            onEditLongPressApp = { slot -> startEqKnobAppPick(slot, true) },
-                            onDismiss = { showEqKnobSettings = false },
-                        )
-                    }
-
                     if (showHomeKnobSettings) {
                         HomeKnobSettingsMenu(
                             slots = HomeKnobSlot.values().toList(),
@@ -476,9 +451,58 @@ class MainActivity : ComponentActivity() {
                                 homeKnobAssignmentStore.setName(slot, name)
                                 homeKnobNames[slot] = name
                             },
-                            onEditTapApp = { slot -> startHomeKnobAppPick(slot, false) },
-                            onEditLongPressApp = { slot -> startHomeKnobAppPick(slot, true) },
+                            onEditTapApp = { slot -> startHomeKnobTapPick(slot) },
+                            onEditFolder = { slot -> startHomeKnobFolderEdit(slot) },
                             onDismiss = { showHomeKnobSettings = false },
+                        )
+                    }
+
+                    if (showAppGridSettings) {
+                        HomeAppGridSettingsMenu(
+                            folders = folders,
+                            onAddFolder = {
+                                val created = viewModel.addFolder("Folder", emptyList())
+                                showAppGridSettings = false
+                                folderEditDialogTarget = created.id
+                            },
+                            onEditFolder = { folder ->
+                                showAppGridSettings = false
+                                folderEditDialogTarget = folder.id
+                            },
+                            onDismiss = { showAppGridSettings = false },
+                        )
+                    }
+
+                    folderEditDialogTarget?.let { targetId ->
+                        val folder = folders.firstOrNull { it.id == targetId }
+                        if (folder != null) {
+                            FolderEditDialog(
+                                name = folder.name,
+                                appCount = folder.packageNames.size,
+                                onNameChange = { newName ->
+                                    viewModel.updateFolder(folder.id, newName, folder.packageNames)
+                                },
+                                onEditApps = { startGridFolderEdit(folder) },
+                                onDelete = {
+                                    viewModel.deleteFolder(folder.id)
+                                    folderEditDialogTarget = null
+                                },
+                                onDismiss = { folderEditDialogTarget = null },
+                            )
+                        } else {
+                            folderEditDialogTarget = null
+                        }
+                    }
+
+                    folderOverlay?.let { overlay ->
+                        FolderOverlay(
+                            name = overlay.name,
+                            apps = overlay.apps,
+                            onAppClick = { app ->
+                                launchApp(app.packageName)
+                                folderOverlay = null
+                            },
+                            onDismiss = { folderOverlay = null },
                         )
                     }
 
@@ -544,7 +568,8 @@ class MainActivity : ComponentActivity() {
 
     private fun closeDrawer() {
         homeRouteState.value = HomeRoute.HOME
-        pendingKnobPickState.value = null
+        pendingAppPickState.value = null
+        folderEditTargetState.value = null
         viewModel.onQueryChange("")
     }
 
