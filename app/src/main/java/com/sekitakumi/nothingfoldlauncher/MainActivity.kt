@@ -47,6 +47,8 @@ import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeOrderStore
 import com.sekitakumi.nothingfoldlauncher.data.LockScreenSyncStore
+import com.sekitakumi.nothingfoldlauncher.data.swapHomeOrder
+import com.sekitakumi.nothingfoldlauncher.data.toggleFolderSelection
 import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
@@ -89,7 +91,10 @@ private sealed class FolderEditTarget {
     data class Grid(val folderId: String) : FolderEditTarget()
 }
 
-private data class FolderOverlayState(val name: String, val apps: List<AppInfo>)
+private sealed class FolderOverlayState {
+    data class Grid(val folderId: String) : FolderOverlayState()
+    data class Knob(val slot: HomeKnobSlot) : FolderOverlayState()
+}
 
 class MainActivity : ComponentActivity() {
 
@@ -346,11 +351,7 @@ class MainActivity : ComponentActivity() {
                                     onAppLongClick = {},
                                     selectedPackages = folderEditSelection,
                                     onToggleSelected = { app ->
-                                        folderEditSelection = if (app.packageName in folderEditSelection) {
-                                            folderEditSelection - app.packageName
-                                        } else {
-                                            folderEditSelection + app.packageName
-                                        }
+                                        folderEditSelection = toggleFolderSelection(folderEditSelection, app.packageName)
                                     },
                                     onConfirmSelection = finishFolderEdit,
                                     onSwipeDownToClose = onDrawerDismissed,
@@ -413,9 +414,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onFolderLongClick = { folder ->
-                                    val apps = folder.packageNames.mapNotNull(appsByPackage::get)
-                                    if (apps.isNotEmpty()) {
-                                        folderOverlay = FolderOverlayState(folder.name, apps)
+                                    if (folder.packageNames.isNotEmpty()) {
+                                        folderOverlay = FolderOverlayState.Grid(folder.id)
                                     } else {
                                         folderEditDialogTarget = folder.id
                                     }
@@ -434,10 +434,7 @@ class MainActivity : ComponentActivity() {
                                 onHomeKnobLongPress = { slot ->
                                     val folderPackages = homeKnobPackageAssignments[slot]?.second.orEmpty()
                                     if (folderPackages.isNotEmpty()) {
-                                        folderOverlay = FolderOverlayState(
-                                            homeKnobNames[slot] ?: slot.defaultLabel,
-                                            folderPackages.mapNotNull(appsByPackage::get),
-                                        )
+                                        folderOverlay = FolderOverlayState.Knob(slot)
                                     } else {
                                         startHomeKnobFolderEdit(slot)
                                     }
@@ -547,16 +544,45 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    folderOverlay?.let { overlay ->
-                        FolderOverlay(
-                            name = overlay.name,
-                            apps = overlay.apps,
-                            onAppClick = { app ->
-                                launchApp(app.packageName)
+                    when (val overlay = folderOverlay) {
+                        is FolderOverlayState.Grid -> {
+                            val folder = folders.firstOrNull { it.id == overlay.folderId }
+                            if (folder != null) {
+                                FolderOverlay(
+                                    name = folder.name,
+                                    apps = folder.packageNames.mapNotNull(appsByPackage::get),
+                                    onAppClick = { app ->
+                                        launchApp(app.packageName)
+                                        folderOverlay = null
+                                    },
+                                    onReorder = { from, to ->
+                                        viewModel.swapFolderPackages(folder.id, from.packageName, to.packageName)
+                                    },
+                                    onDismiss = { folderOverlay = null },
+                                )
+                            } else {
                                 folderOverlay = null
-                            },
-                            onDismiss = { folderOverlay = null },
-                        )
+                            }
+                        }
+                        is FolderOverlayState.Knob -> {
+                            val folderPackages = homeKnobPackageAssignments[overlay.slot]?.second.orEmpty()
+                            FolderOverlay(
+                                name = homeKnobNames[overlay.slot] ?: overlay.slot.defaultLabel,
+                                apps = folderPackages.mapNotNull(appsByPackage::get),
+                                onAppClick = { app ->
+                                    launchApp(app.packageName)
+                                    folderOverlay = null
+                                },
+                                onReorder = { from, to ->
+                                    val newOrder = swapHomeOrder(folderPackages, from.packageName, to.packageName)
+                                    homeKnobAssignmentStore.setFolderPackages(overlay.slot, newOrder)
+                                    val current = homeKnobPackageAssignments[overlay.slot] ?: (null to emptyList())
+                                    homeKnobPackageAssignments[overlay.slot] = current.first to newOrder
+                                },
+                                onDismiss = { folderOverlay = null },
+                            )
+                        }
+                        null -> Unit
                     }
 
 

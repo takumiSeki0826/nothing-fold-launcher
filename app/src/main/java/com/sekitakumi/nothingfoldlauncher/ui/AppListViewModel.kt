@@ -130,6 +130,12 @@ class AppListViewModel(
         _folders.value = homeAppFolderStore.getFolders()
     }
 
+    fun swapFolderPackages(id: String, fromPackage: String, toPackage: String) {
+        val folder = _folders.value.firstOrNull { it.id == id } ?: return
+        val newOrder = swapHomeOrder(folder.packageNames, fromPackage, toPackage)
+        updateFolder(id, folder.name, newOrder)
+    }
+
     fun deleteFolder(id: String) {
         homeAppFolderStore.deleteFolder(id)
         _folders.value = homeAppFolderStore.getFolders()
