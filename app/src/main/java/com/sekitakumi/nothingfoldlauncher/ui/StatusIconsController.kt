@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.TrafficStats
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.telephony.PhoneStateListener
@@ -17,9 +18,18 @@ import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.sekitakumi.nothingfoldlauncher.data.MobileDataBaselineStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class StatusIconsController(private val context: Context) {
 
@@ -56,6 +66,28 @@ class StatusIconsController(private val context: Context) {
             wifiRssi = _wifiRssi.value,
             cellularDbm = _cellularDbm.value,
         )
+    }
+
+    private val mobileDataBaselineStore = MobileDataBaselineStore(context)
+
+    private val _dailyMobileDataUsage = MutableStateFlow(0L)
+    val dailyMobileDataUsage: StateFlow<Long> = _dailyMobileDataUsage.asStateFlow()
+
+    private var coroutineScope: CoroutineScope? = null
+
+    private fun refreshDailyMobileDataUsage() {
+        val currentTotalBytes = TrafficStats.getMobileRxBytes() + TrafficStats.getMobileTxBytes()
+        if (currentTotalBytes < 0) return // TrafficStats unsupported on this device
+
+        val today = TODAY_DATE_FORMAT.format(Date())
+        val result = dailyMobileUsage(
+            currentTotalBytes = currentTotalBytes,
+            baselineBytes = mobileDataBaselineStore.getBaselineBytes(),
+            baselineDate = mobileDataBaselineStore.getBaselineDate(),
+            today = today,
+        )
+        mobileDataBaselineStore.setBaseline(result.newBaselineBytes, result.newBaselineDate)
+        _dailyMobileDataUsage.value = result.usageBytes
     }
 
     private val batteryReceiver = object : BroadcastReceiver() {
@@ -168,6 +200,15 @@ class StatusIconsController(private val context: Context) {
             IntentFilter(WifiManager.RSSI_CHANGED_ACTION),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+
+        val scope = CoroutineScope(SupervisorJob())
+        coroutineScope = scope
+        scope.launch {
+            while (true) {
+                refreshDailyMobileDataUsage()
+                delay(MOBILE_DATA_USAGE_POLL_INTERVAL_MS)
+            }
+        }
     }
 
     fun unregister() {
@@ -183,6 +224,8 @@ class StatusIconsController(private val context: Context) {
         } catch (e: IllegalArgumentException) {
             // No-op if it was never registered
         }
+        coroutineScope?.cancel()
+        coroutineScope = null
     }
 
     private fun registerSignalStrengthListener() {
@@ -217,5 +260,7 @@ class StatusIconsController(private val context: Context) {
 
     private companion object {
         const val TAG = "StatusIconsController"
+        const val MOBILE_DATA_USAGE_POLL_INTERVAL_MS = 60_000L
+        val TODAY_DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     }
 }

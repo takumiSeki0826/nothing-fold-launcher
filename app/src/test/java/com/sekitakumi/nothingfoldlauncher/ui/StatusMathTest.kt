@@ -214,4 +214,72 @@ class StatusMathTest {
         assertNull(preferredSignalDbm(wifiConnected = true, wifiRssi = null, cellularDbm = null))
         assertNull(preferredSignalDbm(wifiConnected = false, wifiRssi = -60, cellularDbm = null))
     }
+
+    @Test
+    fun `dailyMobileUsage computes usage from the difference on the same day`() {
+        val result = dailyMobileUsage(
+            currentTotalBytes = 5_000_000L,
+            baselineBytes = 2_000_000L,
+            baselineDate = "2026-09-22",
+            today = "2026-09-22",
+        )
+        assertEquals(3_000_000L, result.usageBytes)
+        assertEquals(2_000_000L, result.newBaselineBytes)
+        assertEquals("2026-09-22", result.newBaselineDate)
+    }
+
+    @Test
+    fun `dailyMobileUsage resets the baseline when the date has changed`() {
+        val result = dailyMobileUsage(
+            currentTotalBytes = 9_000_000L,
+            baselineBytes = 2_000_000L,
+            baselineDate = "2026-09-21",
+            today = "2026-09-22",
+        )
+        assertEquals(0L, result.usageBytes)
+        assertEquals(9_000_000L, result.newBaselineBytes)
+        assertEquals("2026-09-22", result.newBaselineDate)
+    }
+
+    @Test
+    fun `dailyMobileUsage resets the baseline when there is no prior baseline`() {
+        val result = dailyMobileUsage(
+            currentTotalBytes = 4_000_000L,
+            baselineBytes = null,
+            baselineDate = null,
+            today = "2026-09-22",
+        )
+        assertEquals(0L, result.usageBytes)
+        assertEquals(4_000_000L, result.newBaselineBytes)
+        assertEquals("2026-09-22", result.newBaselineDate)
+    }
+
+    @Test
+    fun `dailyMobileUsage treats a reboot's lower counter as usage since reboot`() {
+        val result = dailyMobileUsage(
+            currentTotalBytes = 500_000L,
+            baselineBytes = 2_000_000L,
+            baselineDate = "2026-09-22",
+            today = "2026-09-22",
+        )
+        assertEquals(500_000L, result.usageBytes)
+        assertEquals(0L, result.newBaselineBytes)
+        assertEquals("2026-09-22", result.newBaselineDate)
+    }
+
+    @Test
+    fun `formatDataUsage shows megabytes just below the gigabyte threshold`() {
+        assertEquals("999MB", formatDataUsage(999_000_000L))
+    }
+
+    @Test
+    fun `formatDataUsage shows gigabytes at and above the threshold`() {
+        assertEquals("1.0GB", formatDataUsage(1_000_000_000L))
+        assertEquals("1.2GB", formatDataUsage(1_200_000_000L))
+    }
+
+    @Test
+    fun `formatDataUsage shows zero megabytes for no usage`() {
+        assertEquals("0MB", formatDataUsage(0L))
+    }
 }

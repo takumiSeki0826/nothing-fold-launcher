@@ -181,6 +181,7 @@ class MainActivity : ComponentActivity() {
                 val wifiConnected by statusIconsController.wifiConnected.collectAsState()
                 val signalBars by statusIconsController.signalBars.collectAsState()
                 val signalDbm by statusIconsController.signalDbm.collectAsState()
+                val dailyMobileDataUsage by statusIconsController.dailyMobileDataUsage.collectAsState()
                 val networkType by statusIconsController.networkType.collectAsState()
                 val vpnConnected by statusIconsController.vpnConnected.collectAsState()
                 val tailscaleConnected by statusIconsController.tailscaleConnected.collectAsState()
@@ -392,6 +393,7 @@ class MainActivity : ComponentActivity() {
                                 wifiConnected = wifiConnected,
                                 signalBars = signalBars,
                                 signalDbm = signalDbm,
+                                dailyMobileDataUsage = dailyMobileDataUsage,
                                 networkType = networkType,
                                 vpnConnected = vpnConnected,
                                 tailscaleConnected = tailscaleConnected,

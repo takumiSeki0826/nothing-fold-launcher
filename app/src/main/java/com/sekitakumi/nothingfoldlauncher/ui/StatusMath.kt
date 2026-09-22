@@ -51,3 +51,29 @@ fun isWeakSignal(dbm: Int, isWifi: Boolean): Boolean =
 
 fun preferredSignalDbm(wifiConnected: Boolean, wifiRssi: Int?, cellularDbm: Int?): Int? =
     if (wifiConnected) wifiRssi ?: cellularDbm else cellularDbm
+
+data class DailyUsageResult(val usageBytes: Long, val newBaselineBytes: Long, val newBaselineDate: String)
+
+// A lower current total than the stored baseline means the device rebooted (TrafficStats'
+// counters restart at boot), so bytes used between midnight and the reboot are uncounted.
+fun dailyMobileUsage(
+    currentTotalBytes: Long,
+    baselineBytes: Long?,
+    baselineDate: String?,
+    today: String,
+): DailyUsageResult = when {
+    baselineDate != today -> DailyUsageResult(0L, currentTotalBytes, today)
+    baselineBytes == null || currentTotalBytes < baselineBytes ->
+        DailyUsageResult(currentTotalBytes, 0L, today)
+    else -> DailyUsageResult(currentTotalBytes - baselineBytes, baselineBytes, today)
+}
+
+private const val BYTES_PER_MB = 1_000_000.0
+private const val BYTES_PER_GB = 1_000_000_000L
+
+fun formatDataUsage(bytes: Long): String =
+    if (bytes >= BYTES_PER_GB) {
+        "%.1fGB".format(bytes / BYTES_PER_GB.toDouble())
+    } else {
+        "${(bytes / BYTES_PER_MB).toInt()}MB"
+    }

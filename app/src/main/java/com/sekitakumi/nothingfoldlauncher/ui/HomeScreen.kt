@@ -66,6 +66,7 @@ fun HomeScreen(
     wifiConnected: Boolean,
     signalBars: Int?,
     signalDbm: Int?,
+    dailyMobileDataUsage: Long,
     networkType: String?,
     vpnConnected: Boolean,
     tailscaleConnected: Boolean,
@@ -207,13 +208,16 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.weight(0.9f))
                 }
 
-                SignalBadge(
-                    dbm = signalDbm,
-                    isWifi = wifiConnected,
+                Column(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = SIGNAL_BADGE_TOP_OFFSET, end = gridEdgeInset),
-                )
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    SignalBadge(dbm = signalDbm, isWifi = wifiConnected)
+                    MobileDataBadge(usageBytes = dailyMobileDataUsage)
+                }
             }
         }
     } else {
