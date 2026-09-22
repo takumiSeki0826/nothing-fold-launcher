@@ -42,3 +42,12 @@ fun vpnBadgeFor(vpnConnected: Boolean, tailscaleConnected: Boolean): VpnBadge = 
     vpnConnected -> VpnBadge.VPN
     else -> VpnBadge.NONE
 }
+
+private const val WEAK_CELLULAR_DBM = -110
+private const val WEAK_WIFI_DBM = -80
+
+fun isWeakSignal(dbm: Int, isWifi: Boolean): Boolean =
+    dbm <= if (isWifi) WEAK_WIFI_DBM else WEAK_CELLULAR_DBM
+
+fun preferredSignalDbm(wifiConnected: Boolean, wifiRssi: Int?, cellularDbm: Int?): Int? =
+    if (wifiConnected) wifiRssi ?: cellularDbm else cellularDbm

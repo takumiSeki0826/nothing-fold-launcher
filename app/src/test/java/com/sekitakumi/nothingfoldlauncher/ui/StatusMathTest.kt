@@ -162,4 +162,56 @@ class StatusMathTest {
             vpnBadgeFor(vpnConnected = true, tailscaleConnected = true),
         )
     }
+
+    @Test
+    fun `isWeakSignal is false just above the cellular threshold`() {
+        assertFalse(isWeakSignal(dbm = -109, isWifi = false))
+    }
+
+    @Test
+    fun `isWeakSignal is true at and below the cellular threshold`() {
+        assertTrue(isWeakSignal(dbm = -110, isWifi = false))
+        assertTrue(isWeakSignal(dbm = -120, isWifi = false))
+    }
+
+    @Test
+    fun `isWeakSignal is false just above the wifi threshold`() {
+        assertFalse(isWeakSignal(dbm = -79, isWifi = true))
+    }
+
+    @Test
+    fun `isWeakSignal is true at and below the wifi threshold`() {
+        assertTrue(isWeakSignal(dbm = -80, isWifi = true))
+        assertTrue(isWeakSignal(dbm = -95, isWifi = true))
+    }
+
+    @Test
+    fun `preferredSignalDbm uses wifi rssi when connected to wifi`() {
+        assertEquals(
+            -60,
+            preferredSignalDbm(wifiConnected = true, wifiRssi = -60, cellularDbm = -90),
+        )
+    }
+
+    @Test
+    fun `preferredSignalDbm falls back to cellular when wifi rssi is unavailable`() {
+        assertEquals(
+            -90,
+            preferredSignalDbm(wifiConnected = true, wifiRssi = null, cellularDbm = -90),
+        )
+    }
+
+    @Test
+    fun `preferredSignalDbm uses cellular when not connected to wifi`() {
+        assertEquals(
+            -90,
+            preferredSignalDbm(wifiConnected = false, wifiRssi = -60, cellularDbm = -90),
+        )
+    }
+
+    @Test
+    fun `preferredSignalDbm is null when no value is available`() {
+        assertNull(preferredSignalDbm(wifiConnected = true, wifiRssi = null, cellularDbm = null))
+        assertNull(preferredSignalDbm(wifiConnected = false, wifiRssi = -60, cellularDbm = null))
+    }
 }

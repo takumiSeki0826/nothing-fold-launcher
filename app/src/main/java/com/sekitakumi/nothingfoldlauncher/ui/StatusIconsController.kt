@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.telephony.PhoneStateListener
 import android.telephony.SignalStrength
@@ -43,6 +44,20 @@ class StatusIconsController(private val context: Context) {
     private val _networkType = MutableStateFlow<String?>(null)
     val networkType: StateFlow<String?> = _networkType.asStateFlow()
 
+    private val _cellularDbm = MutableStateFlow<Int?>(null)
+    private val _wifiRssi = MutableStateFlow<Int?>(null)
+
+    private val _signalDbm = MutableStateFlow<Int?>(null)
+    val signalDbm: StateFlow<Int?> = _signalDbm.asStateFlow()
+
+    private fun refreshSignalDbm() {
+        _signalDbm.value = preferredSignalDbm(
+            wifiConnected = _wifiConnected.value,
+            wifiRssi = _wifiRssi.value,
+            cellularDbm = _cellularDbm.value,
+        )
+    }
+
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(receivedContext: Context?, intent: Intent?) {
             val level = intent?.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1) ?: -1
@@ -61,6 +76,7 @@ class StatusIconsController(private val context: Context) {
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
             _wifiConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
             _vpnConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            refreshSignalDbm()
         }
 
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
@@ -71,6 +87,19 @@ class StatusIconsController(private val context: Context) {
             _wifiConnected.value = false
             _vpnConnected.value = false
             _tailscaleConnected.value = false
+            _wifiRssi.value = null
+            refreshSignalDbm()
+        }
+    }
+
+    private val wifiManager =
+        context.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+
+    @Suppress("DEPRECATION")
+    private val wifiRssiReceiver = object : BroadcastReceiver() {
+        override fun onReceive(receivedContext: Context?, intent: Intent?) {
+            _wifiRssi.value = wifiManager?.connectionInfo?.rssi
+            refreshSignalDbm()
         }
     }
 
@@ -95,6 +124,8 @@ class StatusIconsController(private val context: Context) {
                 TelephonyCallback.DisplayInfoListener {
                 override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
                     _signalBars.value = signalBars(signalStrength.level)
+                    _cellularDbm.value = signalStrength.cellSignalStrengths.firstOrNull()?.dbm
+                    refreshSignalDbm()
                 }
 
                 override fun onDisplayInfoChanged(telephonyDisplayInfo: TelephonyDisplayInfo) {
@@ -114,6 +145,8 @@ class StatusIconsController(private val context: Context) {
             object : PhoneStateListener() {
                 override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
                     _signalBars.value = signalBars(signalStrength.level)
+                    _cellularDbm.value = signalStrength.cellSignalStrengths.firstOrNull()?.dbm
+                    refreshSignalDbm()
                 }
             }
         } else {
@@ -129,6 +162,12 @@ class StatusIconsController(private val context: Context) {
         )
         connectivityManager?.registerDefaultNetworkCallback(networkCallback)
         registerSignalStrengthListener()
+        ContextCompat.registerReceiver(
+            context,
+            wifiRssiReceiver,
+            IntentFilter(WifiManager.RSSI_CHANGED_ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
     }
 
     fun unregister() {
@@ -139,6 +178,11 @@ class StatusIconsController(private val context: Context) {
         }
         connectivityManager?.unregisterNetworkCallback(networkCallback)
         unregisterSignalStrengthListener()
+        try {
+            context.unregisterReceiver(wifiRssiReceiver)
+        } catch (e: IllegalArgumentException) {
+            // No-op if it was never registered
+        }
     }
 
     private fun registerSignalStrengthListener() {

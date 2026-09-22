@@ -134,7 +134,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         hideSystemStatusBar()
         requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
-        requestLocationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        requestLocationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
         setContent {
             NothingFoldLauncherTheme {
@@ -180,6 +180,7 @@ class MainActivity : ComponentActivity() {
                 val isCharging by statusIconsController.isCharging.collectAsState()
                 val wifiConnected by statusIconsController.wifiConnected.collectAsState()
                 val signalBars by statusIconsController.signalBars.collectAsState()
+                val signalDbm by statusIconsController.signalDbm.collectAsState()
                 val networkType by statusIconsController.networkType.collectAsState()
                 val vpnConnected by statusIconsController.vpnConnected.collectAsState()
                 val tailscaleConnected by statusIconsController.tailscaleConnected.collectAsState()
@@ -390,6 +391,7 @@ class MainActivity : ComponentActivity() {
                                 isCharging = isCharging,
                                 wifiConnected = wifiConnected,
                                 signalBars = signalBars,
+                                signalDbm = signalDbm,
                                 networkType = networkType,
                                 vpnConnected = vpnConnected,
                                 tailscaleConnected = tailscaleConnected,
