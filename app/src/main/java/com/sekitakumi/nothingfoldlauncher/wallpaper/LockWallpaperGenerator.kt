@@ -28,6 +28,21 @@ object LockWallpaperGenerator {
     // unaffected since it never counts as wide.
     private const val WIDE_DISPLAY_UP_SHIFT = 120f
 
+    // On the folded cover display's lock screen only, the shared geometry's
+    // near-full-width "banner" card formula (see the non-wide branch of
+    // [calculateCardRect]) reads as a flatter, much less rounded shape than the
+    // unfolded display's card, since [drawDotCalendarCard]'s radius/padding are
+    // driven by `scale` rather than by the card's own width: the unfolded card's
+    // width/3 formula happens to make radius = cardWidth/15 and pad = cardWidth/10,
+    // while the cover display's near-full-width formula makes both far smaller
+    // relative to the (much wider) card. This fraction picks a narrower cover-display
+    // card width instead, chosen so its aspect ratio matches the unfolded card's
+    // (both ultimately width/height-ratio-driven, tuned for this device's two real
+    // displays), and `cardScale` below reproduces the same cardWidth/15 and
+    // cardWidth/10 radius/pad ratios so the two displays' cards read as the same
+    // design at different sizes.
+    private const val FOLDED_DISPLAY_CARD_WIDTH_FRACTION = 0.7f
+
     /**
      * [width]/[height] should be the real pixel bounds of the display currently
      * showing the lock screen (e.g. `WindowManager.currentWindowMetrics.bounds`),
@@ -68,13 +83,20 @@ object LockWallpaperGenerator {
         ).coerceAtLeast(0f)
         val isWideDisplay = width > WIDE_DISPLAY_WIDTH_THRESHOLD
         val shift = if (isWideDisplay) downShift - WIDE_DISPLAY_UP_SHIFT * scale else downShift
-        val geometry = CardGeometry(
+        var geometry = CardGeometry(
             baseGeometry.left,
             baseGeometry.top + shift,
             baseGeometry.right,
             baseGeometry.bottom + shift,
         )
-        drawDotCalendarCard(canvas, geometry, scale, Date())
+        var cardScale = scale
+        if (!isWideDisplay) {
+            val cardWidth = width * FOLDED_DISPLAY_CARD_WIDTH_FRACTION
+            val cardLeft = (width - cardWidth) / 2f
+            geometry = CardGeometry(cardLeft, geometry.top, cardLeft + cardWidth, geometry.bottom)
+            cardScale = cardWidth / 360f
+        }
+        drawDotCalendarCard(canvas, geometry, cardScale, Date())
 
         return bitmap
     }

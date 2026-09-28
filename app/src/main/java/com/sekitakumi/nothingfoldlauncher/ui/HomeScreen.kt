@@ -91,7 +91,6 @@ fun HomeScreen(
     onHomeKnobTap: (HomeKnobSlot) -> Unit,
     onHomeKnobLongPress: (HomeKnobSlot) -> Unit,
     onHomeKnobSettingsLongPress: () -> Unit,
-    iconColorFor: (AppInfo) -> IconPaletteColor?,
     modifier: Modifier = Modifier,
 ) {
     val gridColumns = homeGridColumns(isExpandedWidth)
@@ -195,7 +194,6 @@ fun HomeScreen(
                             items = items.take(expandedGridMaxApps()),
                             columns = gridColumns,
                             slotCount = null,
-                            iconColorFor = iconColorFor,
                             onAppClick = onAppClick,
                             onAppLongClick = onAppLongClick,
                             onFolderClick = onFolderClick,
@@ -289,7 +287,6 @@ fun HomeScreen(
                         items = items.take(coverGridMaxItems()),
                         columns = gridColumns,
                         slotCount = coverGridMaxItems(),
-                        iconColorFor = iconColorFor,
                         onAppClick = onAppClick,
                         onAppLongClick = onAppLongClick,
                         onFolderClick = onFolderClick,
@@ -359,7 +356,6 @@ private fun AppGrid(
     items: List<HomeGridItem>,
     columns: Int,
     slotCount: Int?,
-    iconColorFor: (AppInfo) -> IconPaletteColor?,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
     onFolderClick: (AppFolder) -> Unit,

@@ -1,10 +1,12 @@
 package com.sekitakumi.nothingfoldlauncher
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,7 +39,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.sekitakumi.nothingfoldlauncher.data.AppFolder
-import com.sekitakumi.nothingfoldlauncher.data.AppIconColorStore
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
@@ -61,8 +62,6 @@ import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSettingsMenu
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSlot
 import com.sekitakumi.nothingfoldlauncher.ui.HomeRoute
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
-import com.sekitakumi.nothingfoldlauncher.ui.IconColorPickerDialog
-import com.sekitakumi.nothingfoldlauncher.ui.IconPaletteColor
 import com.sekitakumi.nothingfoldlauncher.ui.LockScreenSyncMenu
 import com.sekitakumi.nothingfoldlauncher.ui.NowPlayingController
 import com.sekitakumi.nothingfoldlauncher.ui.RenameAppDialog
@@ -106,7 +105,6 @@ class MainActivity : ComponentActivity() {
     private val homeKnobAssignmentStore by lazy { HomeKnobAssignmentStore(applicationContext) }
     private val homeAppFolderStore by lazy { HomeAppFolderStore(applicationContext) }
     private val homeOrderStore by lazy { HomeOrderStore(applicationContext) }
-    private val appIconColorStore by lazy { AppIconColorStore(applicationContext) }
 
     private val viewModel: AppListViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -158,8 +156,6 @@ class MainActivity : ComponentActivity() {
                 var lockScreenSyncEnabled by remember { mutableStateOf(lockScreenSyncStore.isEnabled()) }
                 var showHomeKnobSettings by remember { mutableStateOf(false) }
                 var showAppGridSettings by remember { mutableStateOf(false) }
-                var colorPickerTargetApp by remember { mutableStateOf<AppInfo?>(null) }
-                val iconColorAssignments = remember { mutableStateMapOf<String, IconPaletteColor>() }
                 var folderEditSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
                 var folderOverlay by remember { mutableStateOf<FolderOverlayState?>(null) }
                 var folderEditDialogTarget by remember { mutableStateOf<String?>(null) }
@@ -410,11 +406,12 @@ class MainActivity : ComponentActivity() {
                                 onAppClick = { launchApp(it.packageName) },
                                 onAppLongClick = openAppMenu,
                                 onFolderClick = { folder ->
-                                    val firstApp = folder.packageNames.firstNotNullOfOrNull(appsByPackage::get)
+                                    val currentFolder = folders.firstOrNull { it.id == folder.id } ?: folder
+                                    val firstApp = currentFolder.packageNames.firstNotNullOfOrNull(appsByPackage::get)
                                     if (firstApp != null) {
                                         launchApp(firstApp.packageName)
                                     } else {
-                                        folderEditDialogTarget = folder.id
+                                        folderEditDialogTarget = currentFolder.id
                                     }
                                 },
                                 onFolderLongClick = { folder ->
@@ -447,9 +444,6 @@ class MainActivity : ComponentActivity() {
                                 onReorder = { from, to ->
                                     if (to != null) viewModel.swapHomeItems(from, to) else viewModel.moveHomeItemToEnd(from)
                                 },
-                                iconColorFor = { app ->
-                                    iconColorAssignments[app.packageName] ?: appIconColorStore.getColor(app.packageName)
-                                },
                             )
                         }
                     }
@@ -471,28 +465,11 @@ class MainActivity : ComponentActivity() {
                                 renameTargetApp = app
                                 menuTargetApp = null
                             },
-                            onChangeColor = {
-                                colorPickerTargetApp = app
-                                menuTargetApp = null
-                            },
                             onUninstall = {
-                                uninstallApp(app.packageName)
                                 menuTargetApp = null
+                                uninstallApp(app.packageName)
                             },
                             onDismiss = { menuTargetApp = null },
-                        )
-                    }
-
-                    colorPickerTargetApp?.let { app ->
-                        IconColorPickerDialog(
-                            app = app,
-                            selectedColor = iconColorAssignments[app.packageName]
-                                ?: appIconColorStore.getColor(app.packageName),
-                            onSelectColor = { color ->
-                                appIconColorStore.setColor(app.packageName, color)
-                                iconColorAssignments[app.packageName] = color
-                            },
-                            onDismiss = { colorPickerTargetApp = null },
                         )
                     }
 
@@ -719,7 +696,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun uninstallApp(packageName: String) {
-        val intent = Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))
-        startActivity(intent)
+        val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse("package:$packageName"))
+        try {
+            startActivity(intent)
+        } catch (missing: ActivityNotFoundException) {
+            Toast.makeText(this, "Cannot open uninstall screen", Toast.LENGTH_SHORT).show()
+        }
     }
 }

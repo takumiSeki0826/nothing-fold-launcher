@@ -21,11 +21,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
@@ -66,9 +64,14 @@ fun AppDrawer(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-    var overscrollY by remember { mutableFloatStateOf(0f) }
     val closeThresholdPx = with(LocalDensity.current) { 96.dp.toPx() }
-    val nestedScrollConnection = remember(listState) {
+    val closeGesture = remember(closeThresholdPx) { DrawerCloseGesture(closeThresholdPx) }
+    // Lifting the finger ends the gesture, so a half-finished swipe must not
+    // carry over into the next one.
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (!listState.isScrollInProgress) closeGesture.onGestureEnd()
+    }
+    val nestedScrollConnection = remember(listState, closeGesture) {
         object : NestedScrollConnection {
             override fun onPostScroll(
                 consumed: Offset,
@@ -78,14 +81,8 @@ fun AppDrawer(
                 if (source != NestedScrollSource.UserInput) return Offset.Zero
                 val atTop = listState.firstVisibleItemIndex == 0 &&
                     listState.firstVisibleItemScrollOffset == 0
-                if (atTop && available.y > 0f) {
-                    overscrollY += available.y
-                    if (overscrollY > closeThresholdPx) {
-                        overscrollY = 0f
-                        onSwipeDownToClose()
-                    }
-                } else {
-                    overscrollY = 0f
+                if (closeGesture.onOverscroll(availableY = available.y, atTop = atTop)) {
+                    onSwipeDownToClose()
                 }
                 return Offset.Zero
             }
@@ -212,7 +209,8 @@ private fun SearchColumn(
 
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .weight(1f)
                 .padding(top = 16.dp)
                 .nestedScroll(nestedScrollConnection),
         ) {
@@ -220,6 +218,17 @@ private fun SearchColumn(
                 state = listState,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             ) {
+                if (shouldShowEmptyState(apps, query)) {
+                    // Kept inside the list so the swipe-down-to-close gesture
+                    // still has a scrollable to overscroll against.
+                    item {
+                        Text(
+                            text = "\"$query\" に一致するアプリはありません",
+                            color = Color.Gray,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        )
+                    }
+                }
                 items(apps, key = { it.packageName }) { app ->
                     AppRow(
                         app = app,

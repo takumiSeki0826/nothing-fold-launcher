@@ -53,7 +53,7 @@ fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: 
             .padding(16.dp),
     ) {
         Box(modifier = Modifier.height(HEADER_HEIGHT), contentAlignment = Alignment.CenterStart) {
-            Text(text = monthYearText(now.time), color = Color.White, fontSize = 15.sp)
+            Text(text = monthText(now.time), color = Color.White, fontSize = 15.sp)
         }
 
         MiniDotCalendar(
@@ -123,5 +123,5 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
     }
 }
 
-private fun monthYearText(date: Date): String =
-    SimpleDateFormat("yyyy MMMM", Locale.ENGLISH).format(date)
+private fun monthText(date: Date): String =
+    SimpleDateFormat("MMMM", Locale.ENGLISH).format(date)

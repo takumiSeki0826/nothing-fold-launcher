@@ -9,7 +9,6 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.TrafficStats
-import android.net.wifi.WifiManager
 import android.os.Build
 import android.telephony.PhoneStateListener
 import android.telephony.SignalStrength
@@ -108,6 +107,14 @@ class StatusIconsController(private val context: Context) {
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
             _wifiConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
             _vpnConnected.value = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            // NetworkCapabilities.getSignalStrength() reports Wi-Fi RSSI without needing
+            // ACCESS_FINE_LOCATION, unlike WifiManager.getConnectionInfo() (which we used to poll
+            // on every RSSI_CHANGED broadcast - that kept triggering the location privacy indicator).
+            _wifiRssi.value = if (_wifiConnected.value) {
+                capabilities.signalStrength.takeIf { it != NetworkCapabilities.SIGNAL_STRENGTH_UNSPECIFIED }
+            } else {
+                null
+            }
             refreshSignalDbm()
         }
 
@@ -120,17 +127,6 @@ class StatusIconsController(private val context: Context) {
             _vpnConnected.value = false
             _tailscaleConnected.value = false
             _wifiRssi.value = null
-            refreshSignalDbm()
-        }
-    }
-
-    private val wifiManager =
-        context.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-
-    @Suppress("DEPRECATION")
-    private val wifiRssiReceiver = object : BroadcastReceiver() {
-        override fun onReceive(receivedContext: Context?, intent: Intent?) {
-            _wifiRssi.value = wifiManager?.connectionInfo?.rssi
             refreshSignalDbm()
         }
     }
@@ -194,12 +190,6 @@ class StatusIconsController(private val context: Context) {
         )
         connectivityManager?.registerDefaultNetworkCallback(networkCallback)
         registerSignalStrengthListener()
-        ContextCompat.registerReceiver(
-            context,
-            wifiRssiReceiver,
-            IntentFilter(WifiManager.RSSI_CHANGED_ACTION),
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
 
         val scope = CoroutineScope(SupervisorJob())
         coroutineScope = scope
@@ -219,11 +209,6 @@ class StatusIconsController(private val context: Context) {
         }
         connectivityManager?.unregisterNetworkCallback(networkCallback)
         unregisterSignalStrengthListener()
-        try {
-            context.unregisterReceiver(wifiRssiReceiver)
-        } catch (e: IllegalArgumentException) {
-            // No-op if it was never registered
-        }
         coroutineScope?.cancel()
         coroutineScope = null
     }

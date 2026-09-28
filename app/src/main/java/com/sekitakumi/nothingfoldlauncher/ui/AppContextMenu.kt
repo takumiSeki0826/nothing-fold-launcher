@@ -1,16 +1,8 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -26,8 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 
-private val ACCENT_COLOR = Color(0xFFD1432B)
-
 @Composable
 fun AppContextMenu(
     app: AppInfo,
@@ -36,7 +26,6 @@ fun AppContextMenu(
     onToggleFavorite: () -> Unit,
     onToggleHidden: () -> Unit,
     onRename: () -> Unit,
-    onChangeColor: () -> Unit,
     onUninstall: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -63,9 +52,6 @@ fun AppContextMenu(
                 TextButton(onClick = onRename) {
                     Text("Rename", color = Color.White)
                 }
-                TextButton(onClick = onChangeColor) {
-                    Text("Change color", color = Color.White)
-                }
                 TextButton(onClick = onUninstall) {
                     Text("Uninstall", color = Color.White)
                 }
@@ -76,53 +62,6 @@ fun AppContextMenu(
                 Text("Close", color = Color.Gray)
             }
         },
-    )
-}
-
-@Composable
-fun IconColorPickerDialog(
-    app: AppInfo,
-    selectedColor: IconPaletteColor?,
-    onSelectColor: (IconPaletteColor) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color.Black,
-        titleContentColor = Color.White,
-        textContentColor = Color.White,
-        title = { Text("Change color") },
-        text = {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                for (color in IconPaletteColor.entries) {
-                    ColorSwatch(
-                        color = color,
-                        selected = color == selectedColor,
-                        onClick = { onSelectColor(color) },
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close", color = Color.Gray)
-            }
-        },
-    )
-}
-
-@Composable
-private fun ColorSwatch(
-    color: IconPaletteColor,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clickable(onClick = onClick)
-            .background(colorValue(color), CircleShape)
-            .border(if (selected) 2.dp else 0.dp, ACCENT_COLOR, CircleShape),
     )
 }
 

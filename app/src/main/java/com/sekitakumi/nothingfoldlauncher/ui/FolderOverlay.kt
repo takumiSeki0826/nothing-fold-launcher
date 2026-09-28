@@ -2,12 +2,15 @@ package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -54,19 +57,38 @@ fun FolderOverlay(
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(dismissOnClickOutside = false),
+        // dismissOnClickOutside relies on the platform's outside-touch detection, which also
+        // fires while a drag inside the dialog strays past its window bounds, closing it
+        // mid-reorder. Handling the outside tap ourselves (below) avoids that false trigger.
+        properties = DialogProperties(dismissOnClickOutside = false, usePlatformDefaultWidth = false),
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .background(Color.Black, RoundedCornerShape(12.dp))
-                .padding(20.dp),
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss,
+                ),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(text = name, color = Color.White, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(12.dp))
-            if (apps.isEmpty()) {
-                Text(text = "No apps yet", color = Color.Gray)
-            } else {
-                FolderOverlayGrid(apps = apps, onAppClick = onAppClick, onReorder = onReorder)
+            Column(
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {},
+                    )
+                    .background(Color.Black, RoundedCornerShape(12.dp))
+                    .padding(20.dp),
+            ) {
+                Text(text = name, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(12.dp))
+                if (apps.isEmpty()) {
+                    Text(text = "No apps yet", color = Color.Gray)
+                } else {
+                    FolderOverlayGrid(apps = apps, onAppClick = onAppClick, onReorder = onReorder)
+                }
             }
         }
     }
