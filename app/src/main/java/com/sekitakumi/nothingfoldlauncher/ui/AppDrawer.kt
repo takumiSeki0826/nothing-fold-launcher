@@ -62,6 +62,7 @@ fun AppDrawer(
     selectedPackages: Set<String>? = null,
     onToggleSelected: (AppInfo) -> Unit = {},
     onConfirmSelection: () -> Unit = {},
+    confirmLabel: String = "完了",
     systemStats: SystemStatsState = SystemStatsState(),
     onSystemStatsNetClick: () -> Unit = {},
     folders: List<AppFolder> = emptyList(),
@@ -136,6 +137,7 @@ fun AppDrawer(
                 selectedPackages = selectedPackages,
                 onToggleSelected = onToggleSelected,
                 onConfirmSelection = onConfirmSelection,
+                confirmLabel = confirmLabel,
                 folders = folders,
                 onFolderClick = onFolderClick,
                 onFolderLongClick = onFolderLongClick,
@@ -159,6 +161,7 @@ fun AppDrawer(
             selectedPackages = selectedPackages,
             onToggleSelected = onToggleSelected,
             onConfirmSelection = onConfirmSelection,
+            confirmLabel = confirmLabel,
             folders = folders,
             onFolderClick = onFolderClick,
             onFolderLongClick = onFolderLongClick,
@@ -187,6 +190,7 @@ private fun SearchColumn(
     selectedPackages: Set<String>?,
     onToggleSelected: (AppInfo) -> Unit,
     onConfirmSelection: () -> Unit,
+    confirmLabel: String,
     folders: List<AppFolder>,
     onFolderClick: (AppFolder) -> Unit,
     onFolderLongClick: (AppFolder) -> Unit,
@@ -220,7 +224,7 @@ private fun SearchColumn(
             ) {
                 Text(text = "${selectedPackages.size}個選択中", color = Color.Gray)
                 Text(
-                    text = "完了",
+                    text = confirmLabel,
                     color = Color(0xFFD1432B),
                     modifier = Modifier.clickable(onClick = onConfirmSelection),
                 )

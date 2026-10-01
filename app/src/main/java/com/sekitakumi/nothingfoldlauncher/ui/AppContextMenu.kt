@@ -27,6 +27,7 @@ fun AppContextMenu(
     onToggleHidden: () -> Unit,
     onRename: () -> Unit,
     onUninstall: () -> Unit,
+    onCreateGroup: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -48,6 +49,9 @@ fun AppContextMenu(
                         if (isHidden) "Unhide" else "Hide",
                         color = Color.White,
                     )
+                }
+                TextButton(onClick = onCreateGroup) {
+                    Text("グループを作成", color = Color.White)
                 }
                 TextButton(onClick = onRename) {
                     Text("Rename", color = Color.White)
