@@ -372,6 +372,8 @@ class MainActivity : ComponentActivity() {
                                     isExpandedWidth = isExpandedWidth,
                                     systemStats = systemStats,
                                     onSystemStatsNetClick = { launchSpeedtest() },
+                                    folders = folders,
+                                    onFolderClick = { folderOverlay = FolderOverlayState.Grid(it.id) },
                                 )
                             }
                             HomeRoute.HOME -> HomeScreen(

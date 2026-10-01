@@ -9,7 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,7 +43,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
+import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -56,6 +64,8 @@ fun AppDrawer(
     onConfirmSelection: () -> Unit = {},
     systemStats: SystemStatsState = SystemStatsState(),
     onSystemStatsNetClick: () -> Unit = {},
+    folders: List<AppFolder> = emptyList(),
+    onFolderClick: (AppFolder) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -125,6 +135,8 @@ fun AppDrawer(
                 selectedPackages = selectedPackages,
                 onToggleSelected = onToggleSelected,
                 onConfirmSelection = onConfirmSelection,
+                folders = folders,
+                onFolderClick = onFolderClick,
                 listState = listState,
                 coroutineScope = coroutineScope,
                 letterIndexMap = letterIndexMap,
@@ -145,6 +157,8 @@ fun AppDrawer(
             selectedPackages = selectedPackages,
             onToggleSelected = onToggleSelected,
             onConfirmSelection = onConfirmSelection,
+            folders = folders,
+            onFolderClick = onFolderClick,
             listState = listState,
             coroutineScope = coroutineScope,
             letterIndexMap = letterIndexMap,
@@ -170,6 +184,8 @@ private fun SearchColumn(
     selectedPackages: Set<String>?,
     onToggleSelected: (AppInfo) -> Unit,
     onConfirmSelection: () -> Unit,
+    folders: List<AppFolder>,
+    onFolderClick: (AppFolder) -> Unit,
     listState: LazyListState,
     coroutineScope: CoroutineScope,
     letterIndexMap: Map<Char, Int>,
@@ -218,6 +234,11 @@ private fun SearchColumn(
                 state = listState,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             ) {
+                if (folders.isNotEmpty() && selectedPackages == null) {
+                    item(key = "folder-row") {
+                        FolderIconRow(folders = folders, onFolderClick = onFolderClick)
+                    }
+                }
                 if (shouldShowEmptyState(apps, query)) {
                     // Kept inside the list so the swipe-down-to-close gesture
                     // still has a scrollable to overscroll against.
@@ -293,6 +314,48 @@ private fun AppRow(
             )
         } else if (isFavorite) {
             Text(text = "★", color = Color(0xFFD1432B), modifier = Modifier.padding(end = 8.dp))
+        }
+    }
+}
+
+@Composable
+private fun FolderIconRow(
+    folders: List<AppFolder>,
+    onFolderClick: (AppFolder) -> Unit,
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        items(folders, key = { it.id }) { folder ->
+            Column(
+                modifier = Modifier
+                    .width(64.dp)
+                    .clickable { onFolderClick(folder) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(NothingGrays.Base),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = folder.name.take(1).uppercase(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                Text(
+                    text = folder.name,
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
         }
     }
 }
