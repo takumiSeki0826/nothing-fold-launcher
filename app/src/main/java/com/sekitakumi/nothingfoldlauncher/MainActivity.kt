@@ -54,6 +54,7 @@ import com.sekitakumi.nothingfoldlauncher.ui.AppContextMenu
 import com.sekitakumi.nothingfoldlauncher.ui.AppDrawer
 import com.sekitakumi.nothingfoldlauncher.ui.AppListViewModel
 import com.sekitakumi.nothingfoldlauncher.ui.FolderEditDialog
+import com.sekitakumi.nothingfoldlauncher.ui.NewGroupDialog
 import com.sekitakumi.nothingfoldlauncher.ui.FolderOverlay
 import com.sekitakumi.nothingfoldlauncher.ui.HomeAppGridSettingsMenu
 import com.sekitakumi.nothingfoldlauncher.ui.HomeGridItem
@@ -88,6 +89,7 @@ private sealed class PendingAppPick {
 private sealed class FolderEditTarget {
     data class HomeKnob(val slot: HomeKnobSlot) : FolderEditTarget()
     data class Grid(val folderId: String) : FolderEditTarget()
+    object NewGroup : FolderEditTarget()
 }
 
 private sealed class FolderOverlayState {
@@ -157,6 +159,8 @@ class MainActivity : ComponentActivity() {
                 var showHomeKnobSettings by remember { mutableStateOf(false) }
                 var showAppGridSettings by remember { mutableStateOf(false) }
                 var folderEditSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
+                var newGroupSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
+                var showNewGroupDialog by remember { mutableStateOf(false) }
                 var folderOverlay by remember { mutableStateOf<FolderOverlayState?>(null) }
                 var folderEditDialogTarget by remember { mutableStateOf<String?>(null) }
 
@@ -262,7 +266,7 @@ class MainActivity : ComponentActivity() {
                             val currentName = folders.firstOrNull { it.id == target.folderId }?.name ?: ""
                             viewModel.updateFolder(target.folderId, currentName, folderEditSelection.toList())
                         }
-                        null -> Unit
+                        FolderEditTarget.NewGroup, null -> Unit
                     }
                     folderEditTarget = null
                     homeRoute = HomeRoute.HOME
@@ -271,6 +275,7 @@ class MainActivity : ComponentActivity() {
                 val onDrawerDismissed: () -> Unit = {
                     pendingAppPick = null
                     folderEditTarget = null
+                    showNewGroupDialog = false
                     closeDrawer()
                 }
 
@@ -340,6 +345,7 @@ class MainActivity : ComponentActivity() {
                     ) { route ->
                         when (route) {
                             HomeRoute.DRAWER -> if (folderEditTarget != null) {
+                                val isNewGroup = folderEditTarget == FolderEditTarget.NewGroup
                                 AppDrawer(
                                     apps = apps,
                                     query = query,
@@ -347,11 +353,20 @@ class MainActivity : ComponentActivity() {
                                     onQueryChange = viewModel::onQueryChange,
                                     onAppClick = {},
                                     onAppLongClick = {},
-                                    selectedPackages = folderEditSelection,
+                                    selectedPackages = if (isNewGroup) newGroupSelection else folderEditSelection,
                                     onToggleSelected = { app ->
-                                        folderEditSelection = toggleFolderSelection(folderEditSelection, app.packageName)
+                                        if (isNewGroup) {
+                                            newGroupSelection = toggleFolderSelection(newGroupSelection, app.packageName)
+                                        } else {
+                                            folderEditSelection = toggleFolderSelection(folderEditSelection, app.packageName)
+                                        }
                                     },
-                                    onConfirmSelection = finishFolderEdit,
+                                    onConfirmSelection = if (isNewGroup) {
+                                        { if (newGroupSelection.isNotEmpty()) showNewGroupDialog = true }
+                                    } else {
+                                        finishFolderEdit
+                                    },
+                                    confirmLabel = if (isNewGroup) "グループ作成" else "完了",
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
                                     systemStats = systemStats,
@@ -450,6 +465,19 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    if (showNewGroupDialog && folderEditTarget == FolderEditTarget.NewGroup) {
+                        NewGroupDialog(
+                            appCount = newGroupSelection.size,
+                            onConfirm = { name ->
+                                viewModel.addFolder(name, newGroupSelection.toList())
+                                showNewGroupDialog = false
+                                folderEditTarget = null
+                                newGroupSelection = emptySet()
+                            },
+                            onDismiss = { showNewGroupDialog = false },
+                        )
+                    }
+
                     menuTargetApp?.let { app ->
                         AppContextMenu(
                             app = app,
@@ -470,6 +498,12 @@ class MainActivity : ComponentActivity() {
                             onUninstall = {
                                 menuTargetApp = null
                                 uninstallApp(app.packageName)
+                            },
+                            onCreateGroup = {
+                                menuTargetApp = null
+                                newGroupSelection = setOf(app.packageName)
+                                folderEditTarget = FolderEditTarget.NewGroup
+                                homeRoute = HomeRoute.DRAWER
                             },
                             onDismiss = { menuTargetApp = null },
                         )
