@@ -43,8 +43,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
+import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroup
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -65,9 +65,9 @@ fun AppDrawer(
     confirmLabel: String = "完了",
     systemStats: SystemStatsState = SystemStatsState(),
     onSystemStatsNetClick: () -> Unit = {},
-    folders: List<AppFolder> = emptyList(),
-    onFolderClick: (AppFolder) -> Unit = {},
-    onFolderLongClick: (AppFolder) -> Unit = {},
+    folders: List<DrawerAppGroup> = emptyList(),
+    onFolderClick: (DrawerAppGroup) -> Unit = {},
+    onFolderLongClick: (DrawerAppGroup) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -191,9 +191,9 @@ private fun SearchColumn(
     onToggleSelected: (AppInfo) -> Unit,
     onConfirmSelection: () -> Unit,
     confirmLabel: String,
-    folders: List<AppFolder>,
-    onFolderClick: (AppFolder) -> Unit,
-    onFolderLongClick: (AppFolder) -> Unit,
+    folders: List<DrawerAppGroup>,
+    onFolderClick: (DrawerAppGroup) -> Unit,
+    onFolderLongClick: (DrawerAppGroup) -> Unit,
     listState: LazyListState,
     coroutineScope: CoroutineScope,
     letterIndexMap: Map<Char, Int>,
@@ -332,9 +332,9 @@ private fun AppRow(
 
 @Composable
 private fun FolderIconRow(
-    folders: List<AppFolder>,
-    onFolderClick: (AppFolder) -> Unit,
-    onFolderLongClick: (AppFolder) -> Unit,
+    folders: List<DrawerAppGroup>,
+    onFolderClick: (DrawerAppGroup) -> Unit,
+    onFolderLongClick: (DrawerAppGroup) -> Unit,
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
