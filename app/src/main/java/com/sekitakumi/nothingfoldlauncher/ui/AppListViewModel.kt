@@ -61,7 +61,7 @@ class AppListViewModel(
     val folders: StateFlow<List<AppFolder>> = _folders.asStateFlow()
     val drawerGroups: StateFlow<List<DrawerAppGroup>> = _drawerGroups.asStateFlow()
 
-    private val displayApps: StateFlow<List<AppInfo>> =
+    val displayApps: StateFlow<List<AppInfo>> =
         combine(allApps, _labelOverrides, ::applyLabelOverrides)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

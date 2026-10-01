@@ -48,6 +48,7 @@ import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroup
 import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroupStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
+import com.sekitakumi.nothingfoldlauncher.data.visibleAppsFor
 import com.sekitakumi.nothingfoldlauncher.data.HomeOrderStore
 import com.sekitakumi.nothingfoldlauncher.data.LockScreenSyncStore
 import com.sekitakumi.nothingfoldlauncher.data.swapHomeOrder
@@ -154,6 +155,7 @@ class MainActivity : ComponentActivity() {
                 var folderEditTarget by folderEditTargetState
                 val isExpandedWidth = isExpandedWidth(LocalConfiguration.current.screenWidthDp)
                 val apps by viewModel.visibleApps.collectAsState()
+                val displayApps by viewModel.displayApps.collectAsState()
                 val homeItems by viewModel.homeItems.collectAsState()
                 val folders by viewModel.folders.collectAsState()
                 val drawerGroups by viewModel.drawerGroups.collectAsState()
@@ -229,7 +231,8 @@ class MainActivity : ComponentActivity() {
 
                 val closeDrawer: () -> Unit = ::closeDrawer
 
-                val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
+                val appsByPackage = remember(displayApps) { displayApps.associateBy { it.packageName } }
+                val selectableApps = remember(displayApps, query, hiddenApps) { visibleAppsFor(displayApps, query, hiddenApps) }
 
                 val homeKnobPackageAssignments = remember {
                     mutableStateMapOf<HomeKnobSlot, Pair<String?, List<String>>>().apply {
@@ -370,7 +373,7 @@ class MainActivity : ComponentActivity() {
                             HomeRoute.DRAWER -> if (folderEditTarget != null) {
                                 val isNewGroup = folderEditTarget == FolderEditTarget.NewGroup
                                 AppDrawer(
-                                    apps = apps,
+                                    apps = selectableApps,
                                     query = query,
                                     favorites = favorites,
                                     onQueryChange = viewModel::onQueryChange,
