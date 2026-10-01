@@ -14,6 +14,7 @@ import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeOrderStore
 import com.sekitakumi.nothingfoldlauncher.data.applyLabelOverrides
 import com.sekitakumi.nothingfoldlauncher.data.defaultFavorites
+import com.sekitakumi.nothingfoldlauncher.data.excludeGroupedApps
 import com.sekitakumi.nothingfoldlauncher.data.homeAppsFrom
 import com.sekitakumi.nothingfoldlauncher.data.reconcileHomeOrder
 import com.sekitakumi.nothingfoldlauncher.data.moveHomeOrderToEnd
@@ -60,7 +61,9 @@ class AppListViewModel(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val visibleApps: StateFlow<List<AppInfo>> =
-        combine(displayApps, _query, _hiddenApps) { apps, query, hidden -> visibleAppsFor(apps, query, hidden) }
+        combine(displayApps, _query, _hiddenApps, _folders) { apps, query, hidden, folders ->
+            excludeGroupedApps(visibleAppsFor(apps, query, hidden), folders, query)
+        }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val homeItems: StateFlow<List<HomeGridItem>> =
