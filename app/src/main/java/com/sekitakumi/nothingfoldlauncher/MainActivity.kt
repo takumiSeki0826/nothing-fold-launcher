@@ -44,6 +44,7 @@ import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
+import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroupStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeOrderStore
@@ -107,6 +108,7 @@ class MainActivity : ComponentActivity() {
     private val homeKnobAssignmentStore by lazy { HomeKnobAssignmentStore(applicationContext) }
     private val homeAppFolderStore by lazy { HomeAppFolderStore(applicationContext) }
     private val homeOrderStore by lazy { HomeOrderStore(applicationContext) }
+    private val drawerAppGroupStore by lazy { DrawerAppGroupStore(applicationContext) }
 
     private val viewModel: AppListViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -119,6 +121,7 @@ class MainActivity : ComponentActivity() {
                     AppLabelStore(applicationContext),
                     homeAppFolderStore,
                     homeOrderStore,
+                    drawerAppGroupStore,
                 ) as T
             }
         }

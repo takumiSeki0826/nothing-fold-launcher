@@ -6,6 +6,8 @@ import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
+import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroup
+import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroupStore
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.appRef
 import com.sekitakumi.nothingfoldlauncher.data.folderRef
@@ -39,6 +41,7 @@ class AppListViewModel(
     private val appLabelStore: AppLabelStore,
     private val homeAppFolderStore: HomeAppFolderStore,
     private val homeOrderStore: HomeOrderStore,
+    private val drawerAppGroupStore: DrawerAppGroupStore,
 ) : ViewModel() {
 
     private val allApps = MutableStateFlow<List<AppInfo>>(emptyList())
@@ -51,18 +54,20 @@ class AppListViewModel(
     private val _labelOverrides = MutableStateFlow(appLabelStore.getAll())
     private val _folders = MutableStateFlow(homeAppFolderStore.getFolders())
     private val _order = MutableStateFlow(homeOrderStore.getOrder())
+    private val _drawerGroups = MutableStateFlow(drawerAppGroupStore.getGroups())
 
     val favorites: StateFlow<Set<String>> = _favorites.asStateFlow()
     val hiddenApps: StateFlow<Set<String>> = _hiddenApps.asStateFlow()
     val folders: StateFlow<List<AppFolder>> = _folders.asStateFlow()
+    val drawerGroups: StateFlow<List<DrawerAppGroup>> = _drawerGroups.asStateFlow()
 
     private val displayApps: StateFlow<List<AppInfo>> =
         combine(allApps, _labelOverrides, ::applyLabelOverrides)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val visibleApps: StateFlow<List<AppInfo>> =
-        combine(displayApps, _query, _hiddenApps, _folders) { apps, query, hidden, folders ->
-            excludeGroupedApps(visibleAppsFor(apps, query, hidden), folders, query)
+        combine(displayApps, _query, _hiddenApps, _drawerGroups) { apps, query, hidden, groups ->
+            excludeGroupedApps(visibleAppsFor(apps, query, hidden), groups, query)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -142,6 +147,28 @@ class AppListViewModel(
     fun deleteFolder(id: String) {
         homeAppFolderStore.deleteFolder(id)
         _folders.value = homeAppFolderStore.getFolders()
+    }
+
+    fun addDrawerGroup(name: String, packageNames: List<String>): DrawerAppGroup {
+        val group = drawerAppGroupStore.addGroup(name, packageNames)
+        _drawerGroups.value = drawerAppGroupStore.getGroups()
+        return group
+    }
+
+    fun updateDrawerGroup(id: String, name: String, packageNames: List<String>) {
+        drawerAppGroupStore.updateGroup(id, name, packageNames)
+        _drawerGroups.value = drawerAppGroupStore.getGroups()
+    }
+
+    fun swapDrawerGroupPackages(id: String, fromPackage: String, toPackage: String) {
+        val group = _drawerGroups.value.firstOrNull { it.id == id } ?: return
+        val newOrder = swapHomeOrder(group.packageNames, fromPackage, toPackage)
+        updateDrawerGroup(id, group.name, newOrder)
+    }
+
+    fun deleteDrawerGroup(id: String) {
+        drawerAppGroupStore.deleteGroup(id)
+        _drawerGroups.value = drawerAppGroupStore.getGroups()
     }
 
     fun swapHomeItems(a: HomeGridItem, b: HomeGridItem) {
