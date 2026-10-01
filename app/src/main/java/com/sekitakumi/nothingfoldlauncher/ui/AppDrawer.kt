@@ -66,6 +66,7 @@ fun AppDrawer(
     onSystemStatsNetClick: () -> Unit = {},
     folders: List<AppFolder> = emptyList(),
     onFolderClick: (AppFolder) -> Unit = {},
+    onFolderLongClick: (AppFolder) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -137,6 +138,7 @@ fun AppDrawer(
                 onConfirmSelection = onConfirmSelection,
                 folders = folders,
                 onFolderClick = onFolderClick,
+                onFolderLongClick = onFolderLongClick,
                 listState = listState,
                 coroutineScope = coroutineScope,
                 letterIndexMap = letterIndexMap,
@@ -159,6 +161,7 @@ fun AppDrawer(
             onConfirmSelection = onConfirmSelection,
             folders = folders,
             onFolderClick = onFolderClick,
+            onFolderLongClick = onFolderLongClick,
             listState = listState,
             coroutineScope = coroutineScope,
             letterIndexMap = letterIndexMap,
@@ -186,6 +189,7 @@ private fun SearchColumn(
     onConfirmSelection: () -> Unit,
     folders: List<AppFolder>,
     onFolderClick: (AppFolder) -> Unit,
+    onFolderLongClick: (AppFolder) -> Unit,
     listState: LazyListState,
     coroutineScope: CoroutineScope,
     letterIndexMap: Map<Char, Int>,
@@ -236,7 +240,11 @@ private fun SearchColumn(
             ) {
                 if (folders.isNotEmpty() && selectedPackages == null) {
                     item(key = "folder-row") {
-                        FolderIconRow(folders = folders, onFolderClick = onFolderClick)
+                        FolderIconRow(
+                            folders = folders,
+                            onFolderClick = onFolderClick,
+                            onFolderLongClick = onFolderLongClick,
+                        )
                     }
                 }
                 if (shouldShowEmptyState(apps, query)) {
@@ -322,6 +330,7 @@ private fun AppRow(
 private fun FolderIconRow(
     folders: List<AppFolder>,
     onFolderClick: (AppFolder) -> Unit,
+    onFolderLongClick: (AppFolder) -> Unit,
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
@@ -331,7 +340,10 @@ private fun FolderIconRow(
             Column(
                 modifier = Modifier
                     .width(64.dp)
-                    .clickable { onFolderClick(folder) },
+                    .combinedClickable(
+                        onClick = { onFolderClick(folder) },
+                        onLongClick = { onFolderLongClick(folder) },
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
