@@ -374,6 +374,7 @@ class MainActivity : ComponentActivity() {
                                     onSystemStatsNetClick = { launchSpeedtest() },
                                     folders = folders,
                                     onFolderClick = { folderOverlay = FolderOverlayState.Grid(it.id) },
+                                    onFolderLongClick = { folder -> folderEditDialogTarget = folder.id },
                                 )
                             }
                             HomeRoute.HOME -> HomeScreen(
