@@ -44,6 +44,7 @@ import com.sekitakumi.nothingfoldlauncher.data.AppLabelStore
 import com.sekitakumi.nothingfoldlauncher.data.AppRepository
 import com.sekitakumi.nothingfoldlauncher.data.FavoritesStore
 import com.sekitakumi.nothingfoldlauncher.data.HiddenAppsStore
+import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroup
 import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroupStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeAppFolderStore
 import com.sekitakumi.nothingfoldlauncher.data.HomeKnobAssignmentStore
@@ -90,11 +91,18 @@ private sealed class PendingAppPick {
 private sealed class FolderEditTarget {
     data class HomeKnob(val slot: HomeKnobSlot) : FolderEditTarget()
     data class Grid(val folderId: String) : FolderEditTarget()
+    data class DrawerGroup(val groupId: String) : FolderEditTarget()
     object NewGroup : FolderEditTarget()
+}
+
+private sealed class EditFolderTarget {
+    data class Home(val id: String) : EditFolderTarget()
+    data class Drawer(val id: String) : EditFolderTarget()
 }
 
 private sealed class FolderOverlayState {
     data class Grid(val folderId: String) : FolderOverlayState()
+    data class DrawerGroup(val groupId: String) : FolderOverlayState()
     data class Knob(val slot: HomeKnobSlot) : FolderOverlayState()
 }
 
@@ -148,6 +156,7 @@ class MainActivity : ComponentActivity() {
                 val apps by viewModel.visibleApps.collectAsState()
                 val homeItems by viewModel.homeItems.collectAsState()
                 val folders by viewModel.folders.collectAsState()
+                val drawerGroups by viewModel.drawerGroups.collectAsState()
                 val favorites by viewModel.favorites.collectAsState()
                 val hiddenApps by viewModel.hiddenApps.collectAsState()
                 val errorMessage by viewModel.errorMessage.collectAsState()
@@ -165,7 +174,7 @@ class MainActivity : ComponentActivity() {
                 var newGroupSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
                 var showNewGroupDialog by remember { mutableStateOf(false) }
                 var folderOverlay by remember { mutableStateOf<FolderOverlayState?>(null) }
-                var folderEditDialogTarget by remember { mutableStateOf<String?>(null) }
+                var folderEditDialogTarget by remember { mutableStateOf<EditFolderTarget?>(null) }
 
                 val volumeController = remember { VolumeController(applicationContext) }
                 DisposableEffect(volumeController) {
@@ -269,6 +278,10 @@ class MainActivity : ComponentActivity() {
                             val currentName = folders.firstOrNull { it.id == target.folderId }?.name ?: ""
                             viewModel.updateFolder(target.folderId, currentName, folderEditSelection.toList())
                         }
+                        is FolderEditTarget.DrawerGroup -> {
+                            val currentName = drawerGroups.firstOrNull { it.id == target.groupId }?.name ?: ""
+                            viewModel.updateDrawerGroup(target.groupId, currentName, folderEditSelection.toList())
+                        }
                         FolderEditTarget.NewGroup, null -> Unit
                     }
                     folderEditTarget = null
@@ -299,6 +312,13 @@ class MainActivity : ComponentActivity() {
                     folderEditDialogTarget = null
                     folderEditTarget = FolderEditTarget.Grid(folder.id)
                     folderEditSelection = folder.packageNames.toSet()
+                    homeRoute = HomeRoute.DRAWER
+                }
+
+                val startDrawerGroupEdit: (DrawerAppGroup) -> Unit = { group ->
+                    folderEditDialogTarget = null
+                    folderEditTarget = FolderEditTarget.DrawerGroup(group.id)
+                    folderEditSelection = group.packageNames.toSet()
                     homeRoute = HomeRoute.DRAWER
                 }
 
@@ -390,9 +410,9 @@ class MainActivity : ComponentActivity() {
                                     isExpandedWidth = isExpandedWidth,
                                     systemStats = systemStats,
                                     onSystemStatsNetClick = { launchSpeedtest() },
-                                    folders = folders,
-                                    onFolderClick = { folderOverlay = FolderOverlayState.Grid(it.id) },
-                                    onFolderLongClick = { folder -> folderEditDialogTarget = folder.id },
+                                    folders = drawerGroups,
+                                    onFolderClick = { folderOverlay = FolderOverlayState.DrawerGroup(it.id) },
+                                    onFolderLongClick = { group -> folderEditDialogTarget = EditFolderTarget.Drawer(group.id) },
                                 )
                             }
                             HomeRoute.HOME -> HomeScreen(
@@ -432,14 +452,14 @@ class MainActivity : ComponentActivity() {
                                     if (firstApp != null) {
                                         launchApp(firstApp.packageName)
                                     } else {
-                                        folderEditDialogTarget = currentFolder.id
+                                        folderEditDialogTarget = EditFolderTarget.Home(currentFolder.id)
                                     }
                                 },
                                 onFolderLongClick = { folder ->
                                     if (folder.packageNames.isNotEmpty()) {
                                         folderOverlay = FolderOverlayState.Grid(folder.id)
                                     } else {
-                                        folderEditDialogTarget = folder.id
+                                        folderEditDialogTarget = EditFolderTarget.Home(folder.id)
                                     }
                                 },
                                 onAppGridSettingsLongPress = { showAppGridSettings = true },
@@ -473,7 +493,7 @@ class MainActivity : ComponentActivity() {
                         NewGroupDialog(
                             appCount = newGroupSelection.size,
                             onConfirm = { name ->
-                                viewModel.addFolder(name, newGroupSelection.toList())
+                                viewModel.addDrawerGroup(name, newGroupSelection.toList())
                                 showNewGroupDialog = false
                                 folderEditTarget = null
                                 newGroupSelection = emptySet()
@@ -534,35 +554,58 @@ class MainActivity : ComponentActivity() {
                             onAddFolder = {
                                 val created = viewModel.addFolder("Folder", emptyList())
                                 showAppGridSettings = false
-                                folderEditDialogTarget = created.id
+                                folderEditDialogTarget = EditFolderTarget.Home(created.id)
                             },
                             onEditFolder = { folder ->
                                 showAppGridSettings = false
-                                folderEditDialogTarget = folder.id
+                                folderEditDialogTarget = EditFolderTarget.Home(folder.id)
                             },
                             onDismiss = { showAppGridSettings = false },
                         )
                     }
 
-                    folderEditDialogTarget?.let { targetId ->
-                        val folder = folders.firstOrNull { it.id == targetId }
-                        if (folder != null) {
-                            FolderEditDialog(
-                                name = folder.name,
-                                appCount = folder.packageNames.size,
-                                onNameChange = { newName ->
-                                    viewModel.updateFolder(folder.id, newName, folder.packageNames)
-                                },
-                                onEditApps = { startGridFolderEdit(folder) },
-                                onDelete = {
-                                    viewModel.deleteFolder(folder.id)
-                                    folderEditDialogTarget = null
-                                },
-                                onDismiss = { folderEditDialogTarget = null },
-                            )
-                        } else {
-                            folderEditDialogTarget = null
+                    when (val target = folderEditDialogTarget) {
+                        is EditFolderTarget.Home -> {
+                            val folder = folders.firstOrNull { it.id == target.id }
+                            if (folder != null) {
+                                FolderEditDialog(
+                                    name = folder.name,
+                                    appCount = folder.packageNames.size,
+                                    onNameChange = { newName ->
+                                        viewModel.updateFolder(folder.id, newName, folder.packageNames)
+                                    },
+                                    onEditApps = { startGridFolderEdit(folder) },
+                                    onDelete = {
+                                        viewModel.deleteFolder(folder.id)
+                                        folderEditDialogTarget = null
+                                    },
+                                    onDismiss = { folderEditDialogTarget = null },
+                                )
+                            } else {
+                                folderEditDialogTarget = null
+                            }
                         }
+                        is EditFolderTarget.Drawer -> {
+                            val group = drawerGroups.firstOrNull { it.id == target.id }
+                            if (group != null) {
+                                FolderEditDialog(
+                                    name = group.name,
+                                    appCount = group.packageNames.size,
+                                    onNameChange = { newName ->
+                                        viewModel.updateDrawerGroup(group.id, newName, group.packageNames)
+                                    },
+                                    onEditApps = { startDrawerGroupEdit(group) },
+                                    onDelete = {
+                                        viewModel.deleteDrawerGroup(group.id)
+                                        folderEditDialogTarget = null
+                                    },
+                                    onDismiss = { folderEditDialogTarget = null },
+                                )
+                            } else {
+                                folderEditDialogTarget = null
+                            }
+                        }
+                        null -> Unit
                     }
 
                     when (val overlay = folderOverlay) {
@@ -578,6 +621,25 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onReorder = { from, to ->
                                         viewModel.swapFolderPackages(folder.id, from.packageName, to.packageName)
+                                    },
+                                    onDismiss = { folderOverlay = null },
+                                )
+                            } else {
+                                folderOverlay = null
+                            }
+                        }
+                        is FolderOverlayState.DrawerGroup -> {
+                            val group = drawerGroups.firstOrNull { it.id == overlay.groupId }
+                            if (group != null) {
+                                FolderOverlay(
+                                    name = group.name,
+                                    apps = group.packageNames.mapNotNull(appsByPackage::get),
+                                    onAppClick = { app ->
+                                        launchApp(app.packageName)
+                                        folderOverlay = null
+                                    },
+                                    onReorder = { from, to ->
+                                        viewModel.swapDrawerGroupPackages(group.id, from.packageName, to.packageName)
                                     },
                                     onDismiss = { folderOverlay = null },
                                 )
