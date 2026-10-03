@@ -63,6 +63,7 @@ fun AppDrawer(
     onToggleSelected: (AppInfo) -> Unit = {},
     onConfirmSelection: () -> Unit = {},
     confirmLabel: String = "Done",
+    confirmEnabled: Boolean = true,
     systemStats: SystemStatsState = SystemStatsState(),
     onSystemStatsNetClick: () -> Unit = {},
     folders: List<DrawerAppGroup> = emptyList(),
@@ -138,6 +139,7 @@ fun AppDrawer(
                 onToggleSelected = onToggleSelected,
                 onConfirmSelection = onConfirmSelection,
                 confirmLabel = confirmLabel,
+                confirmEnabled = confirmEnabled,
                 folders = folders,
                 onFolderClick = onFolderClick,
                 onFolderLongClick = onFolderLongClick,
@@ -162,6 +164,7 @@ fun AppDrawer(
             onToggleSelected = onToggleSelected,
             onConfirmSelection = onConfirmSelection,
             confirmLabel = confirmLabel,
+            confirmEnabled = confirmEnabled,
             folders = folders,
             onFolderClick = onFolderClick,
             onFolderLongClick = onFolderLongClick,
@@ -191,6 +194,7 @@ private fun SearchColumn(
     onToggleSelected: (AppInfo) -> Unit,
     onConfirmSelection: () -> Unit,
     confirmLabel: String,
+    confirmEnabled: Boolean,
     folders: List<DrawerAppGroup>,
     onFolderClick: (DrawerAppGroup) -> Unit,
     onFolderLongClick: (DrawerAppGroup) -> Unit,
@@ -217,18 +221,13 @@ private fun SearchColumn(
         )
 
         if (selectedPackages != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(text = "${selectedPackages.size} selected", color = Color.Gray)
-                Text(
-                    text = confirmLabel,
-                    color = Color(0xFFD1432B),
-                    modifier = Modifier.clickable(onClick = onConfirmSelection),
-                )
-            }
+            SelectionHeader(
+                selectedCount = selectedPackages.size,
+                confirmLabel = confirmLabel,
+                confirmEnabled = confirmEnabled,
+                onConfirm = onConfirmSelection,
+                modifier = Modifier.padding(top = 12.dp),
+            )
         }
 
         Row(
