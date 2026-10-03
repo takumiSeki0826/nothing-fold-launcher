@@ -29,7 +29,7 @@ fun NewGroupDialog(
         containerColor = Color.Black,
         titleContentColor = Color.White,
         textContentColor = Color.White,
-        title = { Text("グループを作成（${appCount}個）") },
+        title = { Text("New group (${appCountLabel(appCount)})") },
         text = {
             OutlinedTextField(
                 value = name,
@@ -47,7 +47,7 @@ fun NewGroupDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {
-                Text("作成", color = Color.White)
+                Text("Create", color = Color.White)
             }
         },
         dismissButton = {

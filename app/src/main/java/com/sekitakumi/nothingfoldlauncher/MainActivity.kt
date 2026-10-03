@@ -392,7 +392,7 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         finishFolderEdit
                                     },
-                                    confirmLabel = if (isNewGroup) "グループ作成" else "完了",
+                                    confirmLabel = if (isNewGroup) "Create group" else "Done",
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
                                     systemStats = systemStats,

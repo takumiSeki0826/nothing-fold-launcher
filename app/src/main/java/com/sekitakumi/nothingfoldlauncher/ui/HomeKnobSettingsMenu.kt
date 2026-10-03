@@ -94,7 +94,7 @@ private fun HomeKnobSettingsRow(
                 modifier = Modifier.weight(1f).clickable(onClick = onEditTapApp),
             )
             Text(
-                text = if (folderAppCount > 0) "Folder: ${folderAppCount}個のアプリ" else "Folder: +",
+                text = if (folderAppCount > 0) "Folder: ${appCountLabel(folderAppCount)}" else "Folder: +",
                 color = ACCENT_COLOR,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.weight(1f).clickable(onClick = onEditFolder),

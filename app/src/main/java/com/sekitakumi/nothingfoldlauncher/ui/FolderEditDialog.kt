@@ -47,13 +47,13 @@ fun FolderEditDialog(
                     ),
                 )
                 Text(
-                    text = "アプリ: ${appCount}個 ✏️",
+                    text = "Edit apps ($appCount)",
                     color = ACCENT_COLOR,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp).clickable(onClick = onEditApps),
                 )
                 Text(
-                    text = "フォルダを削除",
+                    text = "Delete folder",
                     color = ACCENT_COLOR,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp).clickable(onClick = onDelete),
