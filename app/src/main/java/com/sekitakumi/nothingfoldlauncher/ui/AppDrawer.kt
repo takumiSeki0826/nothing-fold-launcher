@@ -62,7 +62,7 @@ fun AppDrawer(
     selectedPackages: Set<String>? = null,
     onToggleSelected: (AppInfo) -> Unit = {},
     onConfirmSelection: () -> Unit = {},
-    confirmLabel: String = "完了",
+    confirmLabel: String = "Done",
     systemStats: SystemStatsState = SystemStatsState(),
     onSystemStatsNetClick: () -> Unit = {},
     folders: List<DrawerAppGroup> = emptyList(),
@@ -222,7 +222,7 @@ private fun SearchColumn(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = "${selectedPackages.size}個選択中", color = Color.Gray)
+                Text(text = "${selectedPackages.size} selected", color = Color.Gray)
                 Text(
                     text = confirmLabel,
                     color = Color(0xFFD1432B),
@@ -256,7 +256,7 @@ private fun SearchColumn(
                     // still has a scrollable to overscroll against.
                     item {
                         Text(
-                            text = "\"$query\" に一致するアプリはありません",
+                            text = "No apps match \"$query\"",
                             color = Color.Gray,
                             modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                         )

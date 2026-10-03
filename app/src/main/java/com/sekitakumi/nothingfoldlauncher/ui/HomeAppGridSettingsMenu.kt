@@ -44,7 +44,7 @@ fun HomeAppGridSettingsMenu(
                     ) {
                         Text(text = folder.name, color = Color.White)
                         Text(
-                            text = "編集",
+                            text = "Edit",
                             color = ACCENT_COLOR,
                             textDecoration = TextDecoration.Underline,
                             modifier = Modifier.clickable(onClick = { onEditFolder(folder) }),
@@ -53,7 +53,7 @@ fun HomeAppGridSettingsMenu(
                     HorizontalDivider(color = NothingGrays.Base)
                 }
                 Text(
-                    text = "＋ フォルダを追加",
+                    text = "+ Add folder",
                     color = ACCENT_COLOR,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).clickable(onClick = onAddFolder),

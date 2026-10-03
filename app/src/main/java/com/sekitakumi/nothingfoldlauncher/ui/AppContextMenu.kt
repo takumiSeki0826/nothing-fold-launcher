@@ -51,7 +51,7 @@ fun AppContextMenu(
                     )
                 }
                 TextButton(onClick = onCreateGroup) {
-                    Text("グループを作成", color = Color.White)
+                    Text("Create group", color = Color.White)
                 }
                 TextButton(onClick = onRename) {
                     Text("Rename", color = Color.White)
