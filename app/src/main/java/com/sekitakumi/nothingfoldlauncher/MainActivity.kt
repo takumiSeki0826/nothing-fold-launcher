@@ -393,6 +393,7 @@ class MainActivity : ComponentActivity() {
                                         finishFolderEdit
                                     },
                                     confirmLabel = if (isNewGroup) "Create group" else "Done",
+                                    confirmEnabled = !isNewGroup || newGroupSelection.isNotEmpty(),
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
                                     systemStats = systemStats,
