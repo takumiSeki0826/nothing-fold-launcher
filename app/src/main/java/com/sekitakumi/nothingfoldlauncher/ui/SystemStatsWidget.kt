@@ -56,7 +56,7 @@ private fun PercentStatRow(label: String, percent: Int?, modifier: Modifier = Mo
                 isCritical = isCriticalUsage(percent),
             )
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = "$percent%", color = Color.White, fontSize = 12.sp)
+            DotMatrixText(text = "$percent%", fontSize = 12.sp, color = Color.White)
         } else {
             Text(text = "--", color = Color.White, fontSize = 12.sp)
         }
@@ -68,10 +68,10 @@ private fun ThroughputStatRow(label: String, bytesPerSecond: Long?, modifier: Mo
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(text = label, color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
-        Text(
+        DotMatrixText(
             text = bytesPerSecond?.let(::formatThroughput) ?: "--",
-            color = Color.White,
             fontSize = 12.sp,
+            color = Color.White,
         )
     }
 }
@@ -81,10 +81,10 @@ private fun SignalStatRow(dbm: Int?, isWifi: Boolean, modifier: Modifier = Modif
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(text = "SIG", color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
-        Text(
+        DotMatrixText(
             text = dbm?.let { "${it}dBm" } ?: "--",
-            color = if (dbm != null && isWeakSignal(dbm, isWifi)) CRITICAL_COLOR else Color.White,
             fontSize = 12.sp,
+            color = if (dbm != null && isWeakSignal(dbm, isWifi)) CRITICAL_COLOR else Color.White,
         )
     }
 }
@@ -94,10 +94,10 @@ private fun DataUsageStatRow(usageBytes: Long?, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(text = "DATA", color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
-        Text(
+        DotMatrixText(
             text = usageBytes?.let(::formatDataUsage) ?: "--",
-            color = Color.White,
             fontSize = 12.sp,
+            color = Color.White,
         )
     }
 }
