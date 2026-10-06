@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +43,7 @@ fun WeatherWidget(
                 modifier = Modifier.width(16.dp).height(16.dp),
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text = formatTemperature(weather.temperatureCelsius), color = Color.White, fontSize = 12.sp)
+            DotMatrixText(text = formatTemperature(weather.temperatureCelsius), fontSize = 12.sp, color = Color.White)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -54,7 +53,7 @@ fun WeatherWidget(
                 modifier = Modifier.width(10.dp).height(10.dp),
             )
             Spacer(modifier = Modifier.width(2.dp))
-            Text(text = "${weather.humidityPercent}%", color = Color.Gray, fontSize = 10.sp)
+            DotMatrixText(text = "${weather.humidityPercent}%", fontSize = 10.sp, color = Color.Gray)
             Spacer(modifier = Modifier.width(6.dp))
             Icon(
                 imageVector = Icons.Filled.Umbrella,
@@ -63,7 +62,7 @@ fun WeatherWidget(
                 modifier = Modifier.width(10.dp).height(10.dp),
             )
             Spacer(modifier = Modifier.width(2.dp))
-            Text(text = "${weather.precipitationProbabilityPercent}%", color = Color.Gray, fontSize = 10.sp)
+            DotMatrixText(text = "${weather.precipitationProbabilityPercent}%", fontSize = 10.sp, color = Color.Gray)
         }
     }
 }
