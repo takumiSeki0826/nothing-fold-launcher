@@ -66,6 +66,7 @@ fun AppDrawer(
     confirmEnabled: Boolean = true,
     systemStats: SystemStatsState = SystemStatsState(),
     onSystemStatsNetClick: () -> Unit = {},
+    isPlaying: Boolean = false,
     folders: List<DrawerAppGroup> = emptyList(),
     onFolderClick: (DrawerAppGroup) -> Unit = {},
     onFolderLongClick: (DrawerAppGroup) -> Unit = {},
@@ -125,6 +126,7 @@ fun AppDrawer(
                 },
                 systemStats = systemStats,
                 onSystemStatsNetClick = onSystemStatsNetClick,
+                isPlaying = isPlaying,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
 
