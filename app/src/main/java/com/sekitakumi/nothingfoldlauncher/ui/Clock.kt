@@ -36,16 +36,17 @@ fun Clock(modifier: Modifier = Modifier) {
         Text(
             text = dateText(now),
             color = Color.Gray,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 6.dp),
         )
         Row(verticalAlignment = Alignment.Bottom) {
             DotMatrixTime(text = timeText(now), color = Color.White)
             Text(
                 text = secondsText(now),
                 color = Color.Gray,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Light,
-                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }
@@ -53,9 +54,9 @@ fun Clock(modifier: Modifier = Modifier) {
 
 @Composable
 private fun DotMatrixTime(text: String, color: Color, modifier: Modifier = Modifier) {
-    val dotSize = 3.dp
-    val dotGap = 1.5.dp
-    val charGap = 5.dp
+    val dotSize = 4.dp
+    val dotGap = 2.dp
+    val charGap = 6.dp
 
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(charGap)) {
         for (char in text) {
