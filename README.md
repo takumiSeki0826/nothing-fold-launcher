@@ -81,4 +81,8 @@ app/src/main/java/com/sekitakumi/nothingfoldlauncher/
 
 ## 注意
 
-個人用に作っているアプリで、**Galaxy Z Fold8を前提**にレイアウトを調整している。他の端末では表示が崩れる可能性がある。ライセンスは未設定。
+個人用に作っているアプリで、**Galaxy Z Fold8を前提**にレイアウトを調整している。他の端末では表示が崩れる可能性がある。
+
+## ライセンス
+
+[MIT License](LICENSE)
