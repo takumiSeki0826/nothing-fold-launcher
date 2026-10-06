@@ -44,9 +44,9 @@ fun Clock(modifier: Modifier = Modifier) {
             DotMatrixTime(
                 text = secondsText(now),
                 color = Color.Gray,
-                dotSize = 2.dp,
+                dotSize = 1.5.dp,
                 dotGap = 1.dp,
-                charGap = 3.dp,
+                charGap = 2.5.dp,
                 modifier = Modifier.padding(start = 8.dp),
             )
         }
