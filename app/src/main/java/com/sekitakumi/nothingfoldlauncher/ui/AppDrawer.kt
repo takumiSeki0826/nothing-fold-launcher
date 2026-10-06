@@ -1,7 +1,6 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,14 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -42,7 +39,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.data.DrawerAppGroup
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -213,12 +212,14 @@ private fun SearchColumn(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search", color = Color.Gray) },
+            placeholder = { DotMatrixText("Search", color = SEARCH_FIELD_COLOR) },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 focusedContainerColor = Color.Black,
                 unfocusedContainerColor = Color.Black,
+                focusedIndicatorColor = SEARCH_FIELD_COLOR,
+                unfocusedIndicatorColor = SEARCH_FIELD_COLOR,
             ),
         )
 
@@ -314,19 +315,28 @@ private fun AppRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
+        DotMatrixText(
             text = app.label,
             color = Color.White,
-            style = MaterialTheme.typography.bodyLarge,
+            fontSize = 16.sp,
+            letterSpacing = 0.5.sp,
+            ellipsize = true,
+            modifier = Modifier.weight(1f),
         )
         if (isSelected != null) {
-            Text(
-                text = if (isSelected) "☑" else "☐",
+            DotMatrixIcon(
+                rows = if (isSelected) DotIcons.CHECK_ON else DotIcons.CHECK_OFF,
                 color = if (isSelected) Color(0xFFD1432B) else Color.Gray,
+                dotSize = 1.6.dp,
                 modifier = Modifier.padding(end = 8.dp),
             )
         } else if (isFavorite) {
-            Text(text = "★", color = Color(0xFFD1432B), modifier = Modifier.padding(end = 8.dp))
+            DotMatrixIcon(
+                rows = DotIcons.STAR,
+                color = Color(0xFFD1432B),
+                dotSize = 1.6.dp,
+                modifier = Modifier.padding(end = 8.dp),
+            )
         }
     }
 }
@@ -358,21 +368,25 @@ private fun FolderIconRow(
                         .background(NothingGrays.Base),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
+                    DotMatrixText(
                         text = folder.name.take(1).uppercase(),
                         color = Color.White,
-                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 16.sp,
                     )
                 }
-                Text(
+                DotMatrixText(
                     text = folder.name,
                     color = Color.Gray,
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.5.sp,
+                    textAlign = TextAlign.Center,
+                    ellipsize = true,
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
     }
 }
+
+/** 検索窓の枠線とプレースホルダー（"Search"）で共有する色。 */
+private val SEARCH_FIELD_COLOR = Color.Gray

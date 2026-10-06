@@ -10,13 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -24,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -71,41 +64,40 @@ fun NowPlayingWidget(
         ) {
             if (permissionGranted) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = nowPlaying?.title ?: "Not Playing",
+                    DotMatrixText(
+                        text = nowPlaying?.title?.let(::nowPlayingDisplayText) ?: "Not Playing",
                         color = Color.White,
                         fontSize = 13.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        ellipsize = true,
                     )
                     if (nowPlaying?.artist != null) {
-                        Text(
-                            text = nowPlaying.artist,
+                        DotMatrixText(
+                            text = nowPlayingDisplayText(nowPlaying.artist),
                             color = Color.Gray,
                             fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            ellipsize = true,
+                            modifier = Modifier.padding(top = 9.dp),
                         )
                     }
                 }
                 if (nowPlaying != null) {
                     IconButton(onClick = onTogglePlayPause) {
-                        Icon(
-                            imageVector = if (nowPlaying.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = null,
-                            tint = Color.White,
+                        DotMatrixIcon(
+                            rows = if (nowPlaying.isPlaying) DotIcons.PAUSE else DotIcons.PLAY,
+                            color = Color.White,
+                            dotSize = 2.dp,
                         )
                     }
                 }
             } else {
-                Text(
+                DotMatrixText(
                     text = "Now Playing",
                     color = Color.Gray,
                     fontSize = 13.sp,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onRequestPermission) {
-                    Icon(Icons.Filled.Notifications, contentDescription = "Grant notification access", tint = Color.Gray)
+                    DotMatrixIcon(rows = DotIcons.BELL, color = Color.Gray, dotSize = 2.dp)
                 }
             }
         }

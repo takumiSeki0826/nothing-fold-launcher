@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -33,7 +31,7 @@ fun HomeAppGridSettingsMenu(
         containerColor = Color.Black,
         titleContentColor = Color.White,
         textContentColor = Color.White,
-        title = { Text("App list settings") },
+        title = { DotMatrixText("App list settings") },
         text = {
             Column {
                 folders.forEach { folder ->
@@ -42,27 +40,25 @@ fun HomeAppGridSettingsMenu(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(text = folder.name, color = Color.White)
-                        Text(
+                        DotMatrixText(text = folder.name, color = Color.White, ellipsize = true, modifier = Modifier.weight(1f))
+                        DotMatrixText(
                             text = "Edit",
                             color = ACCENT_COLOR,
-                            textDecoration = TextDecoration.Underline,
                             modifier = Modifier.clickable(onClick = { onEditFolder(folder) }),
                         )
                     }
                     HorizontalDivider(color = NothingGrays.Base)
                 }
-                Text(
+                DotMatrixText(
                     text = "+ Add folder",
                     color = ACCENT_COLOR,
-                    textDecoration = TextDecoration.Underline,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).clickable(onClick = onAddFolder),
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = Color.Gray)
+                DotMatrixText("Close", color = Color.Gray)
             }
         },
     )

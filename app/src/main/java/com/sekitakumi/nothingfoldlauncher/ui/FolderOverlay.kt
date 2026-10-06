@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -37,6 +35,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
@@ -82,10 +81,10 @@ fun FolderOverlay(
                     .background(Color.Black, RoundedCornerShape(12.dp))
                     .padding(20.dp),
             ) {
-                Text(text = name, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                DotMatrixText(text = name, color = Color.White, fontSize = 16.sp, ellipsize = true)
                 Spacer(modifier = Modifier.height(12.dp))
                 if (apps.isEmpty()) {
-                    Text(text = "No apps yet", color = Color.Gray)
+                    DotMatrixText(text = "No apps yet", color = Color.Gray)
                 } else {
                     FolderOverlayGrid(apps = apps, onAppClick = onAppClick, onReorder = onReorder)
                 }
@@ -197,12 +196,14 @@ private fun FolderOverlayAppTile(
         ) {
             AppIconDot(modifier = Modifier.align(Alignment.TopEnd))
         }
-        Text(
+        DotMatrixText(
             text = app.label,
             color = Color.White,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1,
+            fontSize = 11.sp,
+            letterSpacing = 0.5.sp,
             textAlign = TextAlign.Center,
+            ellipsize = true,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

@@ -8,13 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -38,7 +37,7 @@ fun HomeKnobSettingsMenu(
         containerColor = Color.Black,
         titleContentColor = Color.White,
         textContentColor = Color.White,
-        title = { Text("Home knob settings") },
+        title = { DotMatrixText("Home knob settings") },
         text = {
             Column {
                 slots.forEachIndexed { index, slot ->
@@ -58,7 +57,7 @@ fun HomeKnobSettingsMenu(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = Color.Gray)
+                DotMatrixText("Close", color = Color.Gray)
             }
         },
     )
@@ -78,7 +77,7 @@ private fun HomeKnobSettingsRow(
             value = name,
             onValueChange = onNameChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Name", color = Color.Gray) },
+            label = { DotMatrixText("Name", color = Color.Gray) },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -87,16 +86,16 @@ private fun HomeKnobSettingsRow(
             ),
         )
         Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-            Text(
-                text = "Tap: ${tapAppLabel ?: "+"}",
-                color = ACCENT_COLOR,
-                textDecoration = TextDecoration.Underline,
+            Row(
                 modifier = Modifier.weight(1f).clickable(onClick = onEditTapApp),
-            )
-            Text(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                DotMatrixText(text = "Tap: ", color = ACCENT_COLOR)
+                DotMatrixText(text = tapAppLabel ?: "+", color = ACCENT_COLOR, ellipsize = true)
+            }
+            DotMatrixText(
                 text = if (folderAppCount > 0) "Folder: ${appCountLabel(folderAppCount)}" else "Folder: +",
                 color = ACCENT_COLOR,
-                textDecoration = TextDecoration.Underline,
                 modifier = Modifier.weight(1f).clickable(onClick = onEditFolder),
             )
         }

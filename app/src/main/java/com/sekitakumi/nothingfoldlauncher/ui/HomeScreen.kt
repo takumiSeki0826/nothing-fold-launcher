@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
@@ -513,12 +514,14 @@ private fun AppIconTile(
         ) {
             AppIconDot(modifier = Modifier.align(Alignment.TopEnd))
         }
-        Text(
+        DotMatrixText(
             text = app.label,
             color = Color.White,
-            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-            maxLines = 1,
+            fontSize = 11.sp,
+            letterSpacing = 0.5.sp,
             textAlign = TextAlign.Center,
+            ellipsize = true,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
