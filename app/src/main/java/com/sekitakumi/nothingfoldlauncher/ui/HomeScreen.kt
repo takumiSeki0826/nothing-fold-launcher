@@ -50,9 +50,6 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 private val HOME_KNOB_DIAMETER = 112.dp
 private val APP_ICON_WIDTH = 60.dp
 
-// Tuned to line up with the battery/status row's text baseline in the left column's ClockRow.
-private val SIGNAL_BADGE_TOP_OFFSET = 115.dp
-
 @Composable
 fun HomeScreen(
     items: List<HomeGridItem>,
@@ -65,8 +62,6 @@ fun HomeScreen(
     isCharging: Boolean,
     wifiConnected: Boolean,
     signalBars: Int?,
-    signalDbm: Int?,
-    dailyMobileDataUsage: Long,
     networkType: String?,
     vpnConnected: Boolean,
     tailscaleConnected: Boolean,
@@ -204,17 +199,6 @@ fun HomeScreen(
                     }
 
                     Spacer(modifier = Modifier.weight(0.9f))
-                }
-
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = SIGNAL_BADGE_TOP_OFFSET, end = gridEdgeInset),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    SignalBadge(dbm = signalDbm, isWifi = wifiConnected)
-                    MobileDataBadge(usageBytes = dailyMobileDataUsage)
                 }
             }
         }
