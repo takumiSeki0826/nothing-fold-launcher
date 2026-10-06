@@ -15,7 +15,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -41,11 +41,12 @@ fun Clock(modifier: Modifier = Modifier) {
         )
         Row(verticalAlignment = Alignment.Bottom) {
             DotMatrixTime(text = timeText(now), color = Color.White)
-            Text(
+            DotMatrixTime(
                 text = secondsText(now),
                 color = Color.Gray,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Light,
+                dotSize = 2.dp,
+                dotGap = 1.dp,
+                charGap = 3.dp,
                 modifier = Modifier.padding(start = 8.dp),
             )
         }
@@ -53,11 +54,14 @@ fun Clock(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun DotMatrixTime(text: String, color: Color, modifier: Modifier = Modifier) {
-    val dotSize = 4.dp
-    val dotGap = 2.dp
-    val charGap = 6.dp
-
+private fun DotMatrixTime(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    dotSize: Dp = 4.dp,
+    dotGap: Dp = 2.dp,
+    charGap: Dp = 6.dp,
+) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(charGap)) {
         for (char in text) {
             val glyph = dotMatrixGlyph(char)
