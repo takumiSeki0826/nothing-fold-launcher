@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -41,8 +40,12 @@ private val JOG_WHEEL_YMARK_COLOR = Color.White
 private val JOG_WHEEL_GLOW_COLOR = Color.White
 private const val JOG_WHEEL_GLOW_ARC_WIDTH_DEG = 36f
 private const val JOG_WHEEL_SPINDLE_RADIUS_RATIO = 0.16f
-private const val JOG_WHEEL_YMARK_INNER_RATIO = 0.20f
-private const val JOG_WHEEL_YMARK_OUTER_RATIO = 0.45f
+private const val JOG_WHEEL_YMARK_INNER_RATIO = 0.34f
+private const val JOG_WHEEL_YMARK_OUTER_RATIO = 0.80f
+private val JOG_WHEEL_YMARK_TICK_LENGTH = 7.dp
+private val JOG_WHEEL_YMARK_TICK_THICKNESS = 3.dp
+private val JOG_WHEEL_YMARK_TICK_PITCH = 8.dp
+private const val JOG_WHEEL_YMARK_OUTER_ALPHA = 0.12f
 private val JOG_WHEEL_YMARK_ANGLES_DEG = listOf(0f, 120f, 240f)
 private const val JOG_WHEEL_ROTATION_DURATION_MS = 6000
 private val JOG_WHEEL_BUTTON_DIAMETER = 56.dp
@@ -90,20 +93,25 @@ fun AlphabetJogWheel(
                 center = center,
             )
 
-            val ymarkStroke = Stroke(
-                width = 3.dp.toPx(),
-                cap = StrokeCap.Round,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx())),
-            )
+            val innerRadius = discRadius * JOG_WHEEL_YMARK_INNER_RATIO
+            val outerRadius = discRadius * JOG_WHEEL_YMARK_OUTER_RATIO
+            val tickPitchPx = JOG_WHEEL_YMARK_TICK_PITCH.toPx()
+            val tickHalfLengthPx = JOG_WHEEL_YMARK_TICK_LENGTH.toPx() / 2f
+            val tickCount = ((outerRadius - innerRadius) / tickPitchPx).toInt() + 1
             for (angle in JOG_WHEEL_YMARK_ANGLES_DEG) {
-                drawLine(
-                    color = JOG_WHEEL_YMARK_COLOR,
-                    start = center + angleToIndicatorOffset(angle, discRadius * JOG_WHEEL_YMARK_INNER_RATIO),
-                    end = center + angleToIndicatorOffset(angle, discRadius * JOG_WHEEL_YMARK_OUTER_RATIO),
-                    strokeWidth = ymarkStroke.width,
-                    cap = ymarkStroke.cap,
-                    pathEffect = ymarkStroke.pathEffect,
-                )
+                val along = angleToIndicatorOffset(angle, 1f)
+                val across = Offset(-along.y, along.x)
+                for (i in 0 until tickCount) {
+                    val t = i * tickPitchPx / (outerRadius - innerRadius)
+                    val tickCenter = center + along * (innerRadius + i * tickPitchPx)
+                    drawLine(
+                        color = JOG_WHEEL_YMARK_COLOR.copy(alpha = 1f - (1f - JOG_WHEEL_YMARK_OUTER_ALPHA) * t),
+                        start = tickCenter - across * tickHalfLengthPx,
+                        end = tickCenter + across * tickHalfLengthPx,
+                        strokeWidth = JOG_WHEEL_YMARK_TICK_THICKNESS.toPx(),
+                        cap = StrokeCap.Round,
+                    )
+                }
             }
         }
 
