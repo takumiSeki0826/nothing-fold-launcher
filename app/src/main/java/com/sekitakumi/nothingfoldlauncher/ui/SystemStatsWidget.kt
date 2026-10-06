@@ -32,6 +32,8 @@ fun SystemStatsWidget(stats: SystemStatsState, onNetClick: () -> Unit, modifier:
         PercentStatRow(label = "CPU", percent = stats.cpuPercent)
         PercentStatRow(label = "MEM", percent = stats.memoryPercent)
         PercentStatRow(label = "STO", percent = stats.storagePercent)
+        SignalStatRow(dbm = stats.signalDbm, isWifi = stats.signalIsWifi)
+        DataUsageStatRow(usageBytes = stats.dailyMobileDataUsageBytes)
         Column(
             modifier = Modifier.clickable(onClick = onNetClick),
             horizontalAlignment = Alignment.End,
@@ -68,6 +70,32 @@ private fun ThroughputStatRow(label: String, bytesPerSecond: Long?, modifier: Mo
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = bytesPerSecond?.let(::formatThroughput) ?: "--",
+            color = Color.White,
+            fontSize = 12.sp,
+        )
+    }
+}
+
+@Composable
+private fun SignalStatRow(dbm: Int?, isWifi: Boolean, modifier: Modifier = Modifier) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(text = "SIG", color = Color.Gray, fontSize = 10.sp)
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = dbm?.let { "${it}dBm" } ?: "--",
+            color = if (dbm != null && isWeakSignal(dbm, isWifi)) CRITICAL_COLOR else Color.White,
+            fontSize = 12.sp,
+        )
+    }
+}
+
+@Composable
+private fun DataUsageStatRow(usageBytes: Long?, modifier: Modifier = Modifier) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(text = "DATA", color = Color.Gray, fontSize = 10.sp)
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = usageBytes?.let(::formatDataUsage) ?: "--",
             color = Color.White,
             fontSize = 12.sp,
         )

@@ -7,4 +7,7 @@ data class SystemStatsState(
     val storagePercent: Int? = null,
     val uploadBytesPerSecond: Long? = null,
     val downloadBytesPerSecond: Long? = null,
+    val signalDbm: Int? = null,
+    val signalIsWifi: Boolean = false,
+    val dailyMobileDataUsageBytes: Long? = null,
 )
