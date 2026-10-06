@@ -212,12 +212,14 @@ private fun SearchColumn(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { DotMatrixText("Search", color = Color.Gray) },
+            placeholder = { DotMatrixText("Search", color = SEARCH_FIELD_COLOR) },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 focusedContainerColor = Color.Black,
                 unfocusedContainerColor = Color.Black,
+                focusedIndicatorColor = SEARCH_FIELD_COLOR,
+                unfocusedIndicatorColor = SEARCH_FIELD_COLOR,
             ),
         )
 
@@ -385,3 +387,6 @@ private fun FolderIconRow(
         }
     }
 }
+
+/** 検索窓の枠線とプレースホルダー（"Search"）で共有する色。 */
+private val SEARCH_FIELD_COLOR = Color.Gray
