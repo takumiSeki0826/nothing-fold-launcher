@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ fun WeatherWidget(
                 rows = iconFor(weatherConditionFor(weather.weatherCode)),
                 color = Color.White,
                 dotSize = WEATHER_DOT_SIZE,
+                modifier = Modifier.offset(y = WEATHER_ICON_OFFSET_Y),
             )
             Spacer(modifier = Modifier.width(4.dp))
             DotMatrixText(text = formatTemperature(weather.temperatureCelsius), fontSize = 12.sp, color = Color.White)
@@ -44,6 +46,9 @@ fun WeatherWidget(
 
 private val WEATHER_DOT_SIZE = 1.4.dp
 private val DETAIL_DOT_SIZE = 1.2.dp
+
+/** 下の湿度・降水確率の行と接しないよう、天気アイコンだけ少し上にずらす。 */
+private val WEATHER_ICON_OFFSET_Y = (-4).dp
 
 private fun iconFor(condition: WeatherCondition): List<String> = when (condition) {
     WeatherCondition.CLEAR -> DotIcons.SUN
