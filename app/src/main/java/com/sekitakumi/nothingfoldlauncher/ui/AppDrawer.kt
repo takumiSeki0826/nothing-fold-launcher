@@ -1,7 +1,6 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -320,13 +319,19 @@ private fun AppRow(
             style = MaterialTheme.typography.bodyLarge,
         )
         if (isSelected != null) {
-            Text(
-                text = if (isSelected) "☑" else "☐",
+            DotMatrixIcon(
+                rows = if (isSelected) DotIcons.CHECK_ON else DotIcons.CHECK_OFF,
                 color = if (isSelected) Color(0xFFD1432B) else Color.Gray,
+                dotSize = 1.6.dp,
                 modifier = Modifier.padding(end = 8.dp),
             )
         } else if (isFavorite) {
-            Text(text = "★", color = Color(0xFFD1432B), modifier = Modifier.padding(end = 8.dp))
+            DotMatrixIcon(
+                rows = DotIcons.STAR,
+                color = Color(0xFFD1432B),
+                dotSize = 1.6.dp,
+                modifier = Modifier.padding(end = 8.dp),
+            )
         }
     }
 }

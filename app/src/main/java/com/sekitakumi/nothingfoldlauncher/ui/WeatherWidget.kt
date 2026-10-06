@@ -4,25 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.Cloud
-import androidx.compose.material.icons.filled.Dehaze
-import androidx.compose.material.icons.filled.Grain
-import androidx.compose.material.icons.filled.Thunderstorm
-import androidx.compose.material.icons.filled.Umbrella
-import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material.icons.filled.WbCloudy
-import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -36,44 +22,36 @@ fun WeatherWidget(
 
     Column(modifier = modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.End) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = iconFor(weatherConditionFor(weather.weatherCode)),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.width(16.dp).height(16.dp),
+            DotMatrixIcon(
+                rows = iconFor(weatherConditionFor(weather.weatherCode)),
+                color = Color.White,
+                dotSize = WEATHER_DOT_SIZE,
             )
             Spacer(modifier = Modifier.width(4.dp))
             DotMatrixText(text = formatTemperature(weather.temperatureCelsius), fontSize = 12.sp, color = Color.White)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Filled.WaterDrop,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.width(10.dp).height(10.dp),
-            )
+            DotMatrixIcon(rows = DotIcons.DROP, color = Color.Gray, dotSize = DETAIL_DOT_SIZE)
             Spacer(modifier = Modifier.width(2.dp))
             DotMatrixText(text = "${weather.humidityPercent}%", fontSize = 10.sp, color = Color.Gray)
             Spacer(modifier = Modifier.width(6.dp))
-            Icon(
-                imageVector = Icons.Filled.Umbrella,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.width(10.dp).height(10.dp),
-            )
+            DotMatrixIcon(rows = DotIcons.UMBRELLA, color = Color.Gray, dotSize = DETAIL_DOT_SIZE)
             Spacer(modifier = Modifier.width(2.dp))
             DotMatrixText(text = "${weather.precipitationProbabilityPercent}%", fontSize = 10.sp, color = Color.Gray)
         }
     }
 }
 
-private fun iconFor(condition: WeatherCondition): ImageVector = when (condition) {
-    WeatherCondition.CLEAR -> Icons.Filled.WbSunny
-    WeatherCondition.PARTLY_CLOUDY -> Icons.Filled.WbCloudy
-    WeatherCondition.CLOUDY -> Icons.Filled.Cloud
-    WeatherCondition.FOG -> Icons.Filled.Dehaze
-    WeatherCondition.DRIZZLE, WeatherCondition.RAIN -> Icons.Filled.Grain
-    WeatherCondition.SNOW -> Icons.Filled.AcUnit
-    WeatherCondition.THUNDERSTORM -> Icons.Filled.Thunderstorm
-    WeatherCondition.UNKNOWN -> Icons.AutoMirrored.Filled.HelpOutline
+private val WEATHER_DOT_SIZE = 1.4.dp
+private val DETAIL_DOT_SIZE = 1.2.dp
+
+private fun iconFor(condition: WeatherCondition): List<String> = when (condition) {
+    WeatherCondition.CLEAR -> DotIcons.SUN
+    WeatherCondition.PARTLY_CLOUDY -> DotIcons.PARTLY_CLOUDY
+    WeatherCondition.CLOUDY -> DotIcons.CLOUD
+    WeatherCondition.FOG -> DotIcons.FOG
+    WeatherCondition.DRIZZLE, WeatherCondition.RAIN -> DotIcons.RAIN
+    WeatherCondition.SNOW -> DotIcons.SNOW
+    WeatherCondition.THUNDERSTORM -> DotIcons.THUNDERSTORM
+    WeatherCondition.UNKNOWN -> dotMatrixGlyph('?')
 }

@@ -10,11 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,10 +89,10 @@ fun NowPlayingWidget(
                 }
                 if (nowPlaying != null) {
                     IconButton(onClick = onTogglePlayPause) {
-                        Icon(
-                            imageVector = if (nowPlaying.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = null,
-                            tint = Color.White,
+                        DotMatrixIcon(
+                            rows = if (nowPlaying.isPlaying) DotIcons.PAUSE else DotIcons.PLAY,
+                            color = Color.White,
+                            dotSize = 2.dp,
                         )
                     }
                 }
@@ -109,7 +104,7 @@ fun NowPlayingWidget(
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onRequestPermission) {
-                    Icon(Icons.Filled.Notifications, contentDescription = "Grant notification access", tint = Color.Gray)
+                    DotMatrixIcon(rows = DotIcons.BELL, color = Color.Gray, dotSize = 2.dp)
                 }
             }
         }
