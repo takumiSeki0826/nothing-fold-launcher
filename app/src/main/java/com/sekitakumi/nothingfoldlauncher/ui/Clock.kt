@@ -53,9 +53,9 @@ fun Clock(modifier: Modifier = Modifier) {
 
 @Composable
 private fun DotMatrixTime(text: String, color: Color, modifier: Modifier = Modifier) {
-    val dotSize = 6.dp
+    val dotSize = 4.dp
     val dotGap = 2.dp
-    val charGap = 8.dp
+    val charGap = 6.dp
 
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(charGap)) {
         for (char in text) {
