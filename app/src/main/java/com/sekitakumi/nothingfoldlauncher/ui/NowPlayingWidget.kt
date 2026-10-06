@@ -108,7 +108,7 @@ fun NowPlayingWidget(
             levels = levels,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp)
+                .weight(1f)
                 .padding(top = 12.dp),
         )
     }

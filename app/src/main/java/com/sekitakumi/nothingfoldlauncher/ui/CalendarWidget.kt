@@ -59,7 +59,7 @@ fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: 
             calendar = now,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp)
+                .weight(1f)
                 .padding(top = 12.dp),
         )
     }
