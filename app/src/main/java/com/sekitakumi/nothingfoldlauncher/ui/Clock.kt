@@ -1,8 +1,13 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -10,7 +15,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -27,26 +32,53 @@ fun Clock(modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(top = 32.dp)) {
         Text(
             text = dateText(now),
             color = Color.Gray,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 6.dp),
         )
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                text = timeText(now),
-                color = Color.White,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Light,
-            )
-            Text(
+            DotMatrixTime(text = timeText(now), color = Color.White)
+            DotMatrixTime(
                 text = secondsText(now),
                 color = Color.Gray,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
+                dotSize = 1.5.dp,
+                dotGap = 1.dp,
+                charGap = 2.5.dp,
+                modifier = Modifier.padding(start = 8.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun DotMatrixTime(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    dotSize: Dp = 4.dp,
+    dotGap: Dp = 2.dp,
+    charGap: Dp = 6.dp,
+) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(charGap)) {
+        for (char in text) {
+            val glyph = dotMatrixGlyph(char)
+            Column(verticalArrangement = Arrangement.spacedBy(dotGap)) {
+                for (row in glyph) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(dotGap)) {
+                        for (cell in row) {
+                            val dotColor = if (cell == '#') color else Color.Transparent
+                            Box(
+                                modifier = Modifier
+                                    .size(dotSize)
+                                    .background(dotColor, shape = CircleShape),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
