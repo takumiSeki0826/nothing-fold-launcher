@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -36,8 +37,21 @@ import kotlin.random.Random
 // height, so both cards' headers (and the dot grids below them) line up.
 private val HEADER_HEIGHT = 48.dp
 
+private val HEADER_TEXT_OFFSET_Y = 8.dp
+
+private val DOT_GRID_HEIGHT = 100.dp
+
+// Expanded (large screen) layout: card size stays the same; only the contents are inset and shrunk.
+private val COMPACT_CONTENT_INSET = 48.dp
+private const val COMPACT_DOT_RADIUS_RATIO = 0.3f
+
 @Composable
-fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun CalendarWidget(
+    onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+) {
     val now by produceState(initialValue = Calendar.getInstance()) {
         while (true) {
             value = Calendar.getInstance()
@@ -49,22 +63,30 @@ fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: 
         modifier = modifier
             .background(NothingGrays.Base, RoundedCornerShape(24.dp))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(16.dp),
+            .padding(horizontal = if (compact) COMPACT_CONTENT_INSET else 24.dp, vertical = 10.dp),
     ) {
         Box(modifier = Modifier.height(HEADER_HEIGHT), contentAlignment = Alignment.CenterStart) {
-            DotMatrixText(text = monthText(now.time), color = Color.White, fontSize = 15.sp)
+            DotMatrixText(
+                text = headerText(now.time),
+                color = Color.White,
+                fontSize = 15.sp,
+                modifier = Modifier.offset(y = HEADER_TEXT_OFFSET_Y),
+            )
         }
 
         MiniDotCalendar(
             calendar = now,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .padding(top = 12.dp),
+                .height(DOT_GRID_HEIGHT)
+                .padding(top = 12.dp, bottom = 14.dp),
+            dotRadiusRatio = if (compact) COMPACT_DOT_RADIUS_RATIO else DOT_RADIUS_RATIO,
         )
     }
 }
 
+// Dots are laid out edge to edge so the first column lines up with the header text.
+private const val DOT_RADIUS_RATIO = 0.22f
 private val DOT_COLOR = NothingGrays.OnBase
 private val DOT_FLASH_COLOR = Color(0xFFD1432B)
 
@@ -73,7 +95,7 @@ private val DOT_FLASH_COLOR = Color(0xFFD1432B)
 private const val DOT_FLASH_PULSE_WIDTH = 0.15f
 
 @Composable
-private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
+private fun MiniDotCalendar(calendar: Calendar, dotRadiusRatio: Float, modifier: Modifier = Modifier) {
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH) + 1
     val today = calendar.get(Calendar.DAY_OF_MONTH)
@@ -97,7 +119,7 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val cellWidth = size.width / grid.columns
         val cellHeight = size.height / grid.rows
-        val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
+        val dotRadius = minOf(cellWidth, cellHeight) * dotRadiusRatio
 
         for (dot in grid.dots) {
             val color = if (dot.isToday) {
@@ -114,7 +136,7 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
                 color = color,
                 radius = if (dot.isToday) dotRadius * 1.4f else dotRadius,
                 center = Offset(
-                    x = dot.col * cellWidth + cellWidth / 2f,
+                    x = dotRadius + dot.col * (size.width - 2 * dotRadius) / (grid.columns - 1),
                     y = dot.row * cellHeight + cellHeight / 2f,
                 ),
             )
@@ -122,5 +144,5 @@ private fun MiniDotCalendar(calendar: Calendar, modifier: Modifier = Modifier) {
     }
 }
 
-private fun monthText(date: Date): String =
-    SimpleDateFormat("MMMM", Locale.ENGLISH).format(date)
+private fun headerText(date: Date): String =
+    SimpleDateFormat("EEE MM.dd", Locale.ENGLISH).format(date)

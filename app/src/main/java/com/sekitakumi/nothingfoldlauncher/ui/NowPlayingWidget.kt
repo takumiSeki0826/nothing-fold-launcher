@@ -3,11 +3,13 @@ package com.sekitakumi.nothingfoldlauncher.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
@@ -24,8 +26,18 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
-private const val GRID_COLUMNS = 9
+private const val GRID_COLUMNS = 8
 private const val GRID_ROWS = 5
+
+private val DOT_GRID_HEIGHT = 100.dp
+
+// Expanded (large screen) layout: card size stays the same; only the contents are inset and shrunk.
+private val COMPACT_CONTENT_INSET = 48.dp
+private const val DOT_RADIUS_RATIO = 0.22f
+private const val COMPACT_DOT_RADIUS_RATIO = 0.3f
+private val ARTIST_OFFSET_Y = 42.dp
+private val PLAY_BUTTON_OFFSET_X = 8.dp
+private val PLAY_BUTTON_OFFSET_Y = 4.dp
 
 @Composable
 fun NowPlayingWidget(
@@ -36,6 +48,7 @@ fun NowPlayingWidget(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val isPlaying = nowPlaying?.isPlaying == true
 
@@ -54,7 +67,7 @@ fun NowPlayingWidget(
         modifier = modifier
             .background(NothingGrays.Base, RoundedCornerShape(24.dp))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(16.dp),
+            .padding(horizontal = if (compact) COMPACT_CONTENT_INSET else 24.dp, vertical = 10.dp),
     ) {
         Row(
             modifier = Modifier
@@ -63,12 +76,17 @@ fun NowPlayingWidget(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (permissionGranted) {
-                Column(modifier = Modifier.weight(1f)) {
+                // Title sits at the same height as CalendarWidget's header text. The artist
+                // hangs below it without adding to the header height, so both cards stay equal.
+                Box(
+                    modifier = Modifier.weight(1f).height(NOW_PLAYING_HEADER_MIN_HEIGHT_DP.dp),
+                ) {
                     DotMatrixText(
                         text = nowPlaying?.title?.let(::nowPlayingDisplayText) ?: "Not Playing",
                         color = Color.White,
                         fontSize = 13.sp,
                         ellipsize = true,
+                        modifier = Modifier.align(Alignment.CenterStart),
                     )
                     if (nowPlaying?.artist != null) {
                         DotMatrixText(
@@ -76,12 +94,15 @@ fun NowPlayingWidget(
                             color = Color.Gray,
                             fontSize = 11.sp,
                             ellipsize = true,
-                            modifier = Modifier.padding(top = 9.dp),
+                            modifier = Modifier.align(Alignment.TopStart).offset(y = ARTIST_OFFSET_Y),
                         )
                     }
                 }
                 if (nowPlaying != null) {
-                    IconButton(onClick = onTogglePlayPause) {
+                    IconButton(
+                        onClick = onTogglePlayPause,
+                        modifier = Modifier.offset(x = PLAY_BUTTON_OFFSET_X, y = PLAY_BUTTON_OFFSET_Y),
+                    ) {
                         DotMatrixIcon(
                             rows = if (nowPlaying.isPlaying) DotIcons.PAUSE else DotIcons.PLAY,
                             color = Color.White,
@@ -108,8 +129,9 @@ fun NowPlayingWidget(
             levels = levels,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .padding(top = 12.dp),
+                .height(DOT_GRID_HEIGHT)
+                .padding(top = 12.dp, bottom = 8.dp),
+            dotRadiusRatio = if (compact) COMPACT_DOT_RADIUS_RATIO else DOT_RADIUS_RATIO,
         )
     }
 }
@@ -119,12 +141,13 @@ private fun DotGrid(
     columns: Int,
     rows: Int,
     levels: FloatArray,
+    dotRadiusRatio: Float,
     modifier: Modifier = Modifier,
 ) {
     Canvas(modifier = modifier) {
         val cellWidth = size.width / columns
         val cellHeight = size.height / rows
-        val dotRadius = minOf(cellWidth, cellHeight) * 0.28f
+        val dotRadius = minOf(cellWidth, cellHeight) * dotRadiusRatio
 
         for (col in 0 until columns) {
             val level = levels.getOrElse(col) { 0f }.coerceIn(0f, 1f)
@@ -137,7 +160,7 @@ private fun DotGrid(
                     color = color,
                     radius = dotRadius,
                     center = Offset(
-                        x = col * cellWidth + cellWidth / 2f,
+                        x = dotRadius + col * (size.width - 2 * dotRadius) / (columns - 1),
                         y = row * cellHeight + cellHeight / 2f,
                     ),
                 )
