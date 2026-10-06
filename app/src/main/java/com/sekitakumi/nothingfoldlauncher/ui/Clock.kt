@@ -1,8 +1,13 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,12 +39,7 @@ fun Clock(modifier: Modifier = Modifier) {
             fontSize = 12.sp,
         )
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                text = timeText(now),
-                color = Color.White,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Light,
-            )
+            DotMatrixTime(text = timeText(now), color = Color.White)
             Text(
                 text = secondsText(now),
                 color = Color.Gray,
@@ -47,6 +47,33 @@ fun Clock(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Light,
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun DotMatrixTime(text: String, color: Color, modifier: Modifier = Modifier) {
+    val dotSize = 6.dp
+    val dotGap = 2.dp
+    val charGap = 8.dp
+
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(charGap)) {
+        for (char in text) {
+            val glyph = dotMatrixGlyph(char)
+            Column(verticalArrangement = Arrangement.spacedBy(dotGap)) {
+                for (row in glyph) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(dotGap)) {
+                        for (cell in row) {
+                            val dotColor = if (cell == '#') color else Color.Transparent
+                            Box(
+                                modifier = Modifier
+                                    .size(dotSize)
+                                    .background(dotColor, shape = CircleShape),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
