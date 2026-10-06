@@ -33,7 +33,6 @@ fun SystemStatsWidget(stats: SystemStatsState, onNetClick: () -> Unit, modifier:
         PercentStatRow(label = "MEM", percent = stats.memoryPercent)
         PercentStatRow(label = "STO", percent = stats.storagePercent)
         SignalStatRow(dbm = stats.signalDbm, isWifi = stats.signalIsWifi)
-        DataUsageStatRow(usageBytes = stats.dailyMobileDataUsageBytes)
         Column(
             modifier = Modifier.clickable(onClick = onNetClick),
             horizontalAlignment = Alignment.End,
@@ -42,6 +41,7 @@ fun SystemStatsWidget(stats: SystemStatsState, onNetClick: () -> Unit, modifier:
             ThroughputStatRow(label = "NET ↑", bytesPerSecond = stats.uploadBytesPerSecond)
             ThroughputStatRow(label = "NET ↓", bytesPerSecond = stats.downloadBytesPerSecond)
         }
+        DataUsageStatRow(usageBytes = stats.dailyMobileDataUsageBytes)
     }
 }
 
