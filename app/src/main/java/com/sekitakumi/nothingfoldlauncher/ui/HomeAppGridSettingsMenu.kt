@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,7 +40,7 @@ fun HomeAppGridSettingsMenu(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(text = folder.name, color = Color.White)
+                        DotMatrixText(text = folder.name, color = Color.White, ellipsize = true, modifier = Modifier.weight(1f))
                         DotMatrixText(
                             text = "Edit",
                             color = ACCENT_COLOR,

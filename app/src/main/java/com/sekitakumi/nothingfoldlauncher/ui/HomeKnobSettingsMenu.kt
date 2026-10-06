@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -92,7 +91,7 @@ private fun HomeKnobSettingsRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 DotMatrixText(text = "Tap: ", color = ACCENT_COLOR)
-                if (tapAppLabel != null) Text(text = tapAppLabel, color = ACCENT_COLOR) else DotMatrixText(text = "+", color = ACCENT_COLOR)
+                DotMatrixText(text = tapAppLabel ?: "+", color = ACCENT_COLOR, ellipsize = true)
             }
             DotMatrixText(
                 text = if (folderAppCount > 0) "Folder: ${appCountLabel(folderAppCount)}" else "Folder: +",

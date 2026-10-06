@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -35,7 +34,7 @@ fun AppContextMenu(
         containerColor = Color.Black,
         titleContentColor = Color.White,
         textContentColor = Color.White,
-        title = { Text(app.label) },
+        title = { DotMatrixText(app.label, ellipsize = true) },
         text = {
             Column {
                 TextButton(onClick = onToggleFavorite) {

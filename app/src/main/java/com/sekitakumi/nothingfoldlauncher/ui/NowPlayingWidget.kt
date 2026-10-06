@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -19,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -66,24 +64,18 @@ fun NowPlayingWidget(
         ) {
             if (permissionGranted) {
                 Column(modifier = Modifier.weight(1f)) {
-                    if (nowPlaying?.title != null) {
-                        Text(
-                            text = nowPlaying.title,
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    } else {
-                        DotMatrixText(text = "Not Playing", color = Color.White, fontSize = 13.sp)
-                    }
+                    DotMatrixText(
+                        text = nowPlaying?.title ?: "Not Playing",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        ellipsize = true,
+                    )
                     if (nowPlaying?.artist != null) {
-                        Text(
+                        DotMatrixText(
                             text = nowPlaying.artist,
                             color = Color.Gray,
                             fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            ellipsize = true,
                         )
                     }
                 }

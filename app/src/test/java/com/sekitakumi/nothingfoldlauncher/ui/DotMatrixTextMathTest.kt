@@ -79,4 +79,42 @@ class DotMatrixTextMathTest {
     fun `dotMatrixDotSizePx scales font size by digit height ratio`() {
         assertEquals(7.2f, dotMatrixDotSizePx(100f), 0.001f)
     }
+
+    @Test
+    fun `dotMatrixTextWidthPx measures glyph chars by glyph and others by font size`() {
+        // 'A' は 7d、ギャップは 1.5d
+        assertEquals(7f + 1.5f + 7f, dotMatrixTextWidthPx("AB", d = 1f, fontSizePx = 10f), 0.001f)
+        // 日本語は fontSize 幅として数える
+        assertEquals(10f + 1.5f + 10f, dotMatrixTextWidthPx("あい", d = 1f, fontSizePx = 10f), 0.001f)
+        assertEquals(0f, dotMatrixTextWidthPx("", d = 1f, fontSizePx = 10f), 0.001f)
+    }
+
+    @Test
+    fun `truncateForWidth keeps text that fits`() {
+        assertEquals("HELLO", truncateForWidth("HELLO", d = 1f, fontSizePx = 10f, maxWidthPx = 100f))
+    }
+
+    @Test
+    fun `truncateForWidth cuts text and appends ellipsis`() {
+        // "…" = 7、n 文字 + "…" = (n+1)*7 + n*1.5 <= 30 → n = 2
+        assertEquals("HE…", truncateForWidth("HELLO", d = 1f, fontSizePx = 10f, maxWidthPx = 30f))
+    }
+
+    @Test
+    fun `truncateForWidth returns empty when not even the ellipsis fits`() {
+        assertEquals("", truncateForWidth("HELLO", d = 1f, fontSizePx = 10f, maxWidthPx = 5f))
+    }
+
+    @Test
+    fun `truncateForWidth accounts for extra gap`() {
+        // extraGap 2 → 文字間 3.5。"…" 単独 7、n=1: 7+3.5+7=17.5 <= 18
+        assertEquals("H…", truncateForWidth("HELLO", d = 1f, fontSizePx = 10f, maxWidthPx = 18f, extraGapPx = 2f))
+    }
+
+    @Test
+    fun `truncateForWidth does not split a surrogate pair`() {
+        val face = "\uD83D\uDE00"
+        // 絵文字は fontSize 幅 10 として数える: 10+1.5+7 = 18.5 <= 25 < 10+1.5+10+1.5+7
+        assertEquals("$face…", truncateForWidth(face + face + face, d = 1f, fontSizePx = 10f, maxWidthPx = 25f))
+    }
 }
