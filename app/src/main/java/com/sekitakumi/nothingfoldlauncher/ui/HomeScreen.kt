@@ -47,11 +47,11 @@ import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
-private val HOME_KNOB_DIAMETER = 112.dp
+private val HOME_KNOB_DIAMETER = 104.dp
 private val APP_ICON_WIDTH = 60.dp
 
 // Tuned to line up with the battery/status row's text baseline in the left column's ClockRow.
-private val SIGNAL_BADGE_TOP_OFFSET = 115.dp
+private val SIGNAL_BADGE_TOP_OFFSET = 48.dp
 
 @Composable
 fun HomeScreen(
@@ -181,7 +181,7 @@ fun HomeScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(72.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
 
                     Box(
                         modifier = Modifier
