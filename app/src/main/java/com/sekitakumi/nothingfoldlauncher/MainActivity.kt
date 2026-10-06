@@ -414,6 +414,7 @@ class MainActivity : ComponentActivity() {
                                     isExpandedWidth = isExpandedWidth,
                                     systemStats = systemStats,
                                     onSystemStatsNetClick = { launchSpeedtest() },
+                                    isPlaying = nowPlaying?.isPlaying == true,
                                     folders = drawerGroups,
                                     onFolderClick = { folderOverlay = FolderOverlayState.Drawer(it.id) },
                                     onFolderLongClick = { group -> folderEditDialogTarget = EditFolderTarget.Drawer(group.id) },

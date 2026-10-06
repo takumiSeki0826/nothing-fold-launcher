@@ -1,5 +1,8 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -31,9 +37,14 @@ import androidx.compose.ui.unit.sp
 
 private val JOG_WHEEL_OUTER_COLOR = Color(0xFFD1432B)
 private val JOG_WHEEL_SPINDLE_COLOR = Color.White
+private val JOG_WHEEL_YMARK_COLOR = Color.White
 private val JOG_WHEEL_GLOW_COLOR = Color.White
 private const val JOG_WHEEL_GLOW_ARC_WIDTH_DEG = 36f
 private const val JOG_WHEEL_SPINDLE_RADIUS_RATIO = 0.16f
+private const val JOG_WHEEL_YMARK_INNER_RATIO = 0.20f
+private const val JOG_WHEEL_YMARK_OUTER_RATIO = 0.45f
+private val JOG_WHEEL_YMARK_ANGLES_DEG = listOf(0f, 120f, 240f)
+private const val JOG_WHEEL_ROTATION_DURATION_MS = 6000
 private val JOG_WHEEL_BUTTON_DIAMETER = 56.dp
 val DEFAULT_JOG_WHEEL_DIAMETER = 330.dp
 
@@ -45,6 +56,7 @@ fun AlphabetJogWheel(
     onJumpToEnd: () -> Unit,
     systemStats: SystemStatsState,
     onSystemStatsNetClick: () -> Unit,
+    isPlaying: Boolean,
     modifier: Modifier = Modifier,
     diameter: Dp = DEFAULT_JOG_WHEEL_DIAMETER,
 ) {
@@ -53,8 +65,48 @@ fun AlphabetJogWheel(
     var glowAngleDeg by remember { mutableFloatStateOf(0f) }
     var reversed by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
+    val rotation = remember { Animatable(0f) }
+    LaunchedEffect(isPlaying) {
+        // Hold the current angle while paused; resume from it when playback restarts.
+        while (isPlaying) {
+            val start = rotation.value % 360f
+            rotation.snapTo(start)
+            rotation.animateTo(
+                targetValue = start + 360f,
+                animationSpec = tween(JOG_WHEEL_ROTATION_DURATION_MS, easing = LinearEasing),
+            )
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.size(diameter).graphicsLayer { rotationZ = rotation.value }) {
+            val center = Offset(size.width / 2f, size.height / 2f)
+            val discRadius = size.minDimension / 2f
+
+            drawCircle(color = JOG_WHEEL_OUTER_COLOR, radius = discRadius, center = center)
+            drawCircle(
+                color = JOG_WHEEL_SPINDLE_COLOR,
+                radius = discRadius * JOG_WHEEL_SPINDLE_RADIUS_RATIO,
+                center = center,
+            )
+
+            val ymarkStroke = Stroke(
+                width = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx())),
+            )
+            for (angle in JOG_WHEEL_YMARK_ANGLES_DEG) {
+                drawLine(
+                    color = JOG_WHEEL_YMARK_COLOR,
+                    start = center + angleToIndicatorOffset(angle, discRadius * JOG_WHEEL_YMARK_INNER_RATIO),
+                    end = center + angleToIndicatorOffset(angle, discRadius * JOG_WHEEL_YMARK_OUTER_RATIO),
+                    strokeWidth = ymarkStroke.width,
+                    cap = ymarkStroke.cap,
+                    pathEffect = ymarkStroke.pathEffect,
+                )
+            }
+        }
+
         Canvas(
             modifier = Modifier
                 .size(diameter)
@@ -98,13 +150,6 @@ fun AlphabetJogWheel(
         ) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val discRadius = size.minDimension / 2f
-
-            drawCircle(color = JOG_WHEEL_OUTER_COLOR, radius = discRadius, center = center)
-            drawCircle(
-                color = JOG_WHEEL_SPINDLE_COLOR,
-                radius = discRadius * JOG_WHEEL_SPINDLE_RADIUS_RATIO,
-                center = center,
-            )
 
             if (isDragging) {
                 val arcRadius = discRadius * 0.94f
