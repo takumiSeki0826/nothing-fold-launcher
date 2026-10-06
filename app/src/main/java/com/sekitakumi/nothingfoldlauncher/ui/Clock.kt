@@ -32,7 +32,7 @@ fun Clock(modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier = modifier.padding(top = 12.dp)) {
+    Column(modifier = modifier.padding(top = 32.dp)) {
         Text(
             text = dateText(now),
             color = Color.Gray,
