@@ -90,4 +90,10 @@ class DotMatrixIconPatternsTest {
         assertEquals(2 * 1.5f + 1f, dotMatrixIconWidthPx(rows, 1f), 0.001f)
         assertEquals(1 * 1.5f + 1f, dotMatrixIconHeightPx(rows, 1f), 0.001f)
     }
+
+    @Test
+    fun `wifi icon is narrow enough to sit beside the other status icons`() {
+        assertTrue("wifi is too wide", DotIcons.WIFI[0].length <= 9)
+        assertEquals(6, DotIcons.WIFI.size)
+    }
 }

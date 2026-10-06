@@ -20,11 +20,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
 private const val THUMB_ENTRANCE_START_DP = -110f
+
+val DEFAULT_FADER_TRACK_HEIGHT = 160.dp
 
 @Composable
 fun FaderSlider(
@@ -32,6 +35,7 @@ fun FaderSlider(
     ratio: Float,
     onRatioChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    trackHeight: Dp = DEFAULT_FADER_TRACK_HEIGHT,
 ) {
     val thumbEntranceOffsetDp = remember { Animatable(THUMB_ENTRANCE_START_DP) }
     LaunchedEffect(Unit) {
@@ -50,7 +54,7 @@ fun FaderSlider(
             modifier = Modifier
                 .padding(top = 10.dp)
                 .width(56.dp)
-                .height(160.dp)
+                .height(trackHeight)
                 .pointerInput(Unit) {
                     detectVerticalDragGestures { change, _ ->
                         onRatioChange(verticalDragToRatio(change.position.y, size.height.toFloat()))
