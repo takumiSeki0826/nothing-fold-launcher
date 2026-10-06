@@ -13,7 +13,7 @@ class DotMatrixTextMathTest {
     @Test
     fun `splitDotRuns separates sign, digits and unit`() {
         assertEquals(
-            listOf(DotRun("-", false), DotRun("67", true), DotRun("dBm", false)),
+            listOf(DotRun("-67dBm", true)),
             splitDotRuns("-67dBm"),
         )
     }
@@ -21,22 +21,52 @@ class DotMatrixTextMathTest {
     @Test
     fun `splitDotRuns separates digits and percent`() {
         assertEquals(
-            listOf(DotRun("12", true), DotRun("%", false)),
+            listOf(DotRun("12%", true)),
             splitDotRuns("12%"),
         )
     }
 
     @Test
     fun `splitDotRuns keeps consecutive non-digits in one run`() {
-        assertEquals(listOf(DotRun("--", false)), splitDotRuns("--"))
+        assertEquals(listOf(DotRun("あい", false)), splitDotRuns("あい"))
     }
 
     @Test
     fun `splitDotRuns handles date text`() {
         assertEquals(
-            listOf(DotRun("Mon, Oct ", false), DotRun("6", true)),
+            listOf(DotRun("Mon, Oct 6", true)),
             splitDotRuns("Mon, Oct 6"),
         )
+    }
+
+    @Test
+    fun `splitDotRuns draws degree sign in dots`() {
+        assertEquals(listOf(DotRun("23°", true)), splitDotRuns("23°"))
+    }
+
+    @Test
+    fun `splitDotRuns draws decimal point and comma in dots`() {
+        assertEquals(listOf(DotRun("1.5,", true)), splitDotRuns("1.5,"))
+    }
+
+    @Test
+    fun `splitDotRuns draws unit with slash in dots`() {
+        assertEquals(listOf(DotRun("0KB/s", true)), splitDotRuns("0KB/s"))
+    }
+
+    @Test
+    fun `splitDotRuns falls back to text only for chars without glyph`() {
+        assertEquals(
+            listOf(DotRun("A", true), DotRun("あ", false), DotRun("1", true)),
+            splitDotRuns("Aあ1"),
+        )
+    }
+
+    @Test
+    fun `dotMatrixRunWidthPx sums glyph widths and gaps`() {
+        // 数字は 7d、ギャップは 1.5d、空白は 2 列 = 2.5d
+        assertEquals(7f + 1.5f + 7f, dotMatrixRunWidthPx("12", 1f), 0.001f)
+        assertEquals(7f + 1.5f + 2.5f + 1.5f + 7f, dotMatrixRunWidthPx("1 2", 1f), 0.001f)
     }
 
     @Test

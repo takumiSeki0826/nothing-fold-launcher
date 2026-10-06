@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.TextUnit
 
 /**
- * 半角数字だけをドットマトリクス書体で描き、それ以外は通常の [Text] で描く。
+ * グリフのある文字（数字・英字・`° % . , - : /`・空白。小文字は大文字で描く）をドットマトリクス書体で描き、それ以外は通常の [Text] で描く。
  * 数字の高さは [fontSize] から決まる（[DIGIT_HEIGHT_RATIO]）。
  */
 @Composable
@@ -25,13 +25,12 @@ fun DotMatrixText(
 ) {
     val fontSizePx = with(LocalDensity.current) { fontSize.toPx() }
     val d = dotMatrixDotSizePx(fontSizePx)
-    val pitch = d * 1.5f
+    val pitch = d * DOT_PITCH_RATIO
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         splitDotRuns(text).forEach { run ->
             if (run.isDot) {
-                val count = run.text.length
-                val widthPx = count * 7f * d + (count - 1) * pitch
+                val widthPx = dotMatrixRunWidthPx(run.text, d)
                 val heightPx = 10f * d
                 Canvas(
                     modifier = Modifier.size(
@@ -39,8 +38,8 @@ fun DotMatrixText(
                         height = with(LocalDensity.current) { heightPx.toDp() },
                     ),
                 ) {
-                    run.text.forEachIndexed { index, char ->
-                        val charX = index * (7f * d + pitch)
+                    var charX = 0f
+                    run.text.forEach { char ->
                         dotMatrixGlyph(char).forEachIndexed { row, line ->
                             line.forEachIndexed { col, cell ->
                                 if (cell == '#') {
@@ -52,6 +51,7 @@ fun DotMatrixText(
                                 }
                             }
                         }
+                        charX += dotMatrixGlyphWidthPx(char, d) + pitch
                     }
                 }
             } else {
