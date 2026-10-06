@@ -76,6 +76,7 @@ fun NowPlayingWidget(
                             color = Color.Gray,
                             fontSize = 11.sp,
                             ellipsize = true,
+                            modifier = Modifier.padding(top = 9.dp),
                         )
                     }
                 }
