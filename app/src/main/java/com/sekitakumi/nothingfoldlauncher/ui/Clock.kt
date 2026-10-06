@@ -32,12 +32,6 @@ fun Clock(modifier: Modifier = Modifier) {
     }
 
     Column(modifier = modifier.padding(top = 32.dp)) {
-        DotMatrixText(
-            text = dateText(now),
-            color = Color.Gray,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 6.dp),
-        )
         Row(verticalAlignment = Alignment.Bottom) {
             DotMatrixTime(text = timeText(now), color = Color.White)
             DotMatrixTime(
@@ -88,5 +82,3 @@ private fun timeText(date: Date): String =
 private fun secondsText(date: Date): String =
     SimpleDateFormat("ss", Locale.getDefault()).format(date)
 
-private fun dateText(date: Date): String =
-    SimpleDateFormat("EEE, MMM d", Locale.ENGLISH).format(date)

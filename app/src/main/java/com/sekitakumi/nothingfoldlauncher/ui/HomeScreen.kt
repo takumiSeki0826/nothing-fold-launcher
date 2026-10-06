@@ -51,8 +51,11 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 private val HOME_KNOB_DIAMETER = 112.dp
 private val APP_ICON_WIDTH = 60.dp
 
-// Expanded layout keeps the pre-square widget height: header 48 + padding 32 + grid gap 12 + grid 90.
-private val WIDGET_HEIGHT_EXPANDED = 182.dp
+// Cover layout: fixed gap between clock, widgets and app grid; leftover height goes to the top/bottom edges.
+private val COVER_BLOCK_SPACING = 24.dp
+
+// Side margin so the widgets line up with the inset edges of the clock, sliders and app grid.
+private val COVER_WIDGET_MARGIN = 8.dp
 
 @Composable
 fun HomeScreen(
@@ -121,7 +124,8 @@ fun HomeScreen(
                 CalendarWidget(
                     onClick = onCalendarClick,
                     onLongClick = onCalendarLongClick,
-                    modifier = Modifier.fillMaxWidth().height(WIDGET_HEIGHT_EXPANDED),
+                    modifier = Modifier.fillMaxWidth(),
+                    compact = true,
                 )
 
                 NowPlayingWidget(
@@ -131,7 +135,8 @@ fun HomeScreen(
                     onRequestPermission = onRequestNowPlayingPermission,
                     onClick = onNowPlayingClick,
                     onLongClick = onNowPlayingLongClick,
-                    modifier = Modifier.fillMaxWidth().height(WIDGET_HEIGHT_EXPANDED),
+                    modifier = Modifier.fillMaxWidth(),
+                    compact = true,
                 )
 
                 if (errorMessage != null) {
@@ -212,7 +217,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(Color.Black)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(COVER_BLOCK_SPACING, Alignment.CenterVertically),
         ) {
             ClockRow(
                 batteryPercent = batteryPercent,
@@ -226,7 +231,7 @@ fun HomeScreen(
                 onWeatherClick = onWeatherClick,
             )
 
-            Column {
+            Column(modifier = Modifier.padding(horizontal = COVER_WIDGET_MARGIN)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -234,7 +239,7 @@ fun HomeScreen(
                     CalendarWidget(
                         onClick = onCalendarClick,
                         onLongClick = onCalendarLongClick,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                        modifier = Modifier.weight(1f),
                     )
                     NowPlayingWidget(
                         nowPlaying = nowPlaying,
@@ -243,7 +248,7 @@ fun HomeScreen(
                         onRequestPermission = onRequestNowPlayingPermission,
                         onClick = onNowPlayingClick,
                         onLongClick = onNowPlayingLongClick,
-                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                        modifier = Modifier.weight(1f),
                     )
                 }
 
