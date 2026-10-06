@@ -47,7 +47,7 @@ import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
-private val HOME_KNOB_DIAMETER = 96.dp
+private val HOME_KNOB_DIAMETER = 112.dp
 private val APP_ICON_WIDTH = 60.dp
 
 // Tuned to line up with the battery/status row's text baseline in the left column's ClockRow.
@@ -181,7 +181,7 @@ fun HomeScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(72.dp))
 
                     Box(
                         modifier = Modifier
@@ -238,10 +238,10 @@ fun HomeScreen(
                 onWeatherClick = onWeatherClick,
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth().height(150.dp),
+                modifier = Modifier.fillMaxWidth().height(190.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 CalendarWidget(
@@ -264,7 +264,7 @@ fun HomeScreen(
                 Text(text = errorMessage, color = Color.White, textAlign = TextAlign.Center)
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.weight(3f), contentAlignment = Alignment.Center) {
@@ -374,7 +374,7 @@ private fun AppGrid(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         (0 until totalSlots).chunked(columns).forEach { rowIndices ->
             Row(
