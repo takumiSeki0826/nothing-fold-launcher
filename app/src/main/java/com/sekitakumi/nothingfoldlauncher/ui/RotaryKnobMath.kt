@@ -3,6 +3,7 @@ package com.sekitakumi.nothingfoldlauncher.ui
 import androidx.compose.ui.geometry.Offset
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.sin
 
 private const val ENTRANCE_WOBBLE_STAGGER_MS = 40L
@@ -26,3 +27,10 @@ fun jogWheelArcStartAngleDeg(centerAngleDeg: Float, arcWidthDeg: Float): Float =
     centerAngleDeg - arcWidthDeg / 2f - 90f
 
 fun entranceWobbleDelayMs(orderIndex: Int): Long = orderIndex * ENTRANCE_WOBBLE_STAGGER_MS
+
+// Share of the disc radius treated as the jog wheel's center (play/pause) button.
+// Slightly larger than the drawn spindle so it is easy to hit.
+private const val JOG_WHEEL_CENTER_HIT_RATIO = 0.24f
+
+fun isJogWheelCenterHit(dx: Float, dy: Float, discRadiusPx: Float): Boolean =
+    hypot(dx, dy) <= discRadiusPx * JOG_WHEEL_CENTER_HIT_RATIO

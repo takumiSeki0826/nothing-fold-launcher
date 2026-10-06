@@ -420,6 +420,7 @@ class MainActivity : ComponentActivity() {
                                     systemStats = systemStatsWithStatus,
                                     onSystemStatsNetClick = { launchSpeedtest() },
                                     isPlaying = nowPlaying?.isPlaying == true,
+                                    onTogglePlayPause = nowPlayingController::togglePlayPause,
                                     folders = drawerGroups,
                                     onFolderClick = { folderOverlay = FolderOverlayState.Drawer(it.id) },
                                     onFolderLongClick = { group -> folderEditDialogTarget = EditFolderTarget.Drawer(group.id) },
