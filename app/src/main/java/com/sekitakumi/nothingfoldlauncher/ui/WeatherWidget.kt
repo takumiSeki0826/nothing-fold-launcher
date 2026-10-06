@@ -22,12 +22,11 @@ fun WeatherWidget(
     if (weather == null) return
 
     Column(modifier = modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.End) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.offset(y = WEATHER_ROW_OFFSET_Y), verticalAlignment = Alignment.CenterVertically) {
             DotMatrixIcon(
                 rows = iconFor(weatherConditionFor(weather.weatherCode)),
                 color = Color.White,
                 dotSize = WEATHER_DOT_SIZE,
-                modifier = Modifier.offset(y = WEATHER_ICON_OFFSET_Y),
             )
             Spacer(modifier = Modifier.width(4.dp))
             DotMatrixText(text = formatTemperature(weather.temperatureCelsius), fontSize = 12.sp, color = Color.White)
@@ -47,8 +46,8 @@ fun WeatherWidget(
 private val WEATHER_DOT_SIZE = 1.4.dp
 private val DETAIL_DOT_SIZE = 1.2.dp
 
-/** 下の湿度・降水確率の行と接しないよう、天気アイコンだけ少し上にずらす。 */
-private val WEATHER_ICON_OFFSET_Y = (-4).dp
+/** 下の湿度・降水確率の行と接しないよう、天気アイコンと温度の行を少し上にずらす。 */
+private val WEATHER_ROW_OFFSET_Y = (-4).dp
 
 private fun iconFor(condition: WeatherCondition): List<String> = when (condition) {
     WeatherCondition.CLEAR -> DotIcons.SUN
