@@ -439,8 +439,6 @@ class MainActivity : ComponentActivity() {
                                 isCharging = isCharging,
                                 wifiConnected = wifiConnected,
                                 signalBars = signalBars,
-                                signalDbm = signalDbm,
-                                dailyMobileDataUsage = dailyMobileDataUsage,
                                 networkType = networkType,
                                 vpnConnected = vpnConnected,
                                 tailscaleConnected = tailscaleConnected,
