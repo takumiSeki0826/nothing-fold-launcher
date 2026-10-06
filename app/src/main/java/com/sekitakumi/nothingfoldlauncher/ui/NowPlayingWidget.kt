@@ -65,14 +65,14 @@ fun NowPlayingWidget(
             if (permissionGranted) {
                 Column(modifier = Modifier.weight(1f)) {
                     DotMatrixText(
-                        text = nowPlaying?.title ?: "Not Playing",
+                        text = nowPlaying?.title?.let(::nowPlayingDisplayText) ?: "Not Playing",
                         color = Color.White,
                         fontSize = 13.sp,
                         ellipsize = true,
                     )
                     if (nowPlaying?.artist != null) {
                         DotMatrixText(
-                            text = nowPlaying.artist,
+                            text = nowPlayingDisplayText(nowPlaying.artist),
                             color = Color.Gray,
                             fontSize = 11.sp,
                             ellipsize = true,
