@@ -1,5 +1,100 @@
 # nothing-fold-launcher
 
+**English** | [日本語](#日本語)
+
+A self-made Android launcher for the Galaxy Z Fold8 with a minimal, dot-matrix look inspired by Nothing Phone. It supports both the folded (cover screen) and the unfolded (expanded) layouts.
+
+## Features
+
+- **Home screen**: clock, weather, calendar, now playing, volume/brightness sliders, folder knobs and an app grid
+  - **Cover screen (folded)**: clock → calendar / now playing cards → sliders + a two-row app grid, stacked vertically with fixed spacing and centered
+  - **Calendar**: a dot-drawn monthly calendar. The header reads like `TUE 10.06`, and only today's dot lights up in the accent color
+  - **Now playing**: title and artist, plus a dot equalizer that moves only while playing. The top-right button toggles play/pause; tapping the card opens the source app
+- **Expanded layout (Fold8 unfolded)**: the left panel holds the clock, weather, calendar and media info; the right panel holds the sliders, knobs and app grid. Card contents are drawn a bit smaller
+- **App drawer**: when unfolded, an alphabet jog wheel scrubs A–Z; search and favorites are supported
+  - Tapping the center (white spindle) of the jog wheel toggles music play/pause, with a dot play/pause icon shown there. The wheel spins while music plays
+  - A system status widget sits at the top right of the jog wheel (CPU / memory / storage usage, signal strength in dBm, today's mobile data usage, network up/down speed). Tapping the network row opens speedtest.net
+- **Folders**: folders can be created on the home knobs and app grid. Apps inside a folder show an orange dot on their icon
+- **Custom status bar**: battery, Wi-Fi, mobile signal strength and VPN/Tailscale badges are drawn by the app (the OS status bar is hidden)
+- **Live wallpaper**: a dot-calendar lock screen wallpaper linked to the home screen
+- **App management**: hide, rename and uninstall apps; pick a color palette for app icons
+
+## Tech stack
+
+- Kotlin + Jetpack Compose (Material 3)
+- Kotlin Coroutines / StateFlow
+- Weather comes from [Open-Meteo](https://open-meteo.com/) (no API key needed), using the device's current location
+- minSdk 33 / targetSdk 37 / compileSdk 37
+- JVM 17
+
+## Build and run
+
+### Prerequisites
+
+- JDK 17
+- Android SDK (`adb`)
+- A real device is recommended: Galaxy Z Fold8 (needed to check both the unfolded and folded layouts)
+
+### Commands
+
+```bash
+# Unit tests
+./gradlew :app:testDebugUnitTest
+
+# Debug build
+./gradlew :app:assembleDebug
+
+# Install on a device / emulator
+./gradlew :app:installDebug
+```
+
+After installing, choose this launcher as the default home app in Android settings.
+
+## Project structure
+
+```
+app/src/main/java/com/sekitakumi/nothingfoldlauncher/
+├── MainActivity.kt               # entry point; wires up navigation and state
+├── NowPlayingListenerService.kt  # notification listener that reads now-playing media
+├── data/                         # persistence for apps, folders, favorites and settings
+├── ui/                           # Composable screens, widgets and pure functions (*Math.kt)
+└── wallpaper/                    # live wallpaper linked to the home / lock screen
+```
+
+Grays are unified under the `NothingGrays` tokens in `ui/theme/Color.kt` (see the project's `CLAUDE.md`, written in Japanese, for details).
+
+## Permissions
+
+- Notification access: reads now-playing media (`NowPlayingListenerService`)
+- Location (`ACCESS_FINE_LOCATION`): fetches the weather
+- Phone state (`READ_PHONE_STATE`): shows mobile signal strength and network type
+- Network state / Wi-Fi state / Internet: status display, weather requests and data usage tracking
+- Set wallpaper (`SET_WALLPAPER`): links the lock screen wallpaper
+- Delete packages (`REQUEST_DELETE_PACKAGES`): uninstalls apps from the app drawer
+- Runs as a home app and also provides a live wallpaper service
+
+## Design documents
+
+For each feature, a dated Markdown design doc covering background, scope, architecture and test plan is kept in `docs/plans/` (written in Japanese).
+
+## Testing
+
+Pure functions such as `ui/*Math.kt` are unit-tested test-first (`app/src/test/`). Composable visuals and real system behavior (sensor values, permission flows, etc.) are checked by hand on a real device.
+
+## Notes
+
+This is a personal app, tuned for the **Galaxy Z Fold8**. The layout may break on other devices.
+
+## License
+
+[MIT License](LICENSE)
+
+---
+
+# 日本語
+
+[English](#nothing-fold-launcher) | **日本語**
+
 Galaxy Z Fold8向けに自作している、Nothing Phone風のミニマル・ドットマトリクス美学を持つAndroidランチャー。折りたたみ(カバー画面)・展開時の両方のレイアウトに対応する。
 
 ## 特徴
