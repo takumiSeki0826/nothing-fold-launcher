@@ -69,7 +69,7 @@ fun CalendarWidget(
             DotMatrixText(
                 text = headerText(now.time),
                 color = Color.White,
-                fontSize = 15.sp,
+                fontSize = 20.sp,
                 modifier = Modifier.offset(y = HEADER_TEXT_OFFSET_Y),
             )
         }

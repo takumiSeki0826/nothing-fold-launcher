@@ -41,6 +41,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -52,7 +53,12 @@ private val HOME_KNOB_DIAMETER = 112.dp
 private val APP_ICON_WIDTH = 60.dp
 
 // Cover layout: fixed gap between clock, widgets and app grid; leftover height goes to the top/bottom edges.
-private val COVER_BLOCK_SPACING = 24.dp
+private val COVER_BLOCK_SPACING = 56.dp
+
+// Cover screen's bottom block: the sliders are taller than default, and the app grid's two
+// rows are spaced a bit wider than default without growing as tall as the sliders.
+private val COVER_SLIDER_EXTRA_HEIGHT = 30.dp
+private val COVER_APP_ROW_SPACING = 36.dp
 
 // Side margin so the widgets line up with the inset edges of the clock, sliders and app grid.
 private val COVER_WIDGET_MARGIN = 8.dp
@@ -264,6 +270,7 @@ fun HomeScreen(
                         onVolumeRatioChange = onVolumeRatioChange,
                         brightnessRatio = brightnessRatio,
                         onBrightnessRatioChange = onBrightnessRatioChange,
+                        trackHeight = DEFAULT_FADER_TRACK_HEIGHT + COVER_SLIDER_EXTRA_HEIGHT,
                     )
                 }
 
@@ -284,6 +291,7 @@ fun HomeScreen(
                         onFolderLongClick = onFolderLongClick,
                         onReorder = onReorder,
                         modifier = Modifier.fillMaxWidth(),
+                        rowSpacing = COVER_APP_ROW_SPACING,
                     )
                 }
             }
@@ -331,13 +339,15 @@ private fun SlidersRow(
     onVolumeRatioChange: (Float) -> Unit,
     brightnessRatio: Float,
     onBrightnessRatioChange: (Float) -> Unit,
+    trackHeight: Dp = DEFAULT_FADER_TRACK_HEIGHT,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-        VolumeSlider(ratio = volumeRatio, onRatioChange = onVolumeRatioChange)
+        VolumeSlider(ratio = volumeRatio, onRatioChange = onVolumeRatioChange, trackHeight = trackHeight)
         FaderSlider(
             label = "Bright",
             ratio = brightnessRatio,
             onRatioChange = onBrightnessRatioChange,
+            trackHeight = trackHeight,
         )
     }
 }
@@ -353,6 +363,7 @@ private fun AppGrid(
     onFolderLongClick: (AppFolder) -> Unit,
     onReorder: (from: HomeGridItem, to: HomeGridItem?) -> Unit,
     modifier: Modifier = Modifier,
+    rowSpacing: Dp = 20.dp,
 ) {
     val totalSlots = slotCount ?: items.size
     val slotBounds = remember { mutableStateMapOf<Int, Rect>() }
@@ -365,7 +376,7 @@ private fun AppGrid(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(rowSpacing),
     ) {
         (0 until totalSlots).chunked(columns).forEach { rowIndices ->
             Row(
