@@ -206,6 +206,11 @@ class MainActivity : ComponentActivity() {
                     onDispose { systemStatsController.unregister() }
                 }
                 val systemStats by systemStatsController.stats.collectAsState()
+                val systemStatsWithStatus = systemStats.copy(
+                    signalDbm = signalDbm,
+                    signalIsWifi = wifiConnected,
+                    dailyMobileDataUsageBytes = dailyMobileDataUsage,
+                )
 
                 val weatherController = remember { WeatherController(applicationContext) }
                 DisposableEffect(weatherController) {
@@ -396,7 +401,7 @@ class MainActivity : ComponentActivity() {
                                     confirmEnabled = !isNewGroup || newGroupSelection.isNotEmpty(),
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
-                                    systemStats = systemStats,
+                                    systemStats = systemStatsWithStatus,
                                 )
                             } else {
                                 AppDrawer(
@@ -412,7 +417,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onSwipeDownToClose = onDrawerDismissed,
                                     isExpandedWidth = isExpandedWidth,
-                                    systemStats = systemStats,
+                                    systemStats = systemStatsWithStatus,
                                     onSystemStatsNetClick = { launchSpeedtest() },
                                     isPlaying = nowPlaying?.isPlaying == true,
                                     folders = drawerGroups,
