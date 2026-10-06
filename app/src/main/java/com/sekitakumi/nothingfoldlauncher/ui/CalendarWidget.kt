@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,7 +52,7 @@ fun CalendarWidget(onClick: () -> Unit, onLongClick: () -> Unit = {}, modifier: 
             .padding(16.dp),
     ) {
         Box(modifier = Modifier.height(HEADER_HEIGHT), contentAlignment = Alignment.CenterStart) {
-            Text(text = monthText(now.time), color = Color.White, fontSize = 15.sp)
+            DotMatrixText(text = monthText(now.time), color = Color.White, fontSize = 15.sp)
         }
 
         MiniDotCalendar(

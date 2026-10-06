@@ -7,7 +7,7 @@ import org.junit.Test
 
 class DotMatrixFontTest {
 
-    private val supported = ('0'..'9') + ('A'..'Z') + "°%.,-:/ ".toList()
+    private val supported = ('0'..'9') + ('A'..'Z') + "°%.,-:/ #+()↑↓".toList()
 
     @Test
     fun `every supported glyph has 7 rows of equal width`() {
@@ -35,6 +35,6 @@ class DotMatrixFontTest {
     @Test
     fun `chars outside the font have no glyph`() {
         assertFalse(hasDotMatrixGlyph('あ'))
-        assertFalse(hasDotMatrixGlyph('↑'))
+        assertFalse(hasDotMatrixGlyph('★'))
     }
 }

@@ -85,7 +85,7 @@ fun FolderOverlay(
                 Text(text = name, color = Color.White, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(12.dp))
                 if (apps.isEmpty()) {
-                    Text(text = "No apps yet", color = Color.Gray)
+                    DotMatrixText(text = "No apps yet", color = Color.Gray)
                 } else {
                     FolderOverlayGrid(apps = apps, onAppClick = onAppClick, onReorder = onReorder)
                 }

@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,10 +60,9 @@ fun NothingDialogPanel(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(8.dp).background(NothingAccent, CircleShape))
                 Spacer(Modifier.size(8.dp))
-                Text(
-                    text = title.uppercase(),
+                DotMatrixText(
+                    text = title,
                     color = Color.White,
-                    fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp,
                     letterSpacing = 2.sp,
                 )
@@ -93,7 +91,7 @@ fun NothingTextField(
         modifier = modifier.fillMaxWidth(),
         singleLine = singleLine,
         shape = RoundedCornerShape(12.dp),
-        label = { Text(label, color = Color.Gray) },
+        label = { DotMatrixText(label, color = Color.Gray) },
         colors = TextFieldDefaults.colors(
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
@@ -119,10 +117,9 @@ fun NothingActionRow(text: String, onClick: () -> Unit) {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
+        DotMatrixText(
             text = text,
             color = Color.White,
-            fontFamily = FontFamily.Monospace,
             modifier = Modifier.weight(1f),
         )
         Icon(
@@ -145,7 +142,7 @@ fun NothingOutlinedButton(text: String, onClick: () -> Unit, modifier: Modifier 
             .padding(14.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = text, color = NothingAccent, fontFamily = FontFamily.Monospace)
+        DotMatrixText(text = text, color = NothingAccent)
     }
 }
 
@@ -160,7 +157,7 @@ fun NothingPrimaryButton(text: String, onClick: () -> Unit, enabled: Boolean = t
             .padding(horizontal = 20.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = text, color = Color.White, fontFamily = FontFamily.Monospace)
+        DotMatrixText(text = text, color = Color.White)
     }
 }
 
@@ -172,7 +169,7 @@ fun NothingGhostButton(text: String, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = text, color = Color.Gray, fontFamily = FontFamily.Monospace)
+        DotMatrixText(text = text, color = Color.Gray)
     }
 }
 

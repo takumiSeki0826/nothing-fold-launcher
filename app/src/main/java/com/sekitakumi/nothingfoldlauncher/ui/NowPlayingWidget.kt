@@ -71,13 +71,17 @@ fun NowPlayingWidget(
         ) {
             if (permissionGranted) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = nowPlaying?.title ?: "Not Playing",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    if (nowPlaying?.title != null) {
+                        Text(
+                            text = nowPlaying.title,
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    } else {
+                        DotMatrixText(text = "Not Playing", color = Color.White, fontSize = 13.sp)
+                    }
                     if (nowPlaying?.artist != null) {
                         Text(
                             text = nowPlaying.artist,
@@ -98,7 +102,7 @@ fun NowPlayingWidget(
                     }
                 }
             } else {
-                Text(
+                DotMatrixText(
                     text = "Now Playing",
                     color = Color.Gray,
                     fontSize = 13.sp,

@@ -213,7 +213,7 @@ private fun SearchColumn(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search", color = Color.Gray) },
+            placeholder = { DotMatrixText("Search", color = Color.Gray) },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,

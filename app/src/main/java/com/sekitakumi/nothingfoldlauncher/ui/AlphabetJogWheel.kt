@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -179,10 +178,10 @@ fun AlphabetJogWheel(
             }
         }
 
-        Text(
+        DotMatrixText(
             text = displayedLetter.toString(),
-            color = if (isDragging) Color.Black else Color.Black.copy(alpha = 0.4f),
-            fontSize = if (isDragging) 40.sp else 20.sp,
+            color = if (isDragging) Color.Black else Color.Black.copy(alpha = 0.6f),
+            fontSize = if (isDragging) 44.sp else 30.sp,
         )
 
         RotaryKnob(

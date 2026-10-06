@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +44,7 @@ fun StatusIcons(
             Spacer(modifier = Modifier.width(10.dp))
         }
         if (!wifiConnected && networkType != null) {
-            Text(text = networkType, color = Color.White, fontSize = 12.sp)
+            DotMatrixText(text = networkType, color = Color.White, fontSize = 12.sp)
             Spacer(modifier = Modifier.width(10.dp))
         }
         if (vpnBadge == VpnBadge.TAILSCALE) {
@@ -57,7 +56,7 @@ fun StatusIcons(
             )
             Spacer(modifier = Modifier.width(10.dp))
         } else if (vpnBadge == VpnBadge.VPN) {
-            Text(
+            DotMatrixText(
                 text = "VPN",
                 color = Color.White,
                 fontSize = 8.sp,

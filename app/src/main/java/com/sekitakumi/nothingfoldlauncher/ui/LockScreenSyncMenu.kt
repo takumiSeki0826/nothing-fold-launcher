@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,10 +21,10 @@ fun LockScreenSyncMenu(
         containerColor = Color.Black,
         titleContentColor = Color.White,
         textContentColor = Color.White,
-        title = { Text("Lock screen") },
+        title = { DotMatrixText("Lock screen") },
         text = {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Text("Sync with lock screen", color = Color.White, modifier = Modifier.weight(1f))
+                DotMatrixText("Sync with lock screen", color = Color.White, modifier = Modifier.weight(1f))
                 Switch(
                     checked = enabled,
                     onCheckedChange = onToggle,
@@ -35,7 +34,7 @@ fun LockScreenSyncMenu(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = Color.Gray)
+                DotMatrixText("Close", color = Color.Gray)
             }
         },
     )

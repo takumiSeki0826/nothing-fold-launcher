@@ -28,8 +28,9 @@ fun dotMatrixDotSizePx(fontSizePx: Float): Float = fontSizePx * DIGIT_HEIGHT_RAT
 fun dotMatrixGlyphWidthPx(char: Char, d: Float): Float =
     (dotMatrixGlyph(char)[0].length - 1) * d * DOT_PITCH_RATIO + d
 
-/** 文字間のギャップはピッチ（d × [DOT_PITCH_RATIO]）1つ分。 */
-fun dotMatrixRunWidthPx(text: String, d: Float): Float =
-    text.sumOf { dotMatrixGlyphWidthPx(it, d).toDouble() }.toFloat() + (text.length - 1) * d * DOT_PITCH_RATIO
+/** 文字間のギャップはピッチ（d × [DOT_PITCH_RATIO]）1つ分に [extraGapPx]（字間）を足したもの。 */
+fun dotMatrixRunWidthPx(text: String, d: Float, extraGapPx: Float = 0f): Float =
+    text.sumOf { dotMatrixGlyphWidthPx(it, d).toDouble() }.toFloat() +
+        (text.length - 1) * (d * DOT_PITCH_RATIO + extraGapPx)
 
 const val DOT_PITCH_RATIO = 1.5f

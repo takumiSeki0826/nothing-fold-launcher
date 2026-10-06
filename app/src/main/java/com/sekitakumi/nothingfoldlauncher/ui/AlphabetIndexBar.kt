@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -89,10 +88,10 @@ fun AlphabetIndexBar(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
+                DotMatrixText(
                     text = letter.toString(),
                     color = if (distance == 0) Color.White else Color.Gray,
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    fontSize = 12.sp,
                     modifier = Modifier.graphicsLayer(
                         scaleX = scale,
                         scaleY = scale,

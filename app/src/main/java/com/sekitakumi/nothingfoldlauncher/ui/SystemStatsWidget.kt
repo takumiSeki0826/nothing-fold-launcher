@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +47,7 @@ fun SystemStatsWidget(stats: SystemStatsState, onNetClick: () -> Unit, modifier:
 @Composable
 private fun PercentStatRow(label: String, percent: Int?, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(text = label, color = Color.Gray, fontSize = 10.sp)
+        DotMatrixText(text = label, color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
         if (percent != null) {
             DotGauge(
@@ -58,7 +57,7 @@ private fun PercentStatRow(label: String, percent: Int?, modifier: Modifier = Mo
             Spacer(modifier = Modifier.width(6.dp))
             DotMatrixText(text = "$percent%", fontSize = 12.sp, color = Color.White)
         } else {
-            Text(text = "--", color = Color.White, fontSize = 12.sp)
+            DotMatrixText(text = "--", color = Color.White, fontSize = 12.sp)
         }
     }
 }
@@ -66,7 +65,7 @@ private fun PercentStatRow(label: String, percent: Int?, modifier: Modifier = Mo
 @Composable
 private fun ThroughputStatRow(label: String, bytesPerSecond: Long?, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(text = label, color = Color.Gray, fontSize = 10.sp)
+        DotMatrixText(text = label, color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
         DotMatrixText(
             text = bytesPerSecond?.let(::formatThroughput) ?: "--",
@@ -79,7 +78,7 @@ private fun ThroughputStatRow(label: String, bytesPerSecond: Long?, modifier: Mo
 @Composable
 private fun SignalStatRow(dbm: Int?, isWifi: Boolean, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "SIG", color = Color.Gray, fontSize = 10.sp)
+        DotMatrixText(text = "SIG", color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
         DotMatrixText(
             text = dbm?.let { "${it}dBm" } ?: "--",
@@ -92,7 +91,7 @@ private fun SignalStatRow(dbm: Int?, isWifi: Boolean, modifier: Modifier = Modif
 @Composable
 private fun DataUsageStatRow(usageBytes: Long?, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "DATA", color = Color.Gray, fontSize = 10.sp)
+        DotMatrixText(text = "DATA", color = Color.Gray, fontSize = 10.sp)
         Spacer(modifier = Modifier.width(6.dp))
         DotMatrixText(
             text = usageBytes?.let(::formatDataUsage) ?: "--",

@@ -13,7 +13,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -146,7 +145,7 @@ fun RotaryKnob(
             )
             drawCircle(color = KNOB_DOT_COLOR, radius = KNOB_DOT_RADIUS.toPx(), center = center + dotOffset)
         }
-        Text(
+        DotMatrixText(
             text = label,
             color = Color.White,
             fontSize = 10.sp,

@@ -70,6 +70,12 @@ class DotMatrixTextMathTest {
     }
 
     @Test
+    fun `dotMatrixRunWidthPx adds extra gap between chars`() {
+        assertEquals(7f + 1.5f + 2f + 7f, dotMatrixRunWidthPx("12", 1f, extraGapPx = 2f), 0.001f)
+        assertEquals(7f, dotMatrixRunWidthPx("1", 1f, extraGapPx = 2f), 0.001f)
+    }
+
+    @Test
     fun `dotMatrixDotSizePx scales font size by digit height ratio`() {
         assertEquals(7.2f, dotMatrixDotSizePx(100f), 0.001f)
     }

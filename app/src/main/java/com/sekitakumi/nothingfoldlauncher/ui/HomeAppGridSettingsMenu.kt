@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -33,7 +32,7 @@ fun HomeAppGridSettingsMenu(
         containerColor = Color.Black,
         titleContentColor = Color.White,
         textContentColor = Color.White,
-        title = { Text("App list settings") },
+        title = { DotMatrixText("App list settings") },
         text = {
             Column {
                 folders.forEach { folder ->
@@ -43,26 +42,24 @@ fun HomeAppGridSettingsMenu(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(text = folder.name, color = Color.White)
-                        Text(
+                        DotMatrixText(
                             text = "Edit",
                             color = ACCENT_COLOR,
-                            textDecoration = TextDecoration.Underline,
                             modifier = Modifier.clickable(onClick = { onEditFolder(folder) }),
                         )
                     }
                     HorizontalDivider(color = NothingGrays.Base)
                 }
-                Text(
+                DotMatrixText(
                     text = "+ Add folder",
                     color = ACCENT_COLOR,
-                    textDecoration = TextDecoration.Underline,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).clickable(onClick = onAddFolder),
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = Color.Gray)
+                DotMatrixText("Close", color = Color.Gray)
             }
         },
     )
