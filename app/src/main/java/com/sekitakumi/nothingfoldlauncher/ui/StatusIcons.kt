@@ -78,7 +78,7 @@ fun StatusIcons(
         }
         BatteryIcon(percent = batteryPercent, isCharging = isCharging)
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = "$batteryPercent%", color = Color.White, fontSize = 12.sp)
+        DotMatrixText(text = "$batteryPercent%", fontSize = 12.sp, color = Color.White)
     }
 }
 
