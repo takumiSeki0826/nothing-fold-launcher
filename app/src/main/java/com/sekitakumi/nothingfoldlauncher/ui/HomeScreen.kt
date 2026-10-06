@@ -49,7 +49,7 @@ import com.sekitakumi.nothingfoldlauncher.data.AppFolder
 import com.sekitakumi.nothingfoldlauncher.data.AppInfo
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
-private val HOME_KNOB_DIAMETER = 84.dp
+private val HOME_KNOB_DIAMETER = 96.dp
 private val APP_ICON_WIDTH = 60.dp
 
 // Cover layout: fixed gap between clock, widgets and app grid; leftover height goes to the top/bottom edges.
