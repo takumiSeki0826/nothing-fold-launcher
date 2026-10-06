@@ -74,4 +74,21 @@ class RotaryKnobMathTest {
     fun `jog wheel arc start angle for a wheel angle of 90`() {
         assertEquals(-10f, jogWheelArcStartAngleDeg(centerAngleDeg = 90f, arcWidthDeg = 20f), 0.001f)
     }
+
+    @Test
+    fun `touch at the exact center hits the jog wheel spindle`() {
+        assertEquals(true, isJogWheelCenterHit(dx = 0f, dy = 0f, discRadiusPx = 100f))
+    }
+
+    @Test
+    fun `touch inside the spindle hit radius counts as center`() {
+        // 0.24 of the disc radius = 24px
+        assertEquals(true, isJogWheelCenterHit(dx = 16f, dy = 16f, discRadiusPx = 100f))
+    }
+
+    @Test
+    fun `touch outside the spindle hit radius is not center`() {
+        assertEquals(false, isJogWheelCenterHit(dx = 25f, dy = 0f, discRadiusPx = 100f))
+        assertEquals(false, isJogWheelCenterHit(dx = 0f, dy = -60f, discRadiusPx = 100f))
+    }
 }

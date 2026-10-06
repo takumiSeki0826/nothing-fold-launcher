@@ -6,10 +6,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +50,8 @@ private const val JOG_WHEEL_YMARK_OUTER_ALPHA = 0.12f
 private val JOG_WHEEL_YMARK_ANGLES_DEG = listOf(0f, 120f, 240f)
 private const val JOG_WHEEL_ROTATION_DURATION_MS = 6000
 private val JOG_WHEEL_BUTTON_DIAMETER = 56.dp
+private val JOG_WHEEL_PLAY_ICON_DOT_SIZE = 3.dp
+private val JOG_WHEEL_PLAY_ICON_OPTICAL_OFFSET_X = 3.dp
 val DEFAULT_JOG_WHEEL_DIAMETER = 330.dp
 
 @Composable
@@ -59,6 +63,7 @@ fun AlphabetJogWheel(
     systemStats: SystemStatsState,
     onSystemStatsNetClick: () -> Unit,
     isPlaying: Boolean,
+    onTogglePlayPause: () -> Unit,
     modifier: Modifier = Modifier,
     diameter: Dp = DEFAULT_JOG_WHEEL_DIAMETER,
 ) {
@@ -126,6 +131,19 @@ fun AlphabetJogWheel(
                     awaitEachGesture {
                         val down = awaitFirstDown()
                         down.consume()
+
+                        // Tapping the spindle toggles music playback instead of picking a letter.
+                        val offsetFromCenter = down.position - center
+                        if (isJogWheelCenterHit(offsetFromCenter.x, offsetFromCenter.y, minOf(size.width, size.height) / 2f)) {
+                            val up = waitForUpOrCancellation()
+                            if (up != null) {
+                                up.consume()
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onTogglePlayPause()
+                            }
+                            return@awaitEachGesture
+                        }
+
                         isDragging = true
                         var angle = angleAt(down.position)
                         glowAngleDeg = angle
@@ -178,11 +196,22 @@ fun AlphabetJogWheel(
             }
         }
 
-        DotMatrixText(
-            text = displayedLetter.toString(),
-            color = if (isDragging) Color.Black else Color.Black.copy(alpha = 0.6f),
-            fontSize = if (isDragging) 44.sp else 30.sp,
-        )
+        if (isDragging) {
+            DotMatrixText(
+                text = displayedLetter.toString(),
+                color = Color.Black,
+                fontSize = 44.sp,
+            )
+        } else {
+            // Shows the action a tap on the spindle performs: pause while playing, play otherwise.
+            DotMatrixIcon(
+                rows = if (isPlaying) DotIcons.PAUSE else DotIcons.PLAY,
+                color = Color.Black,
+                dotSize = JOG_WHEEL_PLAY_ICON_DOT_SIZE,
+                // The play triangle's weight sits left of its box center; nudge it right so it looks centered.
+                modifier = Modifier.offset(x = if (isPlaying) 0.dp else JOG_WHEEL_PLAY_ICON_OPTICAL_OFFSET_X),
+            )
+        }
 
         RotaryKnob(
             angleDeg = 0f,
