@@ -46,7 +46,7 @@ private const val JOG_WHEEL_YMARK_OUTER_RATIO = 0.80f
 private val JOG_WHEEL_YMARK_TICK_LENGTH = 7.dp
 private val JOG_WHEEL_YMARK_TICK_THICKNESS = 3.dp
 private val JOG_WHEEL_YMARK_TICK_PITCH = 8.dp
-private const val JOG_WHEEL_YMARK_OUTER_ALPHA = 0.12f
+private const val JOG_WHEEL_YMARK_INNER_ALPHA = 0.12f
 private val JOG_WHEEL_YMARK_ANGLES_DEG = listOf(0f, 120f, 240f)
 private const val JOG_WHEEL_ROTATION_DURATION_MS = 6000
 private val JOG_WHEEL_BUTTON_DIAMETER = 56.dp
@@ -109,7 +109,7 @@ fun AlphabetJogWheel(
                     val t = i * tickPitchPx / (outerRadius - innerRadius)
                     val tickCenter = center + along * (innerRadius + i * tickPitchPx)
                     drawLine(
-                        color = JOG_WHEEL_YMARK_COLOR.copy(alpha = 1f - (1f - JOG_WHEEL_YMARK_OUTER_ALPHA) * t),
+                        color = JOG_WHEEL_YMARK_COLOR.copy(alpha = JOG_WHEEL_YMARK_INNER_ALPHA + (1f - JOG_WHEEL_YMARK_INNER_ALPHA) * t),
                         start = tickCenter - across * tickHalfLengthPx,
                         end = tickCenter + across * tickHalfLengthPx,
                         strokeWidth = JOG_WHEEL_YMARK_TICK_THICKNESS.toPx(),
