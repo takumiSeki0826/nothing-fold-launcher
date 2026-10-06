@@ -51,6 +51,9 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 private val HOME_KNOB_DIAMETER = 112.dp
 private val APP_ICON_WIDTH = 60.dp
 
+// Expanded layout keeps the pre-square widget height: header 48 + padding 32 + grid gap 12 + grid 90.
+private val WIDGET_HEIGHT_EXPANDED = 182.dp
+
 @Composable
 fun HomeScreen(
     items: List<HomeGridItem>,
@@ -118,7 +121,7 @@ fun HomeScreen(
                 CalendarWidget(
                     onClick = onCalendarClick,
                     onLongClick = onCalendarLongClick,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().height(WIDGET_HEIGHT_EXPANDED),
                 )
 
                 NowPlayingWidget(
@@ -128,7 +131,7 @@ fun HomeScreen(
                     onRequestPermission = onRequestNowPlayingPermission,
                     onClick = onNowPlayingClick,
                     onLongClick = onNowPlayingLongClick,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().height(WIDGET_HEIGHT_EXPANDED),
                 )
 
                 if (errorMessage != null) {
@@ -209,7 +212,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(Color.Black)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
             ClockRow(
                 batteryPercent = batteryPercent,
@@ -223,33 +226,31 @@ fun HomeScreen(
                 onWeatherClick = onWeatherClick,
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    CalendarWidget(
+                        onClick = onCalendarClick,
+                        onLongClick = onCalendarLongClick,
+                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                    )
+                    NowPlayingWidget(
+                        nowPlaying = nowPlaying,
+                        permissionGranted = nowPlayingPermissionGranted,
+                        onTogglePlayPause = onTogglePlayPause,
+                        onRequestPermission = onRequestNowPlayingPermission,
+                        onClick = onNowPlayingClick,
+                        onLongClick = onNowPlayingLongClick,
+                        modifier = Modifier.weight(1f).aspectRatio(1f),
+                    )
+                }
 
-            Row(
-                modifier = Modifier.fillMaxWidth().height(190.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                CalendarWidget(
-                    onClick = onCalendarClick,
-                    onLongClick = onCalendarLongClick,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-                NowPlayingWidget(
-                    nowPlaying = nowPlaying,
-                    permissionGranted = nowPlayingPermissionGranted,
-                    onTogglePlayPause = onTogglePlayPause,
-                    onRequestPermission = onRequestNowPlayingPermission,
-                    onClick = onNowPlayingClick,
-                    onLongClick = onNowPlayingLongClick,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
+                if (errorMessage != null) {
+                    Text(text = errorMessage, color = Color.White, textAlign = TextAlign.Center)
+                }
             }
-
-            if (errorMessage != null) {
-                Text(text = errorMessage, color = Color.White, textAlign = TextAlign.Center)
-            }
-
-            Spacer(modifier = Modifier.height(36.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.weight(3f), contentAlignment = Alignment.Center) {
