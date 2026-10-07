@@ -13,7 +13,7 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 
 /**
  * [DotIcons] などの図柄をドットで描く。ドット径・ピッチは [DotMatrixText] のグリフと同じ比率。
- * `#` は [color]、`o` は [dimColor] で描く。
+ * `#` は [color]、`x` は [color] を [OUTLINE_ALPHA] に薄めた色、`o` は [dimColor] で描く。
  */
 @Composable
 fun DotMatrixIcon(
@@ -36,7 +36,11 @@ fun DotMatrixIcon(
             line.forEachIndexed { col, cell ->
                 if (cell != '.') {
                     drawCircle(
-                        color = if (cell == '#') color else dimColor,
+                        color = when (cell) {
+                            '#' -> color
+                            'x' -> color.copy(alpha = OUTLINE_ALPHA)
+                            else -> dimColor
+                        },
                         radius = d / 2f,
                         center = Offset(col * pitch + d / 2f, row * pitch + d / 2f),
                     )
@@ -45,3 +49,6 @@ fun DotMatrixIcon(
         }
     }
 }
+
+/** `x` ドット(バッテリーの枠など)の不透明度。 */
+private const val OUTLINE_ALPHA = 0.45f
