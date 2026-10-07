@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -33,8 +34,6 @@ private val DOT_GRID_HEIGHT = 100.dp
 
 // Expanded (large screen) layout: card size stays the same; only the contents are inset and shrunk.
 private val COMPACT_CONTENT_INSET = 48.dp
-private const val DOT_RADIUS_RATIO = 0.22f
-private const val COMPACT_DOT_RADIUS_RATIO = 0.3f
 private val ARTIST_OFFSET_Y = 42.dp
 private val PLAY_BUTTON_OFFSET_X = 8.dp
 private val PLAY_BUTTON_OFFSET_Y = 4.dp
@@ -130,8 +129,8 @@ fun NowPlayingWidget(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(DOT_GRID_HEIGHT)
-                .padding(top = 12.dp, bottom = 8.dp),
-            dotRadiusRatio = if (compact) COMPACT_DOT_RADIUS_RATIO else DOT_RADIUS_RATIO,
+                .padding(top = 18.dp, bottom = 8.dp),
+            dotRadius = if (compact) COMPACT_DOT_RADIUS else DOT_RADIUS,
         )
     }
 }
@@ -141,13 +140,13 @@ private fun DotGrid(
     columns: Int,
     rows: Int,
     levels: FloatArray,
-    dotRadiusRatio: Float,
+    dotRadius: Dp,
     modifier: Modifier = Modifier,
 ) {
     Canvas(modifier = modifier) {
         val cellWidth = size.width / columns
         val cellHeight = size.height / rows
-        val dotRadius = minOf(cellWidth, cellHeight) * dotRadiusRatio
+        val dotRadius = dotRadius.toPx()
 
         for (col in 0 until columns) {
             val level = levels.getOrElse(col) { 0f }.coerceIn(0f, 1f)

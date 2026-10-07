@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
@@ -43,7 +44,6 @@ private val DOT_GRID_HEIGHT = 100.dp
 
 // Expanded (large screen) layout: card size stays the same; only the contents are inset and shrunk.
 private val COMPACT_CONTENT_INSET = 48.dp
-private const val COMPACT_DOT_RADIUS_RATIO = 0.3f
 
 @Composable
 fun CalendarWidget(
@@ -79,14 +79,13 @@ fun CalendarWidget(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(DOT_GRID_HEIGHT)
-                .padding(top = 12.dp, bottom = 14.dp),
-            dotRadiusRatio = if (compact) COMPACT_DOT_RADIUS_RATIO else DOT_RADIUS_RATIO,
+                .padding(top = 18.dp, bottom = 8.dp),
+            dotRadius = if (compact) COMPACT_DOT_RADIUS else DOT_RADIUS,
         )
     }
 }
 
 // Dots are laid out edge to edge so the first column lines up with the header text.
-private const val DOT_RADIUS_RATIO = 0.22f
 private val DOT_COLOR = NothingGrays.OnBase
 private val DOT_FLASH_COLOR = Color(0xFFD1432B)
 
@@ -95,7 +94,7 @@ private val DOT_FLASH_COLOR = Color(0xFFD1432B)
 private const val DOT_FLASH_PULSE_WIDTH = 0.15f
 
 @Composable
-private fun MiniDotCalendar(calendar: Calendar, dotRadiusRatio: Float, modifier: Modifier = Modifier) {
+private fun MiniDotCalendar(calendar: Calendar, dotRadius: Dp, modifier: Modifier = Modifier) {
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH) + 1
     val today = calendar.get(Calendar.DAY_OF_MONTH)
@@ -119,7 +118,7 @@ private fun MiniDotCalendar(calendar: Calendar, dotRadiusRatio: Float, modifier:
     Canvas(modifier = modifier) {
         val cellWidth = size.width / grid.columns
         val cellHeight = size.height / grid.rows
-        val dotRadius = minOf(cellWidth, cellHeight) * dotRadiusRatio
+        val dotRadius = dotRadius.toPx()
 
         for (dot in grid.dots) {
             val color = if (dot.isToday) {

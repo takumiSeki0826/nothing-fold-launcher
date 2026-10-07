@@ -1,6 +1,12 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.ui.unit.dp
+
 const val CALENDAR_GRID_COLUMNS = 7
+
+// Dot radius shared by the calendar and now playing widgets so their dots match.
+val DOT_RADIUS = 3.5.dp
+val COMPACT_DOT_RADIUS = 4.0.dp
 
 data class CalendarDot(val day: Int, val row: Int, val col: Int, val isToday: Boolean)
 
