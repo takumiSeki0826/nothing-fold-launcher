@@ -65,11 +65,11 @@ fun CalendarWidget(
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = if (compact) COMPACT_CONTENT_INSET else 24.dp, vertical = 10.dp),
     ) {
-        Box(modifier = Modifier.height(HEADER_HEIGHT), contentAlignment = Alignment.CenterStart) {
+        Box(modifier = Modifier.fillMaxWidth().height(HEADER_HEIGHT), contentAlignment = Alignment.Center) {
             DotMatrixText(
                 text = headerText(now.time),
                 color = Color.White,
-                fontSize = 20.sp,
+                fontSize = 22.sp,
                 modifier = Modifier.offset(y = HEADER_TEXT_OFFSET_Y),
             )
         }
