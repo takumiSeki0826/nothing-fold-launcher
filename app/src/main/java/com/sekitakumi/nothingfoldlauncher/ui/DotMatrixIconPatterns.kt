@@ -206,7 +206,7 @@ fun signalBarsPattern(bars: Int): List<String> {
 const val BATTERY_FILL_COLS = 8
 const val BATTERY_FILL_ROWS = 3
 
-/** 枠 + 右端のこぶ + 残量に応じて左から埋まる [BATTERY_FILL_COLS] 列の塗り。 */
+/** 枠 + 右端のこぶ(淡い `x`) + 残量に応じて左から埋まる [BATTERY_FILL_COLS] 列の塗り。 */
 fun batteryPattern(percent: Int): List<String> {
     val clamped = percent.coerceIn(0, 100)
     val filledCols = ceil(clamped * BATTERY_FILL_COLS / 100.0).toInt()
@@ -219,9 +219,9 @@ fun batteryPattern(percent: Int): List<String> {
                 val isNubRow = row in fillStartRow until fillStartRow + BATTERY_FILL_ROWS
                 append(
                     when {
-                        col == bodyCols -> if (isNubRow) '#' else '.'
-                        row == 0 || row == rows - 1 -> '#'
-                        col == 0 || col == bodyCols - 1 -> '#'
+                        col == bodyCols -> if (isNubRow) 'x' else '.'
+                        row == 0 || row == rows - 1 -> 'x'
+                        col == 0 || col == bodyCols - 1 -> 'x'
                         row in fillStartRow until fillStartRow + BATTERY_FILL_ROWS &&
                             col in 2 until 2 + filledCols -> '#'
                         else -> '.'

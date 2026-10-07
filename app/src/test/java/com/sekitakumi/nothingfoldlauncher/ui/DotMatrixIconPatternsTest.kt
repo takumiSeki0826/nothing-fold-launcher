@@ -79,6 +79,14 @@ class DotMatrixIconPatternsTest {
     }
 
     @Test
+    fun `batteryPattern draws the outline and nub as dim x dots`() {
+        val p = batteryPattern(0)
+        assertEquals(0, p.count('#'))
+        assertEquals('x', p[0][0])
+        assertEquals('x', p[p.size / 2].last())
+    }
+
+    @Test
     fun `batteryPattern clamps out of range percent`() {
         assertEquals(batteryPattern(100), batteryPattern(150))
         assertEquals(batteryPattern(0), batteryPattern(-5))
