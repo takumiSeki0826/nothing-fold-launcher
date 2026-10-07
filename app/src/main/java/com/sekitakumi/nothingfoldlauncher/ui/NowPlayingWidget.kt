@@ -1,5 +1,8 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -14,12 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -131,6 +137,7 @@ fun NowPlayingWidget(
                 .height(DOT_GRID_HEIGHT)
                 .padding(top = 18.dp, bottom = 8.dp),
             dotRadius = if (compact) COMPACT_DOT_RADIUS else DOT_RADIUS,
+            flashOnEnter = nowPlaying?.isPlaying != true,
         )
     }
 }
@@ -142,7 +149,21 @@ private fun DotGrid(
     levels: FloatArray,
     dotRadius: Dp,
     modifier: Modifier = Modifier,
+    flashOnEnter: Boolean = true,
 ) {
+    // Same sparkle as the calendar grid: each dot flashes to the accent color
+    // once at a random point of a 1s timeline whenever the grid enters composition.
+    // Skipped while music plays: the equalizer already lights the dots.
+    val flashPeaks = remember(columns, rows) {
+        FloatArray(columns * rows) {
+            DOT_FLASH_PULSE_WIDTH + Random.nextFloat() * (1f - 2 * DOT_FLASH_PULSE_WIDTH)
+        }
+    }
+    val flashProgress = remember(columns, rows) { Animatable(0f) }
+    LaunchedEffect(columns, rows) {
+        flashProgress.animateTo(1f, tween(durationMillis = 1000, easing = LinearEasing))
+    }
+
     Canvas(modifier = modifier) {
         val cellWidth = size.width / columns
         val cellHeight = size.height / rows
@@ -154,7 +175,20 @@ private fun DotGrid(
 
             for (row in 0 until rows) {
                 val litFromBottom = row >= rows - litRows
-                val color = if (litFromBottom) Color(0xFFD1432B) else NothingGrays.OnBase
+                val color = if (litFromBottom) {
+                    DOT_FLASH_COLOR
+                } else {
+                    val intensity = if (flashOnEnter) {
+                        dotFlashIntensity(
+                            progress = flashProgress.value,
+                            peak = flashPeaks[row * columns + col],
+                            pulseWidth = DOT_FLASH_PULSE_WIDTH,
+                        )
+                    } else {
+                        0f
+                    }
+                    lerp(NothingGrays.OnBase, DOT_FLASH_COLOR, intensity)
+                }
                 drawCircle(
                     color = color,
                     radius = dotRadius,
