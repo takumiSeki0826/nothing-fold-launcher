@@ -87,11 +87,11 @@ fun CalendarWidget(
 
 // Dots are laid out edge to edge so the first column lines up with the header text.
 private val DOT_COLOR = NothingGrays.OnBase
-private val DOT_FLASH_COLOR = Color(0xFFD1432B)
+internal val DOT_FLASH_COLOR = Color(0xFFD1432B)
 
 // How much of the shared flash progress (0f..1f) one dot's flash-up and
 // flash-down takes, centered on its randomly assigned peak.
-private const val DOT_FLASH_PULSE_WIDTH = 0.15f
+internal const val DOT_FLASH_PULSE_WIDTH = 0.15f
 
 @Composable
 private fun MiniDotCalendar(calendar: Calendar, dotRadius: Dp, modifier: Modifier = Modifier) {
