@@ -31,7 +31,7 @@ fun Clock(modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier = modifier.padding(top = 32.dp)) {
+    Column(modifier = modifier.padding(start = 16.dp, top = 32.dp)) {
         Row(verticalAlignment = Alignment.Bottom) {
             DotMatrixTime(text = timeText(now), color = Color.White)
             DotMatrixTime(
