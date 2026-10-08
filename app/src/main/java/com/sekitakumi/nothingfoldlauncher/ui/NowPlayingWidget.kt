@@ -33,7 +33,7 @@ import com.sekitakumi.nothingfoldlauncher.ui.theme.NothingGrays
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
-private const val GRID_COLUMNS = 8
+private const val GRID_COLUMNS = 7
 private const val GRID_ROWS = 5
 
 private val DOT_GRID_HEIGHT = 100.dp

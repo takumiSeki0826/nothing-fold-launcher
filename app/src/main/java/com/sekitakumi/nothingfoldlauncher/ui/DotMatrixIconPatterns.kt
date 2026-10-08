@@ -7,22 +7,19 @@ import kotlin.math.ceil
  */
 object DotIcons {
     val WIFI = listOf(
-        ".#######.",
-        "#.......#",
-        "..#####..",
-        ".#.....#.",
-        "...###...",
-        "....#....",
+        ".#####.",
+        "#.....#",
+        "..###..",
+        ".#...#.",
+        "...#...",
     )
 
     val BOLT = listOf(
-        "....#",
-        "...#.",
-        "..#..",
-        "#####",
-        "..#..",
-        ".#...",
-        "#....",
+        "..#",
+        ".#.",
+        "###",
+        ".#.",
+        "#..",
     )
 
     /** 塗りの4つが明るい点、輪郭だけの5つが淡色（ロゴと同じ配置）。 */
@@ -113,12 +110,12 @@ object DotIcons {
     )
 
     val UMBRELLA = listOf(
-        "...###...",
-        ".#######.",
-        "#########",
-        "....#....",
-        "....#....",
-        "..##.....",
+        "..###..",
+        ".#####.",
+        "#######",
+        "...#...",
+        "...#...",
+        "..##...",
     )
 
     val PLAY = listOf(
@@ -210,8 +207,8 @@ const val BATTERY_FILL_ROWS = 3
 fun batteryPattern(percent: Int): List<String> {
     val clamped = percent.coerceIn(0, 100)
     val filledCols = ceil(clamped * BATTERY_FILL_COLS / 100.0).toInt()
-    val bodyCols = BATTERY_FILL_COLS + 4 // 枠2 + 隙間2
-    val rows = BATTERY_FILL_ROWS + 4 // 枠2 + 隙間2
+    val bodyCols = BATTERY_FILL_COLS + 2 // 枠2(塗りと隙間なし)
+    val rows = BATTERY_FILL_ROWS + 2 // 枠2(塗りと隙間なし)
     val fillStartRow = (rows - BATTERY_FILL_ROWS) / 2
     return List(rows) { row ->
         buildString {
@@ -223,7 +220,7 @@ fun batteryPattern(percent: Int): List<String> {
                         row == 0 || row == rows - 1 -> 'x'
                         col == 0 || col == bodyCols - 1 -> 'x'
                         row in fillStartRow until fillStartRow + BATTERY_FILL_ROWS &&
-                            col in 2 until 2 + filledCols -> '#'
+                            col in 1 until 1 + filledCols -> '#'
                         else -> '.'
                     },
                 )

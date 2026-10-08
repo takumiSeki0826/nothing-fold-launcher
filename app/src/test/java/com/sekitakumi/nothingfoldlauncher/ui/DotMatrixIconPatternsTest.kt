@@ -87,6 +87,16 @@ class DotMatrixIconPatternsTest {
     }
 
     @Test
+    fun `batteryPattern leaves no gap between the outline and the fill`() {
+        val p = batteryPattern(100)
+        val fillRow = p.indexOfFirst { '#' in it }
+        assertEquals('x', p[fillRow][0])
+        assertEquals('#', p[fillRow][1])
+        assertEquals('x', p[fillRow - 1][1])
+        assertEquals('x', p[fillRow + BATTERY_FILL_ROWS][1])
+    }
+
+    @Test
     fun `batteryPattern clamps out of range percent`() {
         assertEquals(batteryPattern(100), batteryPattern(150))
         assertEquals(batteryPattern(0), batteryPattern(-5))
@@ -101,7 +111,7 @@ class DotMatrixIconPatternsTest {
 
     @Test
     fun `wifi icon is narrow enough to sit beside the other status icons`() {
-        assertTrue("wifi is too wide", DotIcons.WIFI[0].length <= 9)
-        assertEquals(6, DotIcons.WIFI.size)
+        assertTrue("wifi is too wide", DotIcons.WIFI[0].length <= 7)
+        assertEquals(5, DotIcons.WIFI.size)
     }
 }
