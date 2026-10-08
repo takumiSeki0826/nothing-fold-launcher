@@ -53,13 +53,13 @@ fun StatusIcons(
             Spacer(modifier = Modifier.width(10.dp))
         }
         if (isCharging) {
-            DotMatrixIcon(rows = DotIcons.BOLT, color = Color.White, dotSize = 1.4.dp)
+            DotMatrixIcon(rows = DotIcons.BOLT, color = Color.White, dotSize = 1.8.dp)
             Spacer(modifier = Modifier.width(3.dp))
         }
         DotMatrixIcon(
             rows = batteryPattern(batteryPercent),
             color = if (!isCharging && batteryPercent <= LOW_BATTERY_PERCENT) LOW_BATTERY_COLOR else Color.White,
-            dotSize = 1.4.dp,
+            dotSize = 1.8.dp,
         )
         Spacer(modifier = Modifier.width(4.dp))
         DotMatrixText(text = "$batteryPercent%", fontSize = 12.sp, color = Color.White)

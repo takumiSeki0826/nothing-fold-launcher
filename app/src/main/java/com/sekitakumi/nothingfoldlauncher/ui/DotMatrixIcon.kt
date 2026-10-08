@@ -48,4 +48,4 @@ fun DotMatrixIcon(
 }
 
 /** `x` ドットの径の倍率。セル中心はそのままに小さく描く。 */
-private const val OUTLINE_DOT_SCALE = 0.5f
+private const val OUTLINE_DOT_SCALE = 0.35f
