@@ -165,6 +165,11 @@ class AppListViewModel(
         updateDrawerGroup(id, group.name, newOrder)
     }
 
+    fun swapDrawerGroups(fromId: String, toId: String) {
+        drawerAppGroupStore.swapGroups(fromId, toId)
+        _drawerGroups.value = drawerAppGroupStore.getGroups()
+    }
+
     fun deleteDrawerGroup(id: String) {
         drawerAppGroupStore.deleteGroup(id)
         _drawerGroups.value = drawerAppGroupStore.getGroups()

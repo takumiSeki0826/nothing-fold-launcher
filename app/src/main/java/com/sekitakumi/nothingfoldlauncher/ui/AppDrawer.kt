@@ -1,5 +1,18 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
+import androidx.compose.foundation.border
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,6 +83,7 @@ fun AppDrawer(
     folders: List<DrawerAppGroup> = emptyList(),
     onFolderClick: (DrawerAppGroup) -> Unit = {},
     onFolderLongClick: (DrawerAppGroup) -> Unit = {},
+    onFolderReorder: (from: DrawerAppGroup, to: DrawerAppGroup) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -146,6 +160,7 @@ fun AppDrawer(
                 folders = folders,
                 onFolderClick = onFolderClick,
                 onFolderLongClick = onFolderLongClick,
+            onFolderReorder = onFolderReorder,
                 listState = listState,
                 coroutineScope = coroutineScope,
                 letterIndexMap = letterIndexMap,
@@ -171,6 +186,7 @@ fun AppDrawer(
             folders = folders,
             onFolderClick = onFolderClick,
             onFolderLongClick = onFolderLongClick,
+            onFolderReorder = onFolderReorder,
             listState = listState,
             coroutineScope = coroutineScope,
             letterIndexMap = letterIndexMap,
@@ -201,6 +217,7 @@ private fun SearchColumn(
     folders: List<DrawerAppGroup>,
     onFolderClick: (DrawerAppGroup) -> Unit,
     onFolderLongClick: (DrawerAppGroup) -> Unit,
+    onFolderReorder: (from: DrawerAppGroup, to: DrawerAppGroup) -> Unit,
     listState: LazyListState,
     coroutineScope: CoroutineScope,
     letterIndexMap: Map<Char, Int>,
@@ -252,6 +269,7 @@ private fun SearchColumn(
                             folders = folders,
                             onFolderClick = onFolderClick,
                             onFolderLongClick = onFolderLongClick,
+            onFolderReorder = onFolderReorder,
                         )
                     }
                 }
@@ -348,26 +366,78 @@ private fun FolderIconRow(
     folders: List<DrawerAppGroup>,
     onFolderClick: (DrawerAppGroup) -> Unit,
     onFolderLongClick: (DrawerAppGroup) -> Unit,
+    onFolderReorder: (from: DrawerAppGroup, to: DrawerAppGroup) -> Unit,
 ) {
+    val slotBounds = remember { mutableStateMapOf<String, Rect>() }
+    val slotCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
+    var draggingId by remember { mutableStateOf<String?>(null) }
+    var dragPositionWindow by remember { mutableStateOf(Offset.Zero) }
+    var hoveredId by remember { mutableStateOf<String?>(null) }
+    val haptics = LocalHapticFeedback.current
+
     LazyRow(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(folders, key = { it.id }) { folder ->
+            val isDraggingThis = draggingId == folder.id
+            val isHovered = hoveredId == folder.id && !isDraggingThis
             Column(
                 modifier = Modifier
                     .width(64.dp)
-                    .combinedClickable(
-                        onClick = { onFolderClick(folder) },
+                    .then(if (isDraggingThis) Modifier.zIndex(1f) else Modifier)
+                    .onGloballyPositioned { coordinates ->
+                        slotBounds[folder.id] = coordinates.boundsInWindow()
+                        slotCoordinates[folder.id] = coordinates
+                    }
+                    .dragReorderable(
+                        tileCoordinates = { slotCoordinates[folder.id] },
+                        onTap = { onFolderClick(folder) },
                         onLongClick = { onFolderLongClick(folder) },
+                        onPickUp = {
+                            draggingId = folder.id
+                            dragPositionWindow = slotBounds[folder.id]?.center ?: Offset.Zero
+                            hoveredId = folder.id
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
+                        onDragMove = { windowPosition ->
+                            dragPositionWindow = windowPosition
+                            val ids = folders.map { it.id }
+                            hoveredId = nearestSlotIndex(windowPosition, ids.map { slotBounds[it] })
+                                ?.let(ids::get)
+                        },
+                        onDragEnd = { commit ->
+                            val target = hoveredId?.let { id -> folders.firstOrNull { it.id == id } }
+                            draggingId = null
+                            hoveredId = null
+                            if (commit && target != null && target.id != folder.id) {
+                                onFolderReorder(folder, target)
+                            }
+                        },
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
+                        .then(
+                            if (isDraggingThis) {
+                                Modifier.graphicsLayer {
+                                    val origin = slotBounds[folder.id]?.center ?: dragPositionWindow
+                                    translationX = dragPositionWindow.x - origin.x
+                                    translationY = dragPositionWindow.y - origin.y
+                                    scaleX = FOLDER_DRAG_SCALE
+                                    scaleY = FOLDER_DRAG_SCALE
+                                }
+                            } else {
+                                Modifier
+                            },
+                        )
                         .clip(RoundedCornerShape(16.dp))
-                        .background(NothingGrays.Base),
+                        .background(NothingGrays.Base)
+                        .then(
+                            if (isHovered) Modifier.border(1.dp, Color.Gray, RoundedCornerShape(16.dp)) else Modifier,
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
                     DotMatrixText(
@@ -389,6 +459,8 @@ private fun FolderIconRow(
         }
     }
 }
+
+private const val FOLDER_DRAG_SCALE = 1.1f
 
 /** 検索窓の枠線とプレースホルダー（"Search"）で共有する色。 */
 private val SEARCH_FIELD_COLOR = Color.Gray
