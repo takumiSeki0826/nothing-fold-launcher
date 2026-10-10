@@ -31,21 +31,22 @@ class NowPlayingController(private val context: Context) {
     private val mediaSessionManager =
         context.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
 
+    private var sessions: List<MediaController> = emptyList()
     private var activeController: MediaController? = null
 
     private val controllerCallback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) {
-            updateFromController(activeController)
+            reselect()
         }
 
         override fun onMetadataChanged(metadata: android.media.MediaMetadata?) {
-            updateFromController(activeController)
+            reselect()
         }
     }
 
     private val sessionsChangedListener =
         MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
-            attachTo(controllers?.firstOrNull())
+            setSessions(controllers.orEmpty())
         }
 
     fun refresh() {
@@ -57,7 +58,7 @@ class NowPlayingController(private val context: Context) {
         val manager = mediaSessionManager ?: return
         try {
             manager.addOnActiveSessionsChangedListener(sessionsChangedListener, componentName)
-            attachTo(manager.getActiveSessions(componentName).firstOrNull())
+            setSessions(manager.getActiveSessions(componentName))
         } catch (e: SecurityException) {
             _permissionGranted.value = false
             _nowPlaying.value = null
@@ -65,7 +66,8 @@ class NowPlayingController(private val context: Context) {
     }
 
     fun dispose() {
-        activeController?.unregisterCallback(controllerCallback)
+        sessions.forEach { it.unregisterCallback(controllerCallback) }
+        sessions = emptyList()
         activeController = null
         try {
             mediaSessionManager?.removeOnActiveSessionsChangedListener(sessionsChangedListener)
@@ -84,11 +86,21 @@ class NowPlayingController(private val context: Context) {
         }
     }
 
-    private fun attachTo(controller: MediaController?) {
-        activeController?.unregisterCallback(controllerCallback)
-        activeController = controller
-        controller?.registerCallback(controllerCallback)
-        updateFromController(controller)
+    /** 全セッションの再生状態を監視し、再生中のものを優先して表示対象にする。 */
+    private fun setSessions(controllers: List<MediaController>) {
+        sessions.forEach { it.unregisterCallback(controllerCallback) }
+        sessions = controllers
+        sessions.forEach { it.registerCallback(controllerCallback) }
+        reselect()
+    }
+
+    private fun reselect() {
+        activeController = pickNowPlayingSession(
+            sessions,
+            { it.packageName },
+            { it.playbackState?.state == PlaybackState.STATE_PLAYING },
+        )
+        updateFromController(activeController)
     }
 
     private fun updateFromController(controller: MediaController?) {
