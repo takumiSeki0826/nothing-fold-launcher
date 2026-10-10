@@ -424,6 +424,7 @@ class MainActivity : ComponentActivity() {
                                     folders = drawerGroups,
                                     onFolderClick = { folderOverlay = FolderOverlayState.Drawer(it.id) },
                                     onFolderLongClick = { group -> folderEditDialogTarget = EditFolderTarget.Drawer(group.id) },
+                                    onFolderReorder = { from, to -> viewModel.swapDrawerGroups(from.id, to.id) },
                                 )
                             }
                             HomeRoute.HOME -> HomeScreen(

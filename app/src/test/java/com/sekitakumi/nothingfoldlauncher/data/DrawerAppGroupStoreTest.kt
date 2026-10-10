@@ -73,6 +73,24 @@ class DrawerAppGroupStoreTest {
         assertTrue("folder_order" !in prefs.all.keys)
         assertTrue("group_order" in prefs.all.keys)
     }
+
+    @Test
+    fun `swapGroups exchanges positions and keeps contents`() {
+        val a = store.addGroup("A", listOf("a"))
+        val b = store.addGroup("B", listOf("b"))
+        val c = store.addGroup("C", listOf("c"))
+        store.swapGroups(a.id, c.id)
+        assertEquals(listOf(c.id, b.id, a.id), store.getGroups().map { it.id })
+        assertEquals(listOf("a"), store.getGroups().last().packageNames)
+    }
+
+    @Test
+    fun `swapGroups with an unknown id changes nothing`() {
+        val a = store.addGroup("A", listOf("a"))
+        val b = store.addGroup("B", listOf("b"))
+        store.swapGroups(a.id, "missing")
+        assertEquals(listOf(a.id, b.id), store.getGroups().map { it.id })
+    }
 }
 
 /** メモリ上の最小 SharedPreferences。文字列の読み書きのみ対応。 */

@@ -29,6 +29,11 @@ class DrawerAppGroupStore(private val prefs: SharedPreferences) {
             .apply()
     }
 
+    fun swapGroups(idA: String, idB: String) {
+        val newOrder = swapHomeOrder(currentOrder(), idA, idB)
+        prefs.edit().putString(KEY_ORDER, encodePackageList(newOrder)).apply()
+    }
+
     fun deleteGroup(id: String) {
         prefs.edit()
             .putString(KEY_ORDER, encodePackageList(currentOrder() - id))
