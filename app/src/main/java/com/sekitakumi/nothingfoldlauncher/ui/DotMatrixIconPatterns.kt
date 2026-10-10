@@ -200,7 +200,7 @@ fun signalBarsPattern(bars: Int): List<String> {
     }
 }
 
-const val BATTERY_FILL_COLS = 8
+const val BATTERY_FILL_COLS = 6
 const val BATTERY_FILL_ROWS = 3
 
 /** 枠 + 右端のこぶ(淡い `x`) + 残量に応じて左から埋まる [BATTERY_FILL_COLS] 列の塗り。 */
