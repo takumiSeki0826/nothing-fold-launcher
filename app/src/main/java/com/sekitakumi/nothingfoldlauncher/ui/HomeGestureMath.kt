@@ -16,10 +16,8 @@ fun nextHomeRoute(currentRoute: HomeRoute, dragAccumX: Float, dragAccumY: Float)
             dragAccumY < -SWIPE_THRESHOLD_PX -> HomeRoute.DRAWER
             else -> HomeRoute.HOME
         }
-        HomeRoute.DRAWER -> if (dragAccumX < -SWIPE_THRESHOLD_PX || dragAccumY > SWIPE_THRESHOLD_PX) {
-            HomeRoute.HOME
-        } else {
-            HomeRoute.DRAWER
-        }
+        // The drawer is left only via the list's pull-down gesture (DrawerCloseGesture),
+        // the home intent, or finishing an edit - never by a bare swipe.
+        HomeRoute.DRAWER -> HomeRoute.DRAWER
     }
 }

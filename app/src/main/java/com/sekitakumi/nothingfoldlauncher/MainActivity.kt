@@ -334,23 +334,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(homeRoute) {
-                            // Home: swipe up opens the drawer. Drawer: swipe left or down returns home.
-                            // Descendant scrollables (the app list, the alphabet
-                            // index bar) consume their own drag events, so this
-                            // only sees drags that they didn't claim.
+                            // Home: swipe up opens the drawer. The drawer is closed
+                            // elsewhere (list pull-down, home intent, edit done).
                             detectDragGestures(
                                 onDragStart = {
                                     dragAccumX = 0f
                                     dragAccumY = 0f
                                 },
                                 onDragEnd = {
-                                    val nextRoute = nextHomeRoute(homeRoute, dragAccumX, dragAccumY)
-                                    if (homeRoute == HomeRoute.DRAWER && nextRoute == HomeRoute.HOME) {
-                                        pendingAppPick = null
-                                        folderEditTarget = null
-                                    }
-                                    homeRoute = nextRoute
-                                    if (homeRoute == HomeRoute.HOME) viewModel.onQueryChange("")
+                                    homeRoute = nextHomeRoute(homeRoute, dragAccumX, dragAccumY)
                                     dragAccumX = 0f
                                     dragAccumY = 0f
                                 },

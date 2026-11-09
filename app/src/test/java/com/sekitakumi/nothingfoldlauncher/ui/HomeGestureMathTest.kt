@@ -47,14 +47,9 @@ class HomeGestureMathTest {
     }
 
     @Test
-    fun `swipe left or down from drawer returns home`() {
-        assertEquals(HomeRoute.HOME, nextHomeRoute(HomeRoute.DRAWER, dragAccumX = -150f, dragAccumY = 0f))
-        assertEquals(HomeRoute.HOME, nextHomeRoute(HomeRoute.DRAWER, dragAccumX = 0f, dragAccumY = 150f))
-    }
-
-    @Test
-    fun `small drag from drawer stays on drawer`() {
-        val route = nextHomeRoute(HomeRoute.DRAWER, dragAccumX = -50f, dragAccumY = 50f)
-        assertEquals(HomeRoute.DRAWER, route)
+    fun `swipes outside the list never leave the drawer`() {
+        assertEquals(HomeRoute.DRAWER, nextHomeRoute(HomeRoute.DRAWER, dragAccumX = -150f, dragAccumY = 0f))
+        assertEquals(HomeRoute.DRAWER, nextHomeRoute(HomeRoute.DRAWER, dragAccumX = 0f, dragAccumY = 150f))
+        assertEquals(HomeRoute.DRAWER, nextHomeRoute(HomeRoute.DRAWER, dragAccumX = -50f, dragAccumY = 50f))
     }
 }
