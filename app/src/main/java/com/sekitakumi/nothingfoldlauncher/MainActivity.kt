@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -302,6 +303,9 @@ class MainActivity : ComponentActivity() {
                     showNewGroupDialog = false
                     closeDrawer()
                 }
+
+                // Back closes the drawer (overlays like folder dialogs handle their own back).
+                BackHandler(enabled = homeRoute == HomeRoute.DRAWER, onBack = onDrawerDismissed)
 
                 val startHomeKnobTapPick: (HomeKnobSlot) -> Unit = { slot ->
                     showHomeKnobSettings = false
