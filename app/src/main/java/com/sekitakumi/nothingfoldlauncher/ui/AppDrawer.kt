@@ -89,6 +89,8 @@ fun AppDrawer(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val letterIndexMap = remember(apps) { letterIndexMap(apps) }
+    val showFolderRow = folders.isNotEmpty() && selectedPackages == null
+    val leadingItems = leadingItemCount(showFolderRow, shouldShowEmptyState(apps, query))
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -130,13 +132,13 @@ fun AppDrawer(
                     keyboardController?.hide()
                     focusManager.clearFocus()
                     scrollIndexForLetter(letter, letterIndexMap, apps.size)?.let { target ->
-                        coroutineScope.launch { listState.scrollToItem(target) }
+                        coroutineScope.launch { listState.scrollToItem(target + leadingItems) }
                     }
                 },
                 onClearSearch = { onQueryChange("") },
                 onJumpToStart = { coroutineScope.launch { listState.scrollToItem(0) } },
                 onJumpToEnd = {
-                    coroutineScope.launch { listState.scrollToItem((apps.size - 1).coerceAtLeast(0)) }
+                    coroutineScope.launch { listState.scrollToItem((apps.size - 1).coerceAtLeast(0) + leadingItems) }
                 },
                 systemStats = systemStats,
                 onSystemStatsNetClick = onSystemStatsNetClick,
@@ -164,6 +166,7 @@ fun AppDrawer(
                 listState = listState,
                 coroutineScope = coroutineScope,
                 letterIndexMap = letterIndexMap,
+                leadingItems = leadingItems,
                 keyboardController = keyboardController,
                 focusManager = focusManager,
                 nestedScrollConnection = nestedScrollConnection,
@@ -190,6 +193,7 @@ fun AppDrawer(
             listState = listState,
             coroutineScope = coroutineScope,
             letterIndexMap = letterIndexMap,
+            leadingItems = leadingItems,
             keyboardController = keyboardController,
             focusManager = focusManager,
             nestedScrollConnection = nestedScrollConnection,
@@ -221,6 +225,7 @@ private fun SearchColumn(
     listState: LazyListState,
     coroutineScope: CoroutineScope,
     letterIndexMap: Map<Char, Int>,
+    leadingItems: Int,
     keyboardController: SoftwareKeyboardController?,
     focusManager: FocusManager,
     nestedScrollConnection: NestedScrollConnection,
@@ -310,7 +315,7 @@ private fun SearchColumn(
                         keyboardController?.hide()
                         focusManager.clearFocus()
                         scrollIndexForLetter(letter, letterIndexMap, apps.size)?.let { target ->
-                            coroutineScope.launch { listState.scrollToItem(target) }
+                            coroutineScope.launch { listState.scrollToItem(target + leadingItems) }
                         }
                     },
                 )

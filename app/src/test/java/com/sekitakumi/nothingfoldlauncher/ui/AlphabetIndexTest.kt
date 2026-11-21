@@ -90,6 +90,21 @@ class AlphabetIndexTest {
     }
 
     @Test
+    fun `leading item count is zero without folder row or empty state`() {
+        assertEquals(0, leadingItemCount(showFolderRow = false, showEmptyState = false))
+    }
+
+    @Test
+    fun `leading item count counts the folder row`() {
+        assertEquals(1, leadingItemCount(showFolderRow = true, showEmptyState = false))
+    }
+
+    @Test
+    fun `leading item count counts both folder row and empty state`() {
+        assertEquals(2, leadingItemCount(showFolderRow = true, showEmptyState = true))
+    }
+
+    @Test
     fun `bar position maps start and end to first and last letters`() {
         assertEquals('A', letterForBarPosition(0f))
         assertEquals('#', letterForBarPosition(1f))
