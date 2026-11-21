@@ -48,6 +48,12 @@ fun scrollIndexForLetter(letter: Char, indexMap: Map<Char, Int>, totalItems: Int
     return totalItems - 1
 }
 
+// Number of LazyColumn items that sit before the first app row (folder row,
+// empty-state message). Letter indexes are app-list positions, so jumps must
+// add this to land the target app at the very top.
+fun leadingItemCount(showFolderRow: Boolean, showEmptyState: Boolean): Int =
+    (if (showFolderRow) 1 else 0) + (if (showEmptyState) 1 else 0)
+
 fun letterForBarPosition(relativeY: Float): Char {
     val clamped = relativeY.coerceIn(0f, 1f)
     val index = (clamped * ALPHABET_INDEX_LETTERS.size).toInt()
