@@ -38,7 +38,7 @@ import kotlin.random.Random
 // height, so both cards' headers (and the dot grids below them) line up.
 private val HEADER_HEIGHT = 48.dp
 
-private val HEADER_TEXT_OFFSET_Y = 8.dp
+internal val HEADER_TEXT_OFFSET_Y = 8.dp
 
 private val DOT_GRID_HEIGHT = 100.dp
 
