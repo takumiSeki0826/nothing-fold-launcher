@@ -42,6 +42,9 @@ private val DOT_GRID_HEIGHT = 100.dp
 // Expanded (large screen) layout: card size stays the same; only the contents are inset and shrunk.
 private val COMPACT_CONTENT_INSET = 48.dp
 private val ARTIST_OFFSET_Y = 42.dp
+
+// Idle label size: matches the track title shown while playing (13sp). The calendar's 22sp read as too large inside this card.
+private val NOT_PLAYING_FONT_SIZE = 13.sp
 private val PLAY_BUTTON_OFFSET_X = 8.dp
 private val PLAY_BUTTON_OFFSET_Y = 4.dp
 
@@ -88,11 +91,11 @@ fun NowPlayingWidget(
                     modifier = Modifier.weight(1f).height(NOW_PLAYING_HEADER_MIN_HEIGHT_DP.dp),
                 ) {
                     if (nowPlaying == null) {
-                        // Idle label follows CalendarWidget's header: 22sp, centered, same y offset.
+                        // Idle label follows CalendarWidget's header: white, centered, same y offset (size differs, see above).
                         DotMatrixText(
                             text = "Not Playing",
                             color = Color.White,
-                            fontSize = 22.sp,
+                            fontSize = NOT_PLAYING_FONT_SIZE,
                             textAlign = TextAlign.Center,
                             ellipsize = true,
                             modifier = Modifier.align(Alignment.Center).offset(y = HEADER_TEXT_OFFSET_Y),
