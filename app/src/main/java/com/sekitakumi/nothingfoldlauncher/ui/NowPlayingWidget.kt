@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,13 +87,25 @@ fun NowPlayingWidget(
                 Box(
                     modifier = Modifier.weight(1f).height(NOW_PLAYING_HEADER_MIN_HEIGHT_DP.dp),
                 ) {
-                    DotMatrixText(
-                        text = nowPlaying?.title?.let(::nowPlayingDisplayText) ?: "Not Playing",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        ellipsize = true,
-                        modifier = Modifier.align(Alignment.CenterStart),
-                    )
+                    if (nowPlaying == null) {
+                        // Idle label follows CalendarWidget's header: 22sp, centered, same y offset.
+                        DotMatrixText(
+                            text = "Not Playing",
+                            color = Color.White,
+                            fontSize = 22.sp,
+                            textAlign = TextAlign.Center,
+                            ellipsize = true,
+                            modifier = Modifier.align(Alignment.Center).offset(y = HEADER_TEXT_OFFSET_Y),
+                        )
+                    } else {
+                        DotMatrixText(
+                            text = nowPlayingDisplayText(nowPlaying.title),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            ellipsize = true,
+                            modifier = Modifier.align(Alignment.CenterStart),
+                        )
+                    }
                     if (nowPlaying?.artist != null) {
                         DotMatrixText(
                             text = nowPlayingDisplayText(nowPlaying.artist),
