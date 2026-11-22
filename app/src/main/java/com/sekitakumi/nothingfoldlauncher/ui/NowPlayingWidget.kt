@@ -44,7 +44,7 @@ private val COMPACT_CONTENT_INSET = 48.dp
 private val ARTIST_OFFSET_Y = 42.dp
 
 // Idle label size: between the track title (13sp) and the calendar header (22sp, which read as too large in this card).
-private val NOT_PLAYING_FONT_SIZE = 18.sp
+private val NOT_PLAYING_FONT_SIZE = 16.sp
 private val PLAY_BUTTON_OFFSET_X = 8.dp
 private val PLAY_BUTTON_OFFSET_Y = 4.dp
 
