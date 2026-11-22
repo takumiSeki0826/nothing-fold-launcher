@@ -43,8 +43,8 @@ private val DOT_GRID_HEIGHT = 100.dp
 private val COMPACT_CONTENT_INSET = 48.dp
 private val ARTIST_OFFSET_Y = 42.dp
 
-// Idle label size: matches the track title shown while playing (13sp). The calendar's 22sp read as too large inside this card.
-private val NOT_PLAYING_FONT_SIZE = 13.sp
+// Idle label size: between the track title (13sp) and the calendar header (22sp, which read as too large in this card).
+private val NOT_PLAYING_FONT_SIZE = 16.sp
 private val PLAY_BUTTON_OFFSET_X = 8.dp
 private val PLAY_BUTTON_OFFSET_Y = 4.dp
 
