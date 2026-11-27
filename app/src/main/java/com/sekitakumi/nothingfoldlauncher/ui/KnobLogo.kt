@@ -6,7 +6,14 @@ package com.sekitakumi.nothingfoldlauncher.ui
  * migration step in HomeKnobAssignmentStore).
  * Patterns are dot-matrix art where '#' is a lit dot.
  */
-enum class KnobLogo(val packageName: String, val displayName: String, val pattern: List<String>) {
+enum class KnobLogo(
+    val packageName: String,
+    val displayName: String,
+    val pattern: List<String> = emptyList(),
+    /** Lines of dot-matrix text drawn instead of [pattern] when non-empty. */
+    val wordmark: List<String> = emptyList(),
+    val wordmarkDotDp: Float = 0f,
+) {
     YOUTUBE(
         packageName = "com.google.android.youtube",
         displayName = "YouTube",
@@ -23,15 +30,8 @@ enum class KnobLogo(val packageName: String, val displayName: String, val patter
     KINDLE(
         packageName = "com.amazon.kindle",
         displayName = "Kindle",
-        pattern = listOf(
-            "#...#",
-            "#..#.",
-            "#.#..",
-            "##...",
-            "#.#..",
-            "#..#.",
-            "#...#",
-        ),
+        wordmark = listOf("KINDLE"),
+        wordmarkDotDp = 2.4f,
     ),
 }
 
