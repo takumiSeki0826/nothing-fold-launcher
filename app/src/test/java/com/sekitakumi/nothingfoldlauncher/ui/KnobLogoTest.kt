@@ -35,16 +35,16 @@ class KnobLogoTest {
     }
 
     @Test
-    fun `kindle is drawn as the word KINDLE in the dot-matrix font`() {
-        assertEquals(listOf("KINDLE"), KnobLogo.KINDLE.wordmark)
-        assertTrue(KnobLogo.KINDLE.pattern.isEmpty())
-        assertTrue(KnobLogo.KINDLE.wordmark.all { line -> line.all(::hasDotMatrixGlyph) })
+    fun `kindle is the lowercase word with a fixed small grid`() {
+        val rows = KnobLogo.KINDLE.pattern
+        assertEquals(7, rows.size)
+        assertEquals(23, rows.first().length) // k4 i1 n4 d4 l1 e4 + 5 gaps
+        assertTrue(KnobLogo.KINDLE.cellDp > 0f)
+        assertEquals(0f, KnobLogo.YOUTUBE.cellDp, 0f)
     }
 
     @Test
-    fun `every logo has either a pattern or a wordmark`() {
-        for (logo in KnobLogo.values()) {
-            assertTrue(logo.pattern.isNotEmpty() || logo.wordmark.isNotEmpty())
-        }
+    fun `lowercase word pattern joins letters with one blank column`() {
+        assertEquals(listOf("#.#", "#.#", "#.#", "#.#", "#.#", "#.#", "#.#"), lowercaseWordPattern("ll"))
     }
 }

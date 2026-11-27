@@ -9,10 +9,9 @@ package com.sekitakumi.nothingfoldlauncher.ui
 enum class KnobLogo(
     val packageName: String,
     val displayName: String,
-    val pattern: List<String> = emptyList(),
-    /** Lines of dot-matrix text drawn instead of [pattern] when non-empty. */
-    val wordmark: List<String> = emptyList(),
-    val wordmarkDotDp: Float = 0f,
+    val pattern: List<String>,
+    /** Fixed grid pitch in dp; 0 scales the pattern to the standard logo size instead. */
+    val cellDp: Float = 0f,
 ) {
     YOUTUBE(
         packageName = "com.google.android.youtube",
@@ -30,8 +29,8 @@ enum class KnobLogo(
     KINDLE(
         packageName = "com.amazon.kindle",
         displayName = "Kindle",
-        wordmark = listOf("KINDLE"),
-        wordmarkDotDp = 2.4f,
+        pattern = KINDLE_PATTERN,
+        cellDp = 3.2f,
     ),
 }
 
@@ -45,3 +44,19 @@ val EMPTY_KNOB_PATTERN = listOf(
     "..#..",
     "..#..",
 )
+
+// Lowercase dot-matrix glyphs for the "kindle" wordmark (the app font only has capitals).
+private val LOWERCASE_GLYPHS = mapOf(
+    'k' to listOf("#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"),
+    'i' to listOf("#", ".", "#", "#", "#", "#", "#"),
+    'n' to listOf("....", "....", "###.", "#..#", "#..#", "#..#", "#..#"),
+    'd' to listOf("...#", "...#", ".###", "#..#", "#..#", "#..#", ".###"),
+    'l' to listOf("#", "#", "#", "#", "#", "#", "#"),
+    'e' to listOf("....", "....", ".##.", "#..#", "####", "#...", ".###"),
+)
+
+/** Joins [LOWERCASE_GLYPHS] for [text] into one pattern, one blank column between letters. */
+internal fun lowercaseWordPattern(text: String): List<String> =
+    List(7) { row -> text.map { LOWERCASE_GLYPHS.getValue(it)[row] }.joinToString(".") }
+
+private val KINDLE_PATTERN = lowercaseWordPattern("kindle")

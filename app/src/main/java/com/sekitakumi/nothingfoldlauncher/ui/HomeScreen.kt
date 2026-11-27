@@ -196,8 +196,7 @@ fun HomeScreen(
                                 } else if (logo != null) {
                                     KnobLogoButton(
                                         pattern = logo.pattern,
-                                        wordmark = logo.wordmark,
-                                        wordmarkDotDp = logo.wordmarkDotDp,
+                                        cellDp = logo.cellDp,
                                         contentDescription = homeKnobNames[slot] ?: logo.displayName,
                                         onTap = { onHomeKnobTap(slot) },
                                         onLongPress = { onHomeKnobLongPress(slot) },
