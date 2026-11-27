@@ -13,7 +13,7 @@ class KnobLogoTest {
     }
 
     @Test
-    fun `kindle package maps to the kindle logo`() {
+    fun `kindle package maps to the book logo`() {
         assertEquals(KnobLogo.KINDLE, knobLogoFor("com.amazon.kindle"))
     }
 
@@ -35,12 +35,22 @@ class KnobLogoTest {
     }
 
     @Test
-    fun `kindle is the lowercase word with a fixed small grid`() {
+    fun `kindle is a book icon on a finer fixed grid than the play logo`() {
         val rows = KnobLogo.KINDLE.pattern
+        assertEquals(23, rows.first().length)
+        assertTrue(rows.size in 14..18)
+        assertTrue(KnobLogo.KINDLE.cellDp in 0.1f..KnobLogo.KINDLE_WORDMARK.cellDp)
+        assertEquals(0f, KnobLogo.YOUTUBE.cellDp, 0f)
+    }
+
+    @Test
+    fun `retired kindle wordmark is kept but never matched`() {
+        val rows = KnobLogo.KINDLE_WORDMARK.pattern
         assertEquals(7, rows.size)
         assertEquals(23, rows.first().length) // k4 i1 n4 d4 l1 e4 + 5 gaps
-        assertTrue(KnobLogo.KINDLE.cellDp > 0f)
-        assertEquals(0f, KnobLogo.YOUTUBE.cellDp, 0f)
+        assertTrue(KnobLogo.KINDLE_WORDMARK.retired)
+        assertEquals(KnobLogo.KINDLE_WORDMARK.packageName, KnobLogo.KINDLE.packageName)
+        assertEquals(KnobLogo.KINDLE, knobLogoFor("com.amazon.kindle"))
     }
 
     @Test
