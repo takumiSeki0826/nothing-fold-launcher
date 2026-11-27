@@ -1,34 +1,37 @@
 package com.sekitakumi.nothingfoldlauncher.ui
 
-enum class KnobLogo { YOUTUBE, X }
-
-private const val YOUTUBE_PACKAGE = "com.google.android.youtube"
-private const val X_PACKAGE = "com.twitter.android"
-
-fun knobLogoFor(packageName: String?): KnobLogo? = when (packageName) {
-    YOUTUBE_PACKAGE -> KnobLogo.YOUTUBE
-    X_PACKAGE -> KnobLogo.X
-    else -> null
+/**
+ * The single place that ties a home-knob logo to its app. To swap the app behind a logo,
+ * change [packageName]; to add a logo, add an entry (and a default in HomeKnobAssignmentStore).
+ * Patterns are dot-matrix art where '#' is a lit dot.
+ */
+enum class KnobLogo(val packageName: String, val displayName: String, val pattern: List<String>) {
+    YOUTUBE(
+        packageName = "com.google.android.youtube",
+        displayName = "YouTube",
+        pattern = listOf(
+            "#.....",
+            "###...",
+            "#####.",
+            "######",
+            "#####.",
+            "###...",
+            "#.....",
+        ),
+    ),
+    CLAUDE(
+        packageName = "com.anthropic.claude",
+        displayName = "Claude",
+        pattern = listOf(
+            "...#...",
+            ".#.#.#.",
+            "..###..",
+            "#######",
+            "..###..",
+            ".#.#.#.",
+            "...#...",
+        ),
+    ),
 }
 
-// Dot-matrix art, '#' = lit dot.
-fun knobLogoPattern(logo: KnobLogo): List<String> = when (logo) {
-    KnobLogo.YOUTUBE -> listOf(
-        "#.....",
-        "###...",
-        "#####.",
-        "######",
-        "#####.",
-        "###...",
-        "#.....",
-    )
-    KnobLogo.X -> listOf(
-        "##...##",
-        "###.###",
-        ".#####.",
-        "..###..",
-        ".#####.",
-        "###.###",
-        "##...##",
-    )
-}
+fun knobLogoFor(packageName: String?): KnobLogo? = KnobLogo.values().firstOrNull { it.packageName == packageName }

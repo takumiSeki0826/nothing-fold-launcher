@@ -181,14 +181,25 @@ fun HomeScreen(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             for (slot in listOf(HomeKnobSlot.HOME_1, HomeKnobSlot.HOME_2)) {
-                                RotaryKnob(
-                                    angleDeg = 0f,
-                                    label = homeKnobNames[slot] ?: slot.defaultLabel,
-                                    onTap = { onHomeKnobTap(slot) },
-                                    onLongPress = { onHomeKnobLongPress(slot) },
-                                    diameter = HOME_KNOB_DIAMETER,
-                                    logo = homeKnobLogos[slot],
-                                )
+                                val label = homeKnobNames[slot] ?: slot.defaultLabel
+                                val logo = homeKnobLogos[slot]
+                                if (logo != null) {
+                                    KnobLogoButton(
+                                        logo = logo,
+                                        contentDescription = homeKnobNames[slot] ?: logo.displayName,
+                                        onTap = { onHomeKnobTap(slot) },
+                                        onLongPress = { onHomeKnobLongPress(slot) },
+                                        touchSize = HOME_KNOB_DIAMETER,
+                                    )
+                                } else {
+                                    RotaryKnob(
+                                        angleDeg = 0f,
+                                        label = label,
+                                        onTap = { onHomeKnobTap(slot) },
+                                        onLongPress = { onHomeKnobLongPress(slot) },
+                                        diameter = HOME_KNOB_DIAMETER,
+                                    )
+                                }
                             }
                         }
                     }

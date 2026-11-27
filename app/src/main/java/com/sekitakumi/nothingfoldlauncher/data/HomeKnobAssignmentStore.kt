@@ -3,6 +3,7 @@ package com.sekitakumi.nothingfoldlauncher.data
 import android.content.Context
 import android.content.SharedPreferences
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSlot
+import com.sekitakumi.nothingfoldlauncher.ui.KnobLogo
 
 class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
     constructor(context: Context) : this(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE))
@@ -27,7 +28,7 @@ class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
 
     /**
      * One-time, versioned reset of the knob tap targets and names to [DEFAULT_ASSIGNMENTS]
-     * (HOME_1 = YouTube, HOME_2 = X). Long-press folder contents are left alone. Returns
+     * (HOME_1 = YouTube, HOME_2 = Claude). Long-press folder contents are left alone. Returns
      * true when it ran; afterwards the user's own choices are never overwritten again.
      */
     fun migrateToDefaultsIfNeeded(): Boolean {
@@ -52,11 +53,11 @@ class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
     companion object {
         private const val PREFS_NAME = "home_knob_assignments"
         private const val KEY_MIGRATION_VERSION = "migration_version"
-        private const val MIGRATION_VERSION = 1
+        private const val MIGRATION_VERSION = 2
 
         val DEFAULT_ASSIGNMENTS: Map<HomeKnobSlot, DefaultAssignment> = mapOf(
-            HomeKnobSlot.HOME_1 to DefaultAssignment("com.google.android.youtube", "YouTube"),
-            HomeKnobSlot.HOME_2 to DefaultAssignment("com.twitter.android", "X"),
+            HomeKnobSlot.HOME_1 to DefaultAssignment(KnobLogo.YOUTUBE.packageName, KnobLogo.YOUTUBE.displayName),
+            HomeKnobSlot.HOME_2 to DefaultAssignment(KnobLogo.CLAUDE.packageName, KnobLogo.CLAUDE.displayName),
         )
     }
 }

@@ -13,21 +13,22 @@ class KnobLogoTest {
     }
 
     @Test
-    fun `x package maps to the cross logo`() {
-        assertEquals(KnobLogo.X, knobLogoFor("com.twitter.android"))
+    fun `claude package maps to the asterisk logo`() {
+        assertEquals(KnobLogo.CLAUDE, knobLogoFor("com.anthropic.claude"))
     }
 
     @Test
     fun `youtube music and unassigned knobs have no logo`() {
         assertNull(knobLogoFor("com.google.android.apps.youtube.music"))
         assertNull(knobLogoFor("com.sec.android.app.myfiles"))
+        assertNull(knobLogoFor("com.twitter.android"))
         assertNull(knobLogoFor(null))
     }
 
     @Test
     fun `patterns are rectangular`() {
         for (logo in KnobLogo.values()) {
-            val rows = knobLogoPattern(logo)
+            val rows = logo.pattern
             assertTrue(rows.all { it.length == rows.first().length })
         }
     }
