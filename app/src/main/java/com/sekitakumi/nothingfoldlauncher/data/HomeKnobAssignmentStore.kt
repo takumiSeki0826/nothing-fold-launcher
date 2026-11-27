@@ -27,27 +27,38 @@ class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
     }
 
     /**
-     * One-time, versioned reset of the knob tap targets and names to [DEFAULT_ASSIGNMENTS]
-     * (HOME_1 = YouTube; HOME_2 has no default). Long-press folder contents are left alone. Returns
-     * true when it ran; afterwards the user's own choices are never overwritten again.
+     * Runs each versioned migration step the device has not seen yet, then records the
+     * version, so every step happens exactly once and later user changes are never
+     * overwritten. Returns true when anything ran.
+     *  - v3: HOME_1 = YouTube; a retired default (X, Claude) left in any other slot is cleared.
+     *  - v4: HOME_2 = Kindle, but only if it is empty or still a retired default.
      */
     fun migrateToDefaultsIfNeeded(): Boolean {
-        if (prefs.getInt(KEY_MIGRATION_VERSION, 0) >= MIGRATION_VERSION) return false
+        val from = prefs.getInt(KEY_MIGRATION_VERSION, 0)
+        if (from >= MIGRATION_VERSION) return false
         val editor = prefs.edit()
-        // Slots without a default stay as the user left them, except where an earlier
-        // default of ours (X, Claude) is still in place: those go back to empty.
-        HomeKnobSlot.values().filter { it !in DEFAULT_ASSIGNMENTS }.forEach { slot ->
-            if (getTapPackage(slot) in RETIRED_DEFAULT_PACKAGES) {
-                editor.remove(tapKey(slot))
-                editor.remove(nameKey(slot))
-            }
+        if (from < 3) {
+            assign(editor, HomeKnobSlot.HOME_1, KnobLogo.YOUTUBE)
+            clearRetiredDefaults(editor, except = HomeKnobSlot.HOME_1)
         }
-        DEFAULT_ASSIGNMENTS.forEach { (slot, assignment) ->
-            editor.putString(tapKey(slot), assignment.packageName)
-            editor.putString(nameKey(slot), assignment.name)
+        if (from < 4) {
+            val tap = getTapPackage(HomeKnobSlot.HOME_2)
+            if (tap == null || tap in RETIRED_DEFAULT_PACKAGES) assign(editor, HomeKnobSlot.HOME_2, KnobLogo.KINDLE)
         }
         editor.putInt(KEY_MIGRATION_VERSION, MIGRATION_VERSION).apply()
         return true
+    }
+
+    private fun assign(editor: SharedPreferences.Editor, slot: HomeKnobSlot, logo: KnobLogo) {
+        editor.putString(tapKey(slot), logo.packageName)
+        editor.putString(nameKey(slot), logo.displayName)
+    }
+
+    private fun clearRetiredDefaults(editor: SharedPreferences.Editor, except: HomeKnobSlot) {
+        HomeKnobSlot.values().filter { it != except && getTapPackage(it) in RETIRED_DEFAULT_PACKAGES }.forEach { slot ->
+            editor.remove(tapKey(slot))
+            editor.remove(nameKey(slot))
+        }
     }
 
     private fun tapKey(slot: HomeKnobSlot) = "${slot.id}_tap"
@@ -56,17 +67,11 @@ class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
 
     private fun nameKey(slot: HomeKnobSlot) = "${slot.id}_name"
 
-    data class DefaultAssignment(val packageName: String, val name: String)
-
     companion object {
         private const val PREFS_NAME = "home_knob_assignments"
         private const val KEY_MIGRATION_VERSION = "migration_version"
-        private const val MIGRATION_VERSION = 3
+        private const val MIGRATION_VERSION = 4
 
         private val RETIRED_DEFAULT_PACKAGES = setOf("com.twitter.android", "com.anthropic.claude")
-
-        val DEFAULT_ASSIGNMENTS: Map<HomeKnobSlot, DefaultAssignment> = mapOf(
-            HomeKnobSlot.HOME_1 to DefaultAssignment(KnobLogo.YOUTUBE.packageName, KnobLogo.YOUTUBE.displayName),
-        )
     }
 }

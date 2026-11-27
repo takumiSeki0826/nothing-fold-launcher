@@ -13,8 +13,8 @@ class KnobLogoTest {
     }
 
     @Test
-    fun `only YouTube has a logo for now`() {
-        assertEquals(listOf(KnobLogo.YOUTUBE), KnobLogo.values().toList())
+    fun `kindle package maps to the kindle logo`() {
+        assertEquals(KnobLogo.KINDLE, knobLogoFor("com.amazon.kindle"))
     }
 
     @Test

@@ -2,8 +2,8 @@ package com.sekitakumi.nothingfoldlauncher.ui
 
 /**
  * The single place that ties a home-knob logo to its app. To swap the app behind a logo,
- * change [packageName]; to add a logo, add an entry here (and, to make it a default, in
- * HomeKnobAssignmentStore.DEFAULT_ASSIGNMENTS).
+ * change [packageName]; to add a logo, add an entry here (to make it a default, also add a
+ * migration step in HomeKnobAssignmentStore).
  * Patterns are dot-matrix art where '#' is a lit dot.
  */
 enum class KnobLogo(val packageName: String, val displayName: String, val pattern: List<String>) {
@@ -18,6 +18,19 @@ enum class KnobLogo(val packageName: String, val displayName: String, val patter
             "#####.",
             "###...",
             "#.....",
+        ),
+    ),
+    KINDLE(
+        packageName = "com.amazon.kindle",
+        displayName = "Kindle",
+        pattern = listOf(
+            "#...#",
+            "#..#.",
+            "#.#..",
+            "##...",
+            "#.#..",
+            "#..#.",
+            "#...#",
         ),
     ),
 }

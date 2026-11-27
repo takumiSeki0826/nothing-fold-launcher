@@ -12,27 +12,42 @@ class HomeKnobAssignmentStoreTest {
     private val prefs = FakeSharedPreferences()
     private val store = HomeKnobAssignmentStore(prefs)
 
+    private fun versionedStore(version: Int): HomeKnobAssignmentStore {
+        prefs.edit().putInt("migration_version", version).apply()
+        return store
+    }
+
     @Test
-    fun `migration sets HOME_1 to YouTube`() {
+    fun `fresh install gets YouTube on HOME_1 and Kindle on HOME_2`() {
+        assertTrue(store.migrateToDefaultsIfNeeded())
+        assertEquals("com.google.android.youtube", store.getTapPackage(HomeKnobSlot.HOME_1))
+        assertEquals("YouTube", store.getName(HomeKnobSlot.HOME_1))
+        assertEquals("com.amazon.kindle", store.getTapPackage(HomeKnobSlot.HOME_2))
+        assertEquals("Kindle", store.getName(HomeKnobSlot.HOME_2))
+    }
+
+    @Test
+    fun `old HOME_1 assignment is replaced by YouTube`() {
         store.setTapPackage(HomeKnobSlot.HOME_1, "com.sec.android.app.myfiles")
         store.setName(HomeKnobSlot.HOME_1, "ファイル")
-
-        assertTrue(store.migrateToDefaultsIfNeeded())
-
+        store.migrateToDefaultsIfNeeded()
         assertEquals("com.google.android.youtube", store.getTapPackage(HomeKnobSlot.HOME_1))
         assertEquals("YouTube", store.getName(HomeKnobSlot.HOME_1))
     }
 
     @Test
-    fun `migration seeds a fresh install with HOME_2 left empty`() {
-        assertTrue(store.migrateToDefaultsIfNeeded())
-        assertEquals("com.google.android.youtube", store.getTapPackage(HomeKnobSlot.HOME_1))
-        assertNull(store.getTapPackage(HomeKnobSlot.HOME_2))
-        assertNull(store.getName(HomeKnobSlot.HOME_2))
+    fun `v3 device with an empty HOME_2 gets Kindle and keeps HOME_1`() {
+        val s = versionedStore(3)
+        s.setTapPackage(HomeKnobSlot.HOME_1, "com.example.mine")
+
+        assertTrue(s.migrateToDefaultsIfNeeded())
+
+        assertEquals("com.amazon.kindle", s.getTapPackage(HomeKnobSlot.HOME_2))
+        assertEquals("com.example.mine", s.getTapPackage(HomeKnobSlot.HOME_1))
     }
 
     @Test
-    fun `retired X and Claude defaults on HOME_2 are cleared`() {
+    fun `retired X and Claude defaults on HOME_2 become Kindle`() {
         for (retired in listOf("com.twitter.android", "com.anthropic.claude")) {
             val p = FakeSharedPreferences()
             val s = HomeKnobAssignmentStore(p)
@@ -42,8 +57,8 @@ class HomeKnobAssignmentStoreTest {
 
             assertTrue(s.migrateToDefaultsIfNeeded())
 
-            assertNull(s.getTapPackage(HomeKnobSlot.HOME_2))
-            assertNull(s.getName(HomeKnobSlot.HOME_2))
+            assertEquals("com.amazon.kindle", s.getTapPackage(HomeKnobSlot.HOME_2))
+            assertEquals("Kindle", s.getName(HomeKnobSlot.HOME_2))
         }
     }
 
@@ -63,13 +78,13 @@ class HomeKnobAssignmentStoreTest {
         store.migrateToDefaultsIfNeeded()
         store.setTapPackage(HomeKnobSlot.HOME_1, "com.example.mine")
         store.setName(HomeKnobSlot.HOME_1, "Mine")
-        store.setTapPackage(HomeKnobSlot.HOME_2, "com.anthropic.claude")
+        prefs.edit().remove("home_2_tap").remove("home_2_name").apply()
 
         assertFalse(store.migrateToDefaultsIfNeeded())
 
         assertEquals("com.example.mine", store.getTapPackage(HomeKnobSlot.HOME_1))
         assertEquals("Mine", store.getName(HomeKnobSlot.HOME_1))
-        assertEquals("com.anthropic.claude", store.getTapPackage(HomeKnobSlot.HOME_2))
+        assertNull(store.getTapPackage(HomeKnobSlot.HOME_2))
     }
 
     @Test
