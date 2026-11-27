@@ -46,25 +46,27 @@ enum class KnobLogo(
 
 fun knobLogoFor(packageName: String?): KnobLogo? = KnobLogo.values().firstOrNull { !it.retired && it.packageName == packageName }
 
-/** Open book (23x15), sampled from a vector shape: V-shaped spine valley, lifted page shoulders, a cover band under the pages, two text lines per page. */
+/** Plain open book (23x17): two solid pages, a one-dot spine gap, gently arched page edges; traced from a reference image. */
 private val BOOK_PATTERN = listOf(
-    ".####.............####.",
-    ".######.........######.",
-    "########.......########",
-    "#########.....#########",
-    "##########...##########",
+    "..#######.....#######..",
     "###########.###########",
-    "###......##.##......###",
     "###########.###########",
-    "###......##.##......###",
     "###########.###########",
-    "#......####.####......#",
-    "###.................###",
-    "########.......########",
-    ".......####.####.......",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "###########.###########",
+    "##.......##.##.......##",
 )
 
-/** Grid pitch of the book icon in dp; finer than the play logo so the curves read. */
+/** Grid pitch of the book icon in dp; finer than the play logo so the arched edges read. */
 private const val BOOK_CELL_DP = 3.1f
 
 /** Dim "+" shown on a home knob that has no app yet; tapping it opens the app picker. */
