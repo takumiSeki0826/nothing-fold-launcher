@@ -46,23 +46,26 @@ enum class KnobLogo(
 
 fun knobLogoFor(packageName: String?): KnobLogo? = KnobLogo.values().firstOrNull { !it.retired && it.packageName == packageName }
 
-/** Open book (19x13), sampled from a vector silhouette: curved page tops, a one-dot spine gap, two text lines per page. */
+/** Open book (23x15), sampled from a vector shape: V-shaped spine valley, lifted page shoulders, a cover band under the pages, two text lines per page. */
 private val BOOK_PATTERN = listOf(
-    "###.............###",
-    "######.......######",
-    "#########.#########",
-    "#########.#########",
-    "#########.#########",
-    "#########.#########",
-    "#########.#########",
-    "#########.#########",
-    "#########.#########",
-    "...######.######...",
-    "......###.###......",
+    ".####.............####.",
+    ".######.........######.",
+    "########.......########",
+    "#########.....#########",
+    "##########...##########",
+    "###########.###########",
+    "###......##.##......###",
+    "###########.###########",
+    "###......##.##......###",
+    "###########.###########",
+    "#......####.####......#",
+    "###.................###",
+    "########.......########",
+    ".......####.####.......",
 )
 
 /** Grid pitch of the book icon in dp; finer than the play logo so the curves read. */
-private const val BOOK_CELL_DP = 3.6f
+private const val BOOK_CELL_DP = 3.1f
 
 /** Dim "+" shown on a home knob that has no app yet; tapping it opens the app picker. */
 val EMPTY_KNOB_PATTERN = listOf(

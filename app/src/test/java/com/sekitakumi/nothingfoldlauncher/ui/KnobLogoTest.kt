@@ -37,8 +37,8 @@ class KnobLogoTest {
     @Test
     fun `kindle is a book icon on a finer fixed grid than the play logo`() {
         val rows = KnobLogo.KINDLE.pattern
-        assertEquals(19, rows.first().length)
-        assertTrue(rows.size in 11..14)
+        assertEquals(23, rows.first().length)
+        assertTrue(rows.size in 14..16)
         assertTrue(KnobLogo.KINDLE.cellDp in 0.1f..KnobLogo.KINDLE_WORDMARK.cellDp)
         assertEquals(0f, KnobLogo.YOUTUBE.cellDp, 0f)
     }
