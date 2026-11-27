@@ -12,6 +12,8 @@ enum class KnobLogo(
     val pattern: List<String>,
     /** Fixed grid pitch in dp; 0 scales the pattern to the standard logo size instead. */
     val cellDp: Float = 0f,
+    /** A retired logo stays in the code so it can be switched back, but no package maps to it. */
+    val retired: Boolean = false,
 ) {
     YOUTUBE(
         packageName = "com.google.android.youtube",
@@ -29,12 +31,38 @@ enum class KnobLogo(
     KINDLE(
         packageName = "com.amazon.kindle",
         displayName = "Kindle",
+        pattern = BOOK_PATTERN,
+        cellDp = BOOK_CELL_DP,
+    ),
+    /** The lowercase "kindle" wordmark that preceded [KINDLE]'s book icon. To restore it, swap which entry is retired. */
+    KINDLE_WORDMARK(
+        packageName = "com.amazon.kindle",
+        displayName = "Kindle",
         pattern = KINDLE_PATTERN,
         cellDp = KINDLE_CELL_DP,
+        retired = true,
     ),
 }
 
-fun knobLogoFor(packageName: String?): KnobLogo? = KnobLogo.values().firstOrNull { it.packageName == packageName }
+fun knobLogoFor(packageName: String?): KnobLogo? = KnobLogo.values().firstOrNull { !it.retired && it.packageName == packageName }
+
+/** Open book (19x13), sampled from a vector silhouette: curved page tops, a one-dot spine gap, two text lines per page. */
+private val BOOK_PATTERN = listOf(
+    "###.............###",
+    "######.......######",
+    "#########.#########",
+    "#########.#########",
+    "#########.#########",
+    "#########.#########",
+    "#########.#########",
+    "#########.#########",
+    "#########.#########",
+    "...######.######...",
+    "......###.###......",
+)
+
+/** Grid pitch of the book icon in dp; finer than the play logo so the curves read. */
+private const val BOOK_CELL_DP = 3.6f
 
 /** Dim "+" shown on a home knob that has no app yet; tapping it opens the app picker. */
 val EMPTY_KNOB_PATTERN = listOf(
