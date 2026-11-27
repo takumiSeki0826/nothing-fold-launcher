@@ -46,7 +46,7 @@ enum class KnobLogo(
 
 fun knobLogoFor(packageName: String?): KnobLogo? = KnobLogo.values().firstOrNull { !it.retired && it.packageName == packageName }
 
-/** Plain open book (23x17): two solid pages, a one-dot spine gap, gently arched page edges; traced from a reference image. */
+/** Plain open book (23x16): two solid pages, a one-dot spine gap, gently arched page edges; traced from a reference image. */
 private val BOOK_PATTERN = listOf(
     "..#######.....#######..",
     "###########.###########",
