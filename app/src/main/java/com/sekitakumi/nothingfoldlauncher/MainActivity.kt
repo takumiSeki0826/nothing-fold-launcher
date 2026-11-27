@@ -263,6 +263,7 @@ class MainActivity : ComponentActivity() {
                 val homeKnobLogos = HomeKnobSlot.values().associateWith { slot ->
                     knobLogoFor(homeKnobPackageAssignments[slot]?.first)
                 }
+                val homeKnobEmptySlots = HomeKnobSlot.values().filter { homeKnobPackageAssignments[it]?.first == null }.toSet()
                 val homeKnobNames = remember {
                     mutableStateMapOf<HomeKnobSlot, String>().apply {
                         HomeKnobSlot.values().forEach { slot ->
@@ -482,6 +483,7 @@ class MainActivity : ComponentActivity() {
                                 isExpandedWidth = isExpandedWidth,
                                 homeKnobNames = homeKnobNames,
                                 homeKnobLogos = homeKnobLogos,
+                                homeKnobEmptySlots = homeKnobEmptySlots,
                                 onHomeKnobTap = { slot ->
                                     val tapPackage = homeKnobPackageAssignments[slot]?.first
                                     if (tapPackage != null) {

@@ -19,8 +19,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-private const val LOGO_SPAN_FRACTION = 0.72f
-private const val LOGO_DOT_RADIUS_FRACTION = 0.36f
+private const val LOGO_SPAN_FRACTION = 0.45f
+private const val LOGO_DOT_RADIUS_FRACTION = 0.32f
 private const val PRESSED_ALPHA = 0.5f
 
 /**
@@ -29,16 +29,17 @@ private const val PRESSED_ALPHA = 0.5f
  */
 @Composable
 fun KnobLogoButton(
-    logo: KnobLogo,
+    pattern: List<String>,
     contentDescription: String,
     onTap: () -> Unit,
     onLongPress: () -> Unit,
     touchSize: Dp,
     modifier: Modifier = Modifier,
+    baseColor: Color = Color.White,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val dotColor = if (isPressed) Color.White.copy(alpha = PRESSED_ALPHA) else Color.White
+    val dotColor = if (isPressed) baseColor.copy(alpha = PRESSED_ALPHA) else baseColor
 
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Canvas(
@@ -52,7 +53,7 @@ fun KnobLogoButton(
                     onLongClick = onLongPress,
                 ),
         ) {
-            drawLogoDots(logo.pattern, dotColor)
+            drawLogoDots(pattern, dotColor)
         }
     }
 }

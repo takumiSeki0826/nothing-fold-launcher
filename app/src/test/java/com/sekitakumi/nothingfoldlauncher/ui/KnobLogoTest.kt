@@ -13,8 +13,8 @@ class KnobLogoTest {
     }
 
     @Test
-    fun `claude package maps to the asterisk logo`() {
-        assertEquals(KnobLogo.CLAUDE, knobLogoFor("com.anthropic.claude"))
+    fun `only YouTube has a logo for now`() {
+        assertEquals(listOf(KnobLogo.YOUTUBE), KnobLogo.values().toList())
     }
 
     @Test
@@ -22,6 +22,7 @@ class KnobLogoTest {
         assertNull(knobLogoFor("com.google.android.apps.youtube.music"))
         assertNull(knobLogoFor("com.sec.android.app.myfiles"))
         assertNull(knobLogoFor("com.twitter.android"))
+        assertNull(knobLogoFor("com.anthropic.claude"))
         assertNull(knobLogoFor(null))
     }
 

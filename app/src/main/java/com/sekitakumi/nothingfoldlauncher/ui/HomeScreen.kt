@@ -97,6 +97,7 @@ fun HomeScreen(
     isExpandedWidth: Boolean,
     homeKnobNames: Map<HomeKnobSlot, String>,
     homeKnobLogos: Map<HomeKnobSlot, KnobLogo?>,
+    homeKnobEmptySlots: Set<HomeKnobSlot>,
     onHomeKnobTap: (HomeKnobSlot) -> Unit,
     onHomeKnobLongPress: (HomeKnobSlot) -> Unit,
     onHomeKnobSettingsLongPress: () -> Unit,
@@ -183,9 +184,18 @@ fun HomeScreen(
                             for (slot in listOf(HomeKnobSlot.HOME_1, HomeKnobSlot.HOME_2)) {
                                 val label = homeKnobNames[slot] ?: slot.defaultLabel
                                 val logo = homeKnobLogos[slot]
-                                if (logo != null) {
+                                if (slot in homeKnobEmptySlots) {
                                     KnobLogoButton(
-                                        logo = logo,
+                                        pattern = EMPTY_KNOB_PATTERN,
+                                        contentDescription = "Assign app",
+                                        onTap = { onHomeKnobTap(slot) },
+                                        onLongPress = { onHomeKnobLongPress(slot) },
+                                        touchSize = HOME_KNOB_DIAMETER,
+                                        baseColor = NothingGrays.OnBase,
+                                    )
+                                } else if (logo != null) {
+                                    KnobLogoButton(
+                                        pattern = logo.pattern,
                                         contentDescription = homeKnobNames[slot] ?: logo.displayName,
                                         onTap = { onHomeKnobTap(slot) },
                                         onLongPress = { onHomeKnobLongPress(slot) },

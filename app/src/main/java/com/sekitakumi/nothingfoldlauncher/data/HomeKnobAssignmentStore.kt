@@ -28,12 +28,20 @@ class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
 
     /**
      * One-time, versioned reset of the knob tap targets and names to [DEFAULT_ASSIGNMENTS]
-     * (HOME_1 = YouTube, HOME_2 = Claude). Long-press folder contents are left alone. Returns
+     * (HOME_1 = YouTube; HOME_2 has no default). Long-press folder contents are left alone. Returns
      * true when it ran; afterwards the user's own choices are never overwritten again.
      */
     fun migrateToDefaultsIfNeeded(): Boolean {
         if (prefs.getInt(KEY_MIGRATION_VERSION, 0) >= MIGRATION_VERSION) return false
         val editor = prefs.edit()
+        // Slots without a default stay as the user left them, except where an earlier
+        // default of ours (X, Claude) is still in place: those go back to empty.
+        HomeKnobSlot.values().filter { it !in DEFAULT_ASSIGNMENTS }.forEach { slot ->
+            if (getTapPackage(slot) in RETIRED_DEFAULT_PACKAGES) {
+                editor.remove(tapKey(slot))
+                editor.remove(nameKey(slot))
+            }
+        }
         DEFAULT_ASSIGNMENTS.forEach { (slot, assignment) ->
             editor.putString(tapKey(slot), assignment.packageName)
             editor.putString(nameKey(slot), assignment.name)
@@ -53,11 +61,12 @@ class HomeKnobAssignmentStore(private val prefs: SharedPreferences) {
     companion object {
         private const val PREFS_NAME = "home_knob_assignments"
         private const val KEY_MIGRATION_VERSION = "migration_version"
-        private const val MIGRATION_VERSION = 2
+        private const val MIGRATION_VERSION = 3
+
+        private val RETIRED_DEFAULT_PACKAGES = setOf("com.twitter.android", "com.anthropic.claude")
 
         val DEFAULT_ASSIGNMENTS: Map<HomeKnobSlot, DefaultAssignment> = mapOf(
             HomeKnobSlot.HOME_1 to DefaultAssignment(KnobLogo.YOUTUBE.packageName, KnobLogo.YOUTUBE.displayName),
-            HomeKnobSlot.HOME_2 to DefaultAssignment(KnobLogo.CLAUDE.packageName, KnobLogo.CLAUDE.displayName),
         )
     }
 }
