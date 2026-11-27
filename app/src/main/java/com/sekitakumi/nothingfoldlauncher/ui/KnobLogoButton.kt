@@ -19,8 +19,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-// Dot size is fixed by a 7-cell grid so a wider logo (e.g. a book) keeps the same dots as ▶.
-private const val LOGO_GRID_CELLS = 7
 private const val LOGO_SPAN_FRACTION = 0.45f
 private const val LOGO_DOT_RADIUS_FRACTION = 0.32f
 private const val PRESSED_ALPHA = 0.5f
@@ -62,7 +60,7 @@ fun KnobLogoButton(
 
 private fun DrawScope.drawLogoDots(rows: List<String>, color: Color) {
     val cols = rows.first().length
-    val cell = size.minDimension * LOGO_SPAN_FRACTION / maxOf(LOGO_GRID_CELLS, rows.size, cols)
+    val cell = size.minDimension * LOGO_SPAN_FRACTION / maxOf(rows.size, cols)
     val originX = (size.width - cell * cols) / 2f
     val originY = (size.height - cell * rows.size) / 2f
     for (r in rows.indices) {
