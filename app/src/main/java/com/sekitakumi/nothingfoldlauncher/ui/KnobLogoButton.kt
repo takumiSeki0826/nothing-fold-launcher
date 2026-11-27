@@ -42,10 +42,13 @@ fun KnobLogoButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     val dotColor = if (isPressed) baseColor.copy(alpha = PRESSED_ALPHA) else baseColor
 
+    // A fixed-pitch logo can be wider than the tile; the tap target widens with it.
+    val width = maxOf(touchSize, (pattern.first().length * cellDp).dp)
+
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Canvas(
             modifier = Modifier
-                .size(touchSize)
+                .size(width = width, height = touchSize)
                 .semantics { this.contentDescription = contentDescription }
                 .combinedClickable(
                     interactionSource = interactionSource,

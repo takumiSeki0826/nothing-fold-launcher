@@ -30,7 +30,7 @@ enum class KnobLogo(
         packageName = "com.amazon.kindle",
         displayName = "Kindle",
         pattern = KINDLE_PATTERN,
-        cellDp = 3.2f,
+        cellDp = KINDLE_CELL_DP,
     ),
 }
 
@@ -60,3 +60,6 @@ internal fun lowercaseWordPattern(text: String): List<String> =
     List(7) { row -> text.map { LOWERCASE_GLYPHS.getValue(it)[row] }.joinToString(".") }
 
 private val KINDLE_PATTERN = lowercaseWordPattern("kindle")
+
+/** Grid pitch of the "kindle" wordmark in dp; the one knob to turn for its size. */
+private const val KINDLE_CELL_DP = 4.7f
