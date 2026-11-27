@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,6 +77,7 @@ fun RotaryKnob(
     entranceWobbleDelayMs: Long = 0L,
     clickable: Boolean = true,
     pressed: Boolean = false,
+    logo: KnobLogo? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -139,6 +141,8 @@ fun RotaryKnob(
 
             drawCircle(color = KNOB_FILL_COLOR, radius = knobRadius, center = center)
 
+            if (logo != null) drawKnobLogo(logo, knobRadius, center)
+
             val dotOffset = angleToIndicatorOffset(
                 angleDeg + DOT_BASE_ANGLE_OFFSET_DEG + pressRotationDeg.value,
                 knobRadius * 0.55f,
@@ -151,5 +155,24 @@ fun RotaryKnob(
             fontSize = 10.sp,
             modifier = Modifier.padding(top = 6.dp),
         )
+    }
+}
+
+private fun DrawScope.drawKnobLogo(logo: KnobLogo, knobRadius: Float, center: Offset) {
+    val rows = knobLogoPattern(logo)
+    val cols = rows.first().length
+    val cell = knobRadius * 1.15f / maxOf(rows.size, cols)
+    val originX = center.x - cell * cols / 2f
+    val originY = center.y - cell * rows.size / 2f
+    for (r in rows.indices) {
+        for (c in rows[r].indices) {
+            if (rows[r][c] == '#') {
+                drawCircle(
+                    color = Color.White,
+                    radius = cell * 0.33f,
+                    center = Offset(originX + (c + 0.5f) * cell, originY + (r + 0.5f) * cell),
+                )
+            }
+        }
     }
 }

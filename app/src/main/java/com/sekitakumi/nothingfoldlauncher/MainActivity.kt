@@ -64,6 +64,7 @@ import com.sekitakumi.nothingfoldlauncher.ui.HomeGridItem
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobAppAssignment
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSettingsMenu
 import com.sekitakumi.nothingfoldlauncher.ui.HomeKnobSlot
+import com.sekitakumi.nothingfoldlauncher.ui.knobLogoFor
 import com.sekitakumi.nothingfoldlauncher.ui.HomeRoute
 import com.sekitakumi.nothingfoldlauncher.ui.HomeScreen
 import com.sekitakumi.nothingfoldlauncher.ui.LockScreenSyncMenu
@@ -114,7 +115,9 @@ class MainActivity : ComponentActivity() {
     private val folderEditTargetState = mutableStateOf<FolderEditTarget?>(null)
 
     private val lockScreenSyncStore by lazy { LockScreenSyncStore(applicationContext) }
-    private val homeKnobAssignmentStore by lazy { HomeKnobAssignmentStore(applicationContext) }
+    private val homeKnobAssignmentStore by lazy {
+        HomeKnobAssignmentStore(applicationContext).also { it.migrateToDefaultsIfNeeded() }
+    }
     private val homeAppFolderStore by lazy { HomeAppFolderStore(applicationContext) }
     private val homeOrderStore by lazy { HomeOrderStore(applicationContext) }
     private val drawerAppGroupStore by lazy { DrawerAppGroupStore(applicationContext) }
@@ -256,6 +259,9 @@ class MainActivity : ComponentActivity() {
                         tapApp = tapPackage?.let(appsByPackage::get),
                         folderApps = folderPackages.mapNotNull(appsByPackage::get),
                     )
+                }
+                val homeKnobLogos = HomeKnobSlot.values().associateWith { slot ->
+                    knobLogoFor(homeKnobPackageAssignments[slot]?.first)
                 }
                 val homeKnobNames = remember {
                     mutableStateMapOf<HomeKnobSlot, String>().apply {
@@ -475,6 +481,7 @@ class MainActivity : ComponentActivity() {
                                 onAppGridSettingsLongPress = { showAppGridSettings = true },
                                 isExpandedWidth = isExpandedWidth,
                                 homeKnobNames = homeKnobNames,
+                                homeKnobLogos = homeKnobLogos,
                                 onHomeKnobTap = { slot ->
                                     val tapPackage = homeKnobPackageAssignments[slot]?.first
                                     if (tapPackage != null) {

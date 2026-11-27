@@ -96,6 +96,7 @@ fun HomeScreen(
     onReorder: (from: HomeGridItem, to: HomeGridItem?) -> Unit,
     isExpandedWidth: Boolean,
     homeKnobNames: Map<HomeKnobSlot, String>,
+    homeKnobLogos: Map<HomeKnobSlot, KnobLogo?>,
     onHomeKnobTap: (HomeKnobSlot) -> Unit,
     onHomeKnobLongPress: (HomeKnobSlot) -> Unit,
     onHomeKnobSettingsLongPress: () -> Unit,
@@ -186,6 +187,7 @@ fun HomeScreen(
                                     onTap = { onHomeKnobTap(slot) },
                                     onLongPress = { onHomeKnobLongPress(slot) },
                                     diameter = HOME_KNOB_DIAMETER,
+                                    logo = homeKnobLogos[slot],
                                 )
                             }
                         }
