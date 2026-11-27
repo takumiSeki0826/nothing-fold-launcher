@@ -96,6 +96,8 @@ fun HomeScreen(
     onReorder: (from: HomeGridItem, to: HomeGridItem?) -> Unit,
     isExpandedWidth: Boolean,
     homeKnobNames: Map<HomeKnobSlot, String>,
+    homeKnobLogos: Map<HomeKnobSlot, KnobLogo?>,
+    homeKnobEmptySlots: Set<HomeKnobSlot>,
     onHomeKnobTap: (HomeKnobSlot) -> Unit,
     onHomeKnobLongPress: (HomeKnobSlot) -> Unit,
     onHomeKnobSettingsLongPress: () -> Unit,
@@ -180,13 +182,35 @@ fun HomeScreen(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             for (slot in listOf(HomeKnobSlot.HOME_1, HomeKnobSlot.HOME_2)) {
-                                RotaryKnob(
-                                    angleDeg = 0f,
-                                    label = homeKnobNames[slot] ?: slot.defaultLabel,
-                                    onTap = { onHomeKnobTap(slot) },
-                                    onLongPress = { onHomeKnobLongPress(slot) },
-                                    diameter = HOME_KNOB_DIAMETER,
-                                )
+                                val label = homeKnobNames[slot] ?: slot.defaultLabel
+                                val logo = homeKnobLogos[slot]
+                                if (slot in homeKnobEmptySlots) {
+                                    KnobLogoButton(
+                                        pattern = EMPTY_KNOB_PATTERN,
+                                        contentDescription = "Assign app",
+                                        onTap = { onHomeKnobTap(slot) },
+                                        onLongPress = { onHomeKnobLongPress(slot) },
+                                        touchSize = HOME_KNOB_DIAMETER,
+                                        baseColor = NothingGrays.OnBase,
+                                    )
+                                } else if (logo != null) {
+                                    KnobLogoButton(
+                                        pattern = logo.pattern,
+                                        cellDp = logo.cellDp,
+                                        contentDescription = homeKnobNames[slot] ?: logo.displayName,
+                                        onTap = { onHomeKnobTap(slot) },
+                                        onLongPress = { onHomeKnobLongPress(slot) },
+                                        touchSize = HOME_KNOB_DIAMETER,
+                                    )
+                                } else {
+                                    RotaryKnob(
+                                        angleDeg = 0f,
+                                        label = label,
+                                        onTap = { onHomeKnobTap(slot) },
+                                        onLongPress = { onHomeKnobLongPress(slot) },
+                                        diameter = HOME_KNOB_DIAMETER,
+                                    )
+                                }
                             }
                         }
                     }
